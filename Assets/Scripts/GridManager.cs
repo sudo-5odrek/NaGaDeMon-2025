@@ -1,9 +1,13 @@
 using UnityEngine;
+using System;
+using System.Collections.Generic;
 
 [ExecuteAlways]
 public class GridManager : MonoBehaviour
 {
-    public static GridManager I;
+    public static GridManager Instance;
+    
+    public event Action OnGridUpdated;
 
     [Header("Grid Settings")]
     public int width = 20;
@@ -20,9 +24,14 @@ public class GridManager : MonoBehaviour
 
     private Node[,] nodes;
 
+    public void NotifyGridUpdated()
+    {
+        OnGridUpdated?.Invoke();
+    }
+    
     void Awake()
     {
-        I = this;
+        Instance = this;
         GenerateGrid();
     }
 
@@ -30,19 +39,52 @@ public class GridManager : MonoBehaviour
     {
         GenerateGrid();
     }
+    
+    public void BlockNodesUnderObject(GameObject obj)
+    {
+        if (nodes == null)
+            GenerateGrid();
 
+        Collider2D col = obj.GetComponent<Collider2D>();
+        if (col == null)
+        {
+            Debug.LogWarning($"[GridManager] No collider found on {obj.name} to block nodes.");
+            return;
+        }
+
+        Bounds bounds = col.bounds;
+
+        // 👇 Convert world bounds to grid coordinates, with a tiny inward offset
+        (int minX, int minY) = GridFromWorld(bounds.min);
+        (int maxX, int maxY) = GridFromWorld(bounds.max - Vector3.one * 0.001f);
+
+        minX = Mathf.Clamp(minX, 0, width - 1);
+        minY = Mathf.Clamp(minY, 0, height - 1);
+        maxX = Mathf.Clamp(maxX, 0, width - 1);
+        maxY = Mathf.Clamp(maxY, 0, height - 1);
+
+        for (int x = minX; x <= maxX; x++)
+        for (int y = minY; y <= maxY; y++)
+        {
+            Node node = GetNode(x, y);
+            if (node != null)
+                node.walkable = false;
+        }
+
+        NotifyGridUpdated();
+    }
+    
     void GenerateGrid()
     {
         nodes = new Node[width, height];
-
         for (int x = 0; x < width; x++)
         for (int y = 0; y < height; y++)
         {
             Vector3 center = WorldFromGrid(x, y);
 
             // 👇 Check for obstacle overlap at this tile
-            bool blocked = Physics2D.OverlapBox(center, Vector2.one * (cellSize * 0.9f), 0, obstacleMask);
-
+            bool  blocked = Physics2D.OverlapBox(center, Vector2.one * (cellSize * 0.9f), 0, obstacleMask);
+            
             nodes[x, y] = new Node(x, y, !blocked);
         }
     }
@@ -100,6 +142,34 @@ public class GridManager : MonoBehaviour
                 Gizmos.DrawCube(center, Vector3.one * cellSize * 0.95f);
             }
         }
+    }
+    
+    public Node GetClosestNode(Vector3 worldPos)
+    {
+        if (nodes == null || nodes.Length == 0)
+            GenerateGrid();
+
+        // Convert world position to grid coordinates
+        (int gx, int gy) = GridFromWorld(worldPos);
+
+        // Clamp within grid bounds
+        gx = Mathf.Clamp(gx, 0, width - 1);
+        gy = Mathf.Clamp(gy, 0, height - 1);
+
+        return nodes[gx, gy];
+    }
+
+// Optional convenience method if you just want the center position:
+    public Vector3 GetClosestNodeWorldPos(Vector3 worldPos)
+    {
+        Node node = GetClosestNode(worldPos);
+        Vector3 pos = WorldFromGrid(node.x, node.y);
+
+        // 🔹 Offset half a cell to align bottom-left–anchored prefabs
+        pos.x += cellSize * 0.5f;
+        pos.y += cellSize * 0.5f;
+
+        return pos;
     }
 }
 

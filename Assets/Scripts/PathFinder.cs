@@ -36,15 +36,15 @@ public static class Pathfinder
 
             foreach (var dir in directions)
             {
-                var n = GridManager.I.GetNode(current.x + dir.x, current.y + dir.y);
+                var n = GridManager.Instance.GetNode(current.x + dir.x, current.y + dir.y);
                 if (n == null || !n.walkable || closed.Contains(n)) continue;
 
                 // --- prevent diagonal corner cutting ---
                 if (Mathf.Abs(dir.x) + Mathf.Abs(dir.y) == 2 && !allowCornerCutting)
                 {
                     // If moving diagonally, both side cells must be walkable
-                    Node sideA = GridManager.I.GetNode(current.x + dir.x, current.y);
-                    Node sideB = GridManager.I.GetNode(current.x, current.y + dir.y);
+                    Node sideA = GridManager.Instance.GetNode(current.x + dir.x, current.y);
+                    Node sideB = GridManager.Instance.GetNode(current.x, current.y + dir.y);
                     if ((sideA != null && !sideA.walkable) || (sideB != null && !sideB.walkable))
                         continue;
                 }

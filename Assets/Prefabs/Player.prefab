@@ -26,8 +26,8 @@ Transform:
   m_GameObject: {fileID: 1757687915643613006}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.0000018924472, w: 1}
-  m_LocalPosition: {x: 0, y: 0.17, z: 0}
-  m_LocalScale: {x: 0.5987402, y: 0.6735, z: 1}
+  m_LocalPosition: {x: 0, y: 0.507, z: 0}
+  m_LocalScale: {x: 0.7505807, y: 0.6735, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1655121782717556693}
@@ -77,7 +77,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
-  m_Color: {r: 0, g: 0.2830189, b: 0.012401725, a: 1}
+  m_Color: {r: 0.9622642, g: 0.95099664, b: 0.7307761, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -118,8 +118,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 5947861019581633310}
   - {fileID: 9166113578615167786}
+  - {fileID: 5947861019581633310}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &6922067620858836247
@@ -163,6 +163,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 6
   rotationSpeed: 720
+  bulletPrefab: {fileID: 0}
+  firePoint: {fileID: 0}
+  shootCooldown: 0.25
 --- !u!1 &7892678795118203652
 GameObject:
   m_ObjectHideFlags: 0

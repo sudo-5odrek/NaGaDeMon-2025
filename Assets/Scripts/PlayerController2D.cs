@@ -2,91 +2,75 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(AttackController))]
 public class PlayerController2D : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] float moveSpeed = 6f;
-    [SerializeField] float rotationSpeed = 720f;
-    [SerializeField] GameObject bulletPrefab;
-    [SerializeField] Transform firePoint;  // an empty child where bullets come from
-    [SerializeField] float shootCooldown = 0.25f;
+    [SerializeField] private float moveSpeed = 6f;
+    [SerializeField] private float rotationSpeed = 720f;
 
-    float shootTimer;
-    
-    Rigidbody2D rb;
-    InputSystem_Actions controls;
-    Vector2 moveInput;
-    Vector2 lookInput;
-    Camera cam;
+    private Rigidbody2D rb;
+    private Camera cam;
+    private InputSystem_Actions input;
+    private AttackController attackController;
 
-    void Awake()
+    private Vector2 moveInput;
+    private Vector2 lookInput;
+
+    private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         cam = Camera.main;
+        attackController = GetComponent<AttackController>();
 
-        controls = new InputSystem_Actions();
+        // Reuse shared InputSystem instance
+        input = InputContextManager.Instance.input;
 
         // Movement input
-        controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        controls.Player.Move.canceled += _ => moveInput = Vector2.zero;
+        input.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        input.Player.Move.canceled += _ => moveInput = Vector2.zero;
 
-        // Look input (mouse or right stick)
-        controls.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
-        controls.Player.Look.canceled += _ => lookInput = Vector2.zero;
-        
-        controls.Player.Attack.performed += _ => TryShoot();
+        // Look input
+        input.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
+        input.Player.Look.canceled += _ => lookInput = Vector2.zero;
     }
 
-    void OnEnable() => controls.Enable();
-    void OnDisable() => controls.Disable();
+    private void OnEnable() => input.Enable();
+    private void OnDisable() => input.Disable();
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        rb.linearVelocity = moveInput * moveSpeed;
+        HandleMovement();
+        HandleRotation();
+    }
 
-        // --- Determine facing direction ---
+    private void HandleMovement()
+    {
+        // Use Move input directly
+        rb.linearVelocity = moveInput * moveSpeed;
+    }
+
+    private void HandleRotation()
+    {
         Vector2 aimDir = Vector2.zero;
 
+        // Gamepad look
         if (Gamepad.current != null && Gamepad.current.rightStick.ReadValue().sqrMagnitude > 0.1f)
         {
-            // Right stick controls look direction
             aimDir = Gamepad.current.rightStick.ReadValue();
         }
         else
         {
-            // Mouse controls look direction
-            Vector2 mousePos = cam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            aimDir = mousePos - (Vector2)transform.position;
+            // Mouse look (2D world)
+            Vector2 mouseWorld = cam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            aimDir = mouseWorld - (Vector2)transform.position;
         }
 
         if (aimDir.sqrMagnitude > 0.001f)
         {
-            float targetAngle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg - 90f; // adjust offset if sprite faces right
+            float targetAngle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg - 90f;
             float newAngle = Mathf.MoveTowardsAngle(rb.rotation, targetAngle, rotationSpeed * Time.fixedDeltaTime);
             rb.MoveRotation(newAngle);
         }
-        
-        shootTimer -= Time.fixedDeltaTime;
-
-    }
-    
-    void TryShoot()
-    {
-        if (shootTimer > 0f) return;
-        shootTimer = shootCooldown;
-
-        Vector2 aimDir;
-
-        if (Gamepad.current != null && Gamepad.current.rightStick.ReadValue().sqrMagnitude > 0.1f)
-            aimDir = Gamepad.current.rightStick.ReadValue();
-        else
-        {
-            Vector2 mousePos = cam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            aimDir = mousePos - (Vector2)firePoint.position;
-        }
-
-        var bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity)
-            .GetComponent<Bullet>();
-        bullet.Init(aimDir);
     }
 }

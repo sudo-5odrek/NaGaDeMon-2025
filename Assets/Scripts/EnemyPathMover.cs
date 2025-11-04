@@ -30,7 +30,23 @@ public class EnemyPathMover : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         startPos = transform.position;
     }
+    
+    private void OnEnable()
+    {
+        GridManager.Instance.OnGridUpdated += HandleGridUpdate;
+    }
 
+    private void OnDisable()
+    {
+        if (GridManager.Instance != null)
+            GridManager.Instance.OnGridUpdated -= HandleGridUpdate;
+    }
+    
+    private void HandleGridUpdate()
+    {
+        RecalculatePath();
+    }
+    
     void Start()
     {
         if (!Application.isPlaying) return;
@@ -67,13 +83,13 @@ public class EnemyPathMover : MonoBehaviour
 
     public void RecalculatePath()
     {
-        if (!target || !GridManager.I) return;
+        if (!target || !GridManager.Instance) return;
 
-        var (sx, sy) = GridManager.I.GridFromWorld(transform.position);
-        var (tx, ty) = GridManager.I.GridFromWorld(target.position);
+        var (sx, sy) = GridManager.Instance.GridFromWorld(transform.position);
+        var (tx, ty) = GridManager.Instance.GridFromWorld(target.position);
 
-        var start = GridManager.I.GetNode(sx, sy);
-        var goal = GridManager.I.GetNode(tx, ty);
+        var start = GridManager.Instance.GetNode(sx, sy);
+        var goal = GridManager.Instance.GetNode(tx, ty);
 
         path = Pathfinder.FindPath(start, goal);
         index = 0;
@@ -87,7 +103,7 @@ public class EnemyPathMover : MonoBehaviour
             return;
         }
 
-        Vector2 currentNode = GridManager.I.WorldFromGrid(path[index].x, path[index].y);
+        Vector2 currentNode = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
         Vector2 dirToCurrent = (currentNode - rb.position).normalized;
         Vector2 finalDir = dirToCurrent;
 
@@ -96,7 +112,7 @@ public class EnemyPathMover : MonoBehaviour
         // --- Blend toward the following node (smooth turn) ---
         if (dist < turnDistance && index + 1 < path.Count)
         {
-            Vector2 nextNode = GridManager.I.WorldFromGrid(path[index + 1].x, path[index + 1].y);
+            Vector2 nextNode = GridManager.Instance.WorldFromGrid(path[index + 1].x, path[index + 1].y);
             Vector2 dirToNext = (nextNode - rb.position).normalized;
             finalDir = Vector2.Lerp(dirToCurrent, dirToNext, 1f - (dist / turnDistance));
         }
@@ -119,7 +135,7 @@ public class EnemyPathMover : MonoBehaviour
         // --- 2. projected distance along segment ---
         if (index > 0)
         {
-            Vector2 prev = GridManager.I.WorldFromGrid(path[index - 1].x, path[index - 1].y);
+            Vector2 prev = GridManager.Instance.WorldFromGrid(path[index - 1].x, path[index - 1].y);
 
             Vector2 seg = nodePos - prev;
             Vector2 toEnemy = rb.position - prev;
@@ -156,14 +172,14 @@ public class EnemyPathMover : MonoBehaviour
 
         for (int i = 0; i < path.Count - 1; i++)
         {
-            Vector3 a = GridManager.I.WorldFromGrid(path[i].x, path[i].y);
-            Vector3 b = GridManager.I.WorldFromGrid(path[i + 1].x, path[i + 1].y);
+            Vector3 a = GridManager.Instance.WorldFromGrid(path[i].x, path[i].y);
+            Vector3 b = GridManager.Instance.WorldFromGrid(path[i + 1].x, path[i + 1].y);
             Gizmos.DrawLine(a, b);
             Gizmos.DrawSphere(a, 0.08f);
         }
 
         // --- Final target node highlight ---
-        Vector3 goalPos = GridManager.I.WorldFromGrid(path[^1].x, path[^1].y);
+        Vector3 goalPos = GridManager.Instance.WorldFromGrid(path[^1].x, path[^1].y);
         Gizmos.color = Color.cyan; // 👈 change this color as you wish
         Gizmos.DrawSphere(goalPos, 0.12f);
         Gizmos.DrawWireSphere(goalPos, 0.18f);
@@ -171,7 +187,7 @@ public class EnemyPathMover : MonoBehaviour
         // --- Optional: Draw current node the enemy is moving toward ---
         if (index < path.Count)
         {
-            Vector3 currentPos = GridManager.I.WorldFromGrid(path[index].x, path[index].y);
+            Vector3 currentPos = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
             Gizmos.color = Color.green;
             Gizmos.DrawSphere(currentPos, 0.1f);
         }
