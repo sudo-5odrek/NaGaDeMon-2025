@@ -61,6 +61,8 @@ public class BuildManager : MonoBehaviour
 
         selectedBuilding = building;
         previewObject = Instantiate(building.prefab);
+        previewObject.GetComponent<Turret>().enabled = false;
+        
         SetLayerRecursively(previewObject, LayerMask.NameToLayer("Ignore Raycast"));
         SetPreviewColor(Color.green);
 

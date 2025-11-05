@@ -2,40 +2,43 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    [SerializeField] float speed = 12f;
-    [SerializeField] float range = 10f;
-    [SerializeField] int damage = 1;
+    private float speed;
+    private int damage;
+    private float maxRange;
 
-    Vector2 startPos;
-    Vector2 direction;
+    private Vector2 startPos;
+    private Rigidbody2D rb;
 
-    void Start()
+    void Awake()
     {
-        startPos = transform.position;
+        rb = GetComponent<Rigidbody2D>();
     }
 
-    public void Init(Vector2 dir)
+    public void Init(Vector2 direction, float speed, int damage, float maxRange)
     {
-        direction = dir.normalized;
+        this.speed = speed;
+        this.damage = damage;
+        this.maxRange = maxRange;
+
+        startPos = transform.position;
+
+        if (rb)
+            rb.linearVelocity = direction.normalized * speed;
     }
 
     void Update()
     {
-        transform.position += (Vector3)(direction * (speed * Time.deltaTime));
-
-        // destroy after traveling past range
-        if (Vector2.Distance(startPos, transform.position) >= range)
+        // Destroy when exceeding range
+        if (Vector2.Distance(startPos, transform.position) >= maxRange)
             Destroy(gameObject);
     }
 
-    // Later we’ll use this for hitting enemies
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.TryGetComponent<EnemyHealth>(out var enemy))
         {
             enemy.TakeDamage(damage);
-            Destroy(gameObject); // bullet disappears on hit
+            Destroy(gameObject);
         }
     }
 }
-

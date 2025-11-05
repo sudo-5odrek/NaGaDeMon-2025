@@ -23,6 +23,11 @@ public class EnemyHealth : MonoBehaviour
     void Die()
     {
         Debug.Log($"{name} died!");
+        
+        // Drop loot if loot table exists
+        if (TryGetComponent<LootTable>(out var lootTable))
+            lootTable.DropLoot();
+        
         Destroy(gameObject); // later: replace with pooling or death animation
     }
 }

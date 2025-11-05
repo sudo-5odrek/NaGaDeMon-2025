@@ -129,7 +129,7 @@ public class EnemyPathMover : MonoBehaviour
     bool HasReachedOrPassedNode(Vector2 nodePos)
     {
         // --- 1. proximity check ---
-        if (Vector2.Distance(rb.position, nodePos) < 0.4f)
+        if (Vector2.Distance(rb.position, nodePos) < 1f)
             return true;
 
         // --- 2. projected distance along segment ---
@@ -174,6 +174,7 @@ public class EnemyPathMover : MonoBehaviour
         {
             Vector3 a = GridManager.Instance.WorldFromGrid(path[i].x, path[i].y);
             Vector3 b = GridManager.Instance.WorldFromGrid(path[i + 1].x, path[i + 1].y);
+            Gizmos.color = new Color(255f, 255f, 0f, 0.01f);
             Gizmos.DrawLine(a, b);
             Gizmos.DrawSphere(a, 0.08f);
         }

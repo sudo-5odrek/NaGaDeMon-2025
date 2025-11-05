@@ -7,18 +7,23 @@ public class AttackController : MonoBehaviour
     public enum AttackMode { Manual, Auto }
     [Header("Attack Settings")]
     public AttackMode mode = AttackMode.Manual;
+    public float bulletSpeed = 5f;
 
     [Header("Stats")]
-    public float attackRange = 4f;
+    public float maxRange = 4f;
     public float attackCooldown = 0.8f;
+    public int damagePerShot = 5;
     public LayerMask enemyMask;
     public Transform firePoint; // where projectiles originate
     public GameObject projectilePrefab;
+    
+    public LayerMask obstacleMask;
 
     private InputSystem_Actions input;
     private Camera cam;
     private float lastAttackTime;
     private Collider2D currentTarget;
+    
 
     private void Awake()
     {
@@ -79,19 +84,28 @@ public class AttackController : MonoBehaviour
         if (Time.time - lastAttackTime < attackCooldown) return;
 
         // Find the closest enemy in range
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyMask);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, maxRange, enemyMask);
         if (hits.Length == 0)
         {
             currentTarget = null;
             return;
         }
 
-        // Find closest one
+        // --- Find closest visible enemy ---
         float minDist = Mathf.Infinity;
         Collider2D closest = null;
+
         foreach (var h in hits)
         {
-            float dist = Vector2.Distance(transform.position, h.transform.position);
+            Vector2 dir = h.transform.position - transform.position;
+            float dist = dir.magnitude;
+
+            // ✅ Perform line-of-sight check
+            bool blocked = Physics2D.Raycast(transform.position, dir.normalized, dist, obstacleMask);
+            if (blocked)
+                continue; // skip targets behind walls
+
+            // ✅ If visible and closer, pick this target
             if (dist < minDist)
             {
                 minDist = dist;
@@ -100,9 +114,13 @@ public class AttackController : MonoBehaviour
         }
 
         currentTarget = closest;
-
+        
         if (currentTarget)
         {
+            Vector2 shooterPos = firePoint.position;
+            Vector2 targetPos = currentTarget.transform.position;
+            Vector2 targetVel = currentTarget.TryGetComponent<Rigidbody2D>(out var rbT) ? rbT.linearVelocity : Vector2.zero;
+            Vector2 predictedPos = TargetPrediction.PredictAimPosition(shooterPos, targetPos, targetVel, bulletSpeed);
             FireProjectile(currentTarget.transform.position - firePoint.position);
         }
     }
@@ -116,8 +134,9 @@ public class AttackController : MonoBehaviour
         lastAttackTime = Time.time;
         direction.Normalize();
 
-        GameObject proj = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
-        proj.GetComponent<Rigidbody2D>().linearVelocity = direction * 10f; // or whatever speed you prefer
+        GameObject bulletObj = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+        if (bulletObj.TryGetComponent<Bullet>(out var bullet))
+            bullet.Init(direction, bulletSpeed, damagePerShot, maxRange); // or whatever speed you prefer
     }
 
     private Vector3 GetMouseWorldPosition()
@@ -137,7 +156,7 @@ public class AttackController : MonoBehaviour
         if (mode == AttackMode.Auto)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, attackRange);
+            Gizmos.DrawWireSphere(transform.position, maxRange);
         }
     }
 }
