@@ -163,13 +163,7 @@ public class GridManager : MonoBehaviour
     public Vector3 GetClosestNodeWorldPos(Vector3 worldPos)
     {
         Node node = GetClosestNode(worldPos);
-        Vector3 pos = WorldFromGrid(node.x, node.y);
-
-        // 🔹 Offset half a cell to align bottom-left–anchored prefabs
-        pos.x += cellSize * 0.5f;
-        pos.y += cellSize * 0.5f;
-
-        return pos;
+        return WorldFromGrid(node.x, node.y);
     }
 }
 

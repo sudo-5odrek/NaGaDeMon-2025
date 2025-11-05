@@ -11,7 +11,6 @@ public class PlayerInventory : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("PlayerInventory Awake!");
         // Enforce a single instance
         if (Instance != null && Instance != this)
         {

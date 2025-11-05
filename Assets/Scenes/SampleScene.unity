@@ -2922,7 +2922,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2083739893448653775, guid: 55017667454614d42b7e4a180f67cb15, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2590126947413090896, guid: 55017667454614d42b7e4a180f67cb15, type: 3}
       propertyPath: buttonPrefab
@@ -3081,6 +3081,10 @@ PrefabInstance:
     - target: {fileID: 2762365800974884612, guid: bca2f375b91ad9240a0b0b0ac13648fe, type: 3}
       propertyPath: m_Radius
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3107109826839190341, guid: bca2f375b91ad9240a0b0b0ac13648fe, type: 3}
+      propertyPath: obstacleMask.m_Bits
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7309010346709286061, guid: bca2f375b91ad9240a0b0b0ac13648fe, type: 3}
       propertyPath: m_Name
