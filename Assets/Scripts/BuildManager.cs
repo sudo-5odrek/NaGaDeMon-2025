@@ -12,18 +12,14 @@ public class BuildManager : MonoBehaviour
     [Header("References")]
     public Transform player;
 
-    private GameObject previewObject;
     private BuildingData selectedBuilding;
     private bool isPlacing = false;
-    private Camera cam;
-    private InputSystem_Actions input;
-    
+    private bool isDragging = false;
     private float currentRotation = 0f;
 
-    // --- Drag logic ---
-    private bool isDragging = false;
-    private Vector3 dragStartPos;
-    private Vector3 dragCurrentPos;
+    private Camera cam;
+    private InputSystem_Actions input;
+
     private IBuildPlacementLogic activePlacementLogic;
 
     private void Awake()
@@ -35,8 +31,8 @@ public class BuildManager : MonoBehaviour
 
     private void OnEnable()
     {
-        input.Player.Place.started += OnPlaceStarted;
-        input.Player.Place.canceled += OnPlaceCanceled;
+        input.Player.Place.started += OnPlaceStarted;   // Mouse down
+        input.Player.Place.canceled += OnPlaceCanceled; // Mouse up
         input.Player.Cancel.performed += OnCancelPerformed;
         input.Player.Rotate.performed += OnRotatePerformed;
     }
@@ -48,30 +44,33 @@ public class BuildManager : MonoBehaviour
         input.Player.Cancel.performed -= OnCancelPerformed;
         input.Player.Rotate.performed -= OnRotatePerformed;
     }
-
+    
     private void Update()
     {
-        if (!isPlacing)
+        if (!isPlacing || activePlacementLogic == null)
             return;
 
-        // --- Update preview position ---
-        Vector3 mouseWorld = GetMouseWorldPosition();
-        Vector3 snappedPos = SnapToGrid(mouseWorld);
+        Vector3 snappedPos = SnapToGrid(GetMouseWorldPosition());
+        float dist = Vector2.Distance(snappedPos, player.position);
 
-        if (previewObject && selectedBuilding.placementMode == PlacementMode.Single)
-            previewObject.transform.position = snappedPos;
-
-        // --- Handle drag preview updates ---
-        if (isDragging && selectedBuilding != null && selectedBuilding.placementMode == PlacementMode.Drag)
+        // --- Handle drag updates ---
+        if (isDragging)
         {
-            dragCurrentPos = snappedPos;
-            activePlacementLogic?.OnDragging(dragCurrentPos);
+            activePlacementLogic.OnDragging(snappedPos);
+        }
+        else
+        {
+            // --- Hover preview before click ---
+            activePlacementLogic.UpdatePreview(snappedPos);
         }
 
-        // --- Range check coloring ---
-        float dist = Vector2.Distance(snappedPos, player.position);
-        SetPreviewColor(dist <= buildRange ? Color.green : Color.red);
+        // Optional: Range check or coloring
+        if (dist > buildRange)
+        {
+            // You could tell the logic to tint preview red, etc.
+        }
     }
+
 
     // --------------------------------------------------
     // ROTATION
@@ -79,49 +78,42 @@ public class BuildManager : MonoBehaviour
 
     private void OnRotatePerformed(InputAction.CallbackContext ctx)
     {
-        if (!isPlacing || previewObject == null)
+        if (!isPlacing)
             return;
 
         float scrollValue = ctx.ReadValue<float>();
         if (Mathf.Abs(scrollValue) < 0.01f)
             return;
 
-        // 🔹 Scroll up → rotate counter-clockwise
-        // 🔹 Scroll down → rotate clockwise
         float direction = Mathf.Sign(scrollValue);
         currentRotation += direction * 90f;
-        previewObject.transform.rotation = Quaternion.Euler(0, 0, currentRotation);
     }
 
     // --------------------------------------------------
-    // PLACEMENT LOGIC
+    // START PLACEMENT
     // --------------------------------------------------
 
     public void StartPlacement(BuildingData building)
     {
-        if (previewObject) Destroy(previewObject);
-
         selectedBuilding = building;
         isPlacing = true;
         currentRotation = 0f;
 
-        if (selectedBuilding.placementMode == PlacementMode.Single)
+        // Load and initialize the correct placement logic
+        activePlacementLogic = selectedBuilding.GetPlacementLogic();
+        if (activePlacementLogic == null)
         {
-            previewObject = Instantiate(building.prefab);
-            if (previewObject.TryGetComponent<Turret>(out var turret))
-                turret.enabled = false;
-
-            SetLayerRecursively(previewObject, LayerMask.NameToLayer("Ignore Raycast"));
-            SetPreviewColor(Color.green);
-        }
-        else if (selectedBuilding.placementMode == PlacementMode.Drag)
-        {
-            activePlacementLogic = selectedBuilding.GetPlacementLogic();
-            activePlacementLogic?.Setup(selectedBuilding.prefab, currentRotation);
+            Debug.LogError($"No placement logic assigned for {building.name}");
+            return;
         }
 
+        activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
         InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
     }
+
+    // --------------------------------------------------
+    // INPUT HANDLING
+    // --------------------------------------------------
 
     private void OnPlaceStarted(InputAction.CallbackContext ctx)
     {
@@ -136,33 +128,20 @@ public class BuildManager : MonoBehaviour
             return;
         }
 
-        // --- Single placement ---
-        if (selectedBuilding.placementMode == PlacementMode.Single)
-        {
-            GameObject newBuild = Instantiate(selectedBuilding.prefab, snappedPos, Quaternion.Euler(0, 0, currentRotation));
-            GridManager.Instance.BlockNodesUnderObject(newBuild);
-            CancelPlacement();
-            return;
-        }
-
-        // --- Drag placement ---
-        if (selectedBuilding.placementMode == PlacementMode.Drag)
-        {
-            dragStartPos = snappedPos;
-            isDragging = true;
-            activePlacementLogic?.OnStartDrag(dragStartPos);
-        }
+        isDragging = true;
+        activePlacementLogic?.OnStartDrag(snappedPos);
     }
 
     private void OnPlaceCanceled(InputAction.CallbackContext ctx)
     {
-        if (isDragging && selectedBuilding != null && selectedBuilding.placementMode == PlacementMode.Drag)
-        {
-            Vector3 dragEndPos = SnapToGrid(GetMouseWorldPosition());
-            activePlacementLogic?.OnEndDrag(dragEndPos);
-            isDragging = false;
-            CancelPlacement();
-        }
+        if (!isPlacing || selectedBuilding == null)
+            return;
+
+        Vector3 snappedPos = SnapToGrid(GetMouseWorldPosition());
+        activePlacementLogic?.OnEndDrag(snappedPos);
+
+        isDragging = false;
+        CancelPlacement();
     }
 
     private void OnCancelPerformed(InputAction.CallbackContext ctx)
@@ -171,13 +150,18 @@ public class BuildManager : MonoBehaviour
             CancelPlacement();
     }
 
+    // --------------------------------------------------
+    // CLEANUP
+    // --------------------------------------------------
+
     private void CancelPlacement()
     {
-        if (previewObject) Destroy(previewObject);
+        activePlacementLogic?.ClearPreview();
+
         selectedBuilding = null;
+        activePlacementLogic = null;
         isPlacing = false;
         isDragging = false;
-        activePlacementLogic = null;
 
         InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
     }
@@ -197,20 +181,5 @@ public class BuildManager : MonoBehaviour
     private Vector3 SnapToGrid(Vector3 pos)
     {
         return GridManager.Instance.GetClosestNodeWorldPos(pos);
-    }
-
-    private void SetPreviewColor(Color color)
-    {
-        if (!previewObject) return;
-
-        foreach (var sr in previewObject.GetComponentsInChildren<SpriteRenderer>())
-            sr.color = color;
-    }
-
-    private void SetLayerRecursively(GameObject obj, int newLayer)
-    {
-        obj.layer = newLayer;
-        foreach (Transform child in obj.transform)
-            SetLayerRecursively(child.gameObject, newLayer);
     }
 }

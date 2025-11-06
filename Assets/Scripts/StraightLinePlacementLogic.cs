@@ -4,108 +4,152 @@ using System.Collections.Generic;
 [CreateAssetMenu(menuName = "Build/Placement Logic/Straight Line")]
 public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
 {
-    [Header("Settings")]
-    [SerializeField] private Color previewColor = new(1f, 1f, 1f, 0.3f);
+    [Header("Visual Settings")]
+    [SerializeField] private Color previewColor = new Color(1f, 1f, 1f, 0.4f);
 
-    private GameObject prefab;      // assigned at runtime
-    private float rotation;         // from BuildManager
+    private GameObject prefab;
+    private float rotation;
+
     private Vector3 worldStart;
-    private readonly List<GameObject> previewObjects = new();
+    private bool isDragging = false;
 
-    // --- runtime setup ---
+    private GameObject hoverPreview;                // single ghost under cursor before drag
+    private readonly List<GameObject> previewLine = new(); // line of ghosts during drag
+
+    // --------------------------------------------------
+    // SETUP
+    // --------------------------------------------------
+
     public void Setup(GameObject prefab, float rotation)
     {
         this.prefab = prefab;
         this.rotation = rotation;
+        CreateHoverPreview();
     }
 
-    public void OnStartDrag(Vector3 start)
+    // --------------------------------------------------
+    // HOVER PREVIEW (before click)
+    // --------------------------------------------------
+
+    public void UpdatePreview(Vector3 worldCurrent)
     {
-        worldStart = start;
-        ClearPreview();
+        // Only show single-cell hover preview before clicking
+        if (!isDragging && hoverPreview)
+        {
+            hoverPreview.transform.position = worldCurrent;
+        }
+    }
+
+    // --------------------------------------------------
+    // CLICK → DRAG → RELEASE
+    // --------------------------------------------------
+
+    public void OnStartDrag(Vector3 worldStart)
+    {
+        this.worldStart = worldStart;
+        isDragging = true;
+
+        // Remove hover preview once dragging starts
+        if (hoverPreview)
+            Object.Destroy(hoverPreview);
+
+        ClearPreviewLine();
     }
 
     public void OnDragging(Vector3 worldCurrent)
     {
-        ClearPreview();
+        if (!isDragging) return;
+        Debug.Log("Dragging from " + worldStart + " to " + worldCurrent);
 
-        (int startX, int startY) = GridManager.Instance.GridFromWorld(worldStart);
-        (int endX, int endY)     = GridManager.Instance.GridFromWorld(worldCurrent);
-
-        // pick dominant axis
-        int dx = Mathf.Abs(endX - startX);
-        int dy = Mathf.Abs(endY - startY);
-        if (dx > dy) endY = startY; else endX = startX;
-
-        foreach (var cell in GetCellsBetween(startX, startY, endX, endY))
-        {
-            Vector3 worldPos = GridManager.Instance.WorldFromGrid(cell.x, cell.y);
-            previewObjects.Add(CreatePreviewGhost(worldPos));
-        }
+        ClearPreviewLine();
+        DrawPreviewLine(worldStart, worldCurrent);
     }
 
     public void OnEndDrag(Vector3 worldEnd)
     {
-        ClearPreview();
+        if (!isDragging) return;
 
-        (int startX, int startY) = GridManager.Instance.GridFromWorld(worldStart);
-        (int endX, int endY)     = GridManager.Instance.GridFromWorld(worldEnd);
+        ClearPreviewLine();
+        PlaceLine(worldStart, worldEnd);
 
-        int dx = Mathf.Abs(endX - startX);
-        int dy = Mathf.Abs(endY - startY);
-        if (dx > dy) endY = startY; else endX = startX;
+        isDragging = false;
+        CreateHoverPreview(); // return to hover mode after placement
+    }
 
-        foreach (var cell in GetCellsBetween(startX, startY, endX, endY))
+    public void ClearPreview()
+    {
+        ClearPreviewLine();
+        if (hoverPreview) Object.Destroy(hoverPreview);
+    }
+
+    // --------------------------------------------------
+    // INTERNAL HELPERS
+    // --------------------------------------------------
+
+    private void CreateHoverPreview()
+    {
+        hoverPreview = Object.Instantiate(prefab);
+        BuildUtils.MakePreview(hoverPreview);
+    }
+
+    private void ClearPreviewLine()
+    {
+        foreach (var g in previewLine)
+            if (g) Object.Destroy(g);
+        previewLine.Clear();
+    }
+
+    private void DrawPreviewLine(Vector3 startWorld, Vector3 endWorld)
+    {
+        (int startX, int startY) = GridManager.Instance.GridFromWorld(startWorld);
+        (int endX, int endY) = GridManager.Instance.GridFromWorld(endWorld);
+
+        // Decide main axis
+        bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
+        if (vertical)
         {
-            Vector3 worldPos = GridManager.Instance.WorldFromGrid(cell.x, cell.y);
-            PlaceAt(worldPos);
+            int step = startY < endY ? 1 : -1;
+            for (int y = startY; y != endY + step; y += step)
+                previewLine.Add(CreateGhost(GridManager.Instance.WorldFromGrid(startX, y)));
+        }
+        else
+        {
+            int step = startX < endX ? 1 : -1;
+            for (int x = startX; x != endX + step; x += step)
+                previewLine.Add(CreateGhost(GridManager.Instance.WorldFromGrid(x, startY)));
         }
     }
 
-    // --- helpers ---
-
-    private IEnumerable<Vector2Int> GetCellsBetween(int sx, int sy, int ex, int ey)
+    private GameObject CreateGhost(Vector3 pos)
     {
-        var cells = new List<Vector2Int>();
-        if (sx == ex)
-        {
-            int step = sy < ey ? 1 : -1;
-            for (int y = sy; y != ey + step; y += step)
-                cells.Add(new Vector2Int(sx, y));
-        }
-        else if (sy == ey)
-        {
-            int step = sx < ex ? 1 : -1;
-            for (int x = sx; x != ex + step; x += step)
-                cells.Add(new Vector2Int(x, sy));
-        }
-        return cells;
-    }
-
-    private GameObject CreatePreviewGhost(Vector3 worldPos)
-    {
-        GameObject ghost = Object.Instantiate(prefab, worldPos, Quaternion.Euler(0, 0, rotation));
-
-        foreach (var comp in ghost.GetComponents<MonoBehaviour>())
-            comp.enabled = false;
-
-        foreach (var sr in ghost.GetComponentsInChildren<SpriteRenderer>())
-            sr.color = previewColor;
-
-        ghost.layer = LayerMask.NameToLayer("Ignore Raycast");
+        GameObject ghost = Object.Instantiate(prefab, pos, Quaternion.Euler(0, 0, rotation));
+        BuildUtils.MakePreview(ghost);
         return ghost;
     }
 
-    private void ClearPreview()
+    private void PlaceLine(Vector3 startWorld, Vector3 endWorld)
     {
-        foreach (var g in previewObjects)
-            if (g) Object.Destroy(g);
-        previewObjects.Clear();
+        (int startX, int startY) = GridManager.Instance.GridFromWorld(startWorld);
+        (int endX, int endY) = GridManager.Instance.GridFromWorld(endWorld);
+
+        bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
+        if (vertical)
+        {
+            int step = startY < endY ? 1 : -1;
+            for (int y = startY; y != endY + step; y += step)
+                Place(GridManager.Instance.WorldFromGrid(startX, y));
+        }
+        else
+        {
+            int step = startX < endX ? 1 : -1;
+            for (int x = startX; x != endX + step; x += step)
+                Place(GridManager.Instance.WorldFromGrid(x, startY));
+        }
     }
 
-    private void PlaceAt(Vector3 worldPos)
+    private void Place(Vector3 pos)
     {
-        GameObject obj = Object.Instantiate(prefab, worldPos, Quaternion.Euler(0, 0, rotation));
+        var obj = Object.Instantiate(prefab, pos, Quaternion.Euler(0, 0, rotation));
         GridManager.Instance.BlockNodesUnderObject(obj);
     }
 }
