@@ -55,7 +55,7 @@ public class ProductionBuildingVisualMask : MonoBehaviour
         // Animate optional moving part
         if (animatedPart)
         {
-            animatedPart.gameObject.SetActive(prod.IsCrafting);
+            //animatedPart.gameObject.SetActive(prod.IsCrafting);
 
             if (prod.IsCrafting)
                 animatedPart.Rotate(0, 0, 180f * Time.deltaTime);

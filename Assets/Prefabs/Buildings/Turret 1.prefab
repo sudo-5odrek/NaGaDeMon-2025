@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7238184749302217422}
   - component: {fileID: 3568803640612642303}
-  - component: {fileID: 8139140478124532154}
   m_Layer: 7
   m_Name: Body
   m_TagString: Untagged
@@ -89,37 +88,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &8139140478124532154
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2549126685651893538}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fea6436f0efd40448a689f6c867d7e65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 12
-  enemyMask:
-    serializedVersion: 2
-    m_Bits: 64
-  rotationSpeed: 10
-  head: {fileID: 4939644165878682266}
-  bulletPrefab: {fileID: 8013913237730269421, guid: f7b8a0c16190a6048b96ff5d175d3b8a, type: 3}
-  firePoint: {fileID: 3633258418335881750}
-  fireRate: 0.5
-  bulletSpeed: 20
-  damagePerShot: 2
-  maxRange: 12
-  maxAmmo: 100
-  currentAmmo: 100
-  maxHP: 100
-  currentHP: 100
-  obstacleMask:
-    serializedVersion: 2
-    m_Bits: 8
 --- !u!1 &4939644165878682266
 GameObject:
   m_ObjectHideFlags: 0
@@ -306,6 +274,8 @@ GameObject:
   - component: {fileID: 7211439086231435779}
   - component: {fileID: 4077218936898542987}
   - component: {fileID: 8507046086999811280}
+  - component: {fileID: 7676971857518419373}
+  - component: {fileID: 3173455750362849989}
   m_Layer: 7
   m_Name: Turret 1
   m_TagString: Untagged
@@ -402,3 +372,49 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &7676971857518419373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6509753260026444512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fea6436f0efd40448a689f6c867d7e65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detectionRadius: 12
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 64
+  rotationSpeed: 10
+  head: {fileID: 4939644165878682266}
+  bulletPrefab: {fileID: 8013913237730269421, guid: f7b8a0c16190a6048b96ff5d175d3b8a, type: 3}
+  firePoint: {fileID: 3633258418335881750}
+  fireRate: 0.5
+  bulletSpeed: 20
+  damagePerShot: 5
+  maxRange: 10
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 8
+  maxHP: 100
+  currentHP: 100
+--- !u!114 &3173455750362849989
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6509753260026444512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05fb748e4e4b2f84c9d446541202f76a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ammoResourceId: Scrap
+  maxAmmoCapacity: 50
+  ammoPerShot: 1
+  transferInterval: 0.1
+  currentAmmo: 0

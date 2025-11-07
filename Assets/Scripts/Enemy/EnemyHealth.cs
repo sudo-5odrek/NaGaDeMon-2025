@@ -14,7 +14,7 @@ public class EnemyHealth : MonoBehaviour
     public void TakeDamage(int amount)
     {
         currentHP -= amount;
-        Debug.Log($"{name} took {amount} damage. HP: {currentHP}");
+        //Debug.Log($"{name} took {amount} damage. HP: {currentHP}");
 
         if (currentHP <= 0)
             Die();
@@ -22,7 +22,7 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
-        Debug.Log($"{name} died!");
+        //Debug.Log($"{name} died!");
         
         // Drop loot if loot table exists
         if (TryGetComponent<LootTable>(out var lootTable))

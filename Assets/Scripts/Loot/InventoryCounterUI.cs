@@ -1,3 +1,4 @@
+using Player;
 using UnityEngine;
 using TMPro;
 
@@ -8,7 +9,6 @@ public class InventoryCounterUI : MonoBehaviour
 
     void OnEnable()
     {
-        Debug.Log("HEY" + PlayerInventory.Instance);
         if (PlayerInventory.Instance != null)
             PlayerInventory.Instance.OnInventoryChanged += UpdateDisplay;
 
@@ -29,10 +29,10 @@ public class InventoryCounterUI : MonoBehaviour
 
         int value = displayType switch
         {
-            LootType.Gold => inv.gold,
-            LootType.Ammo => inv.ammo,
-            LootType.Energy => inv.energy,
-            LootType.Material => inv.materials,
+            //LootType.Gold => inv.gold,
+            //LootType.Ammo => inv.ammo,
+            //LootType.Energy => inv.energy,
+            //LootType.Material => inv.materials,
             _ => 0
         };
 

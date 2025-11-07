@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Building.Turrets;
 
+[RequireComponent(typeof(TurretInventory))]
 public class Turret : MonoBehaviour
 {
     [Header("Targeting")]
@@ -16,22 +18,20 @@ public class Turret : MonoBehaviour
     public float bulletSpeed = 10f;
     public int damagePerShot = 1;
     public int maxRange;
-
-    [Header("Ammo & Health")]
-    public int maxAmmo = 30;
-    public int currentAmmo;
-    public int maxHP = 100;
-    public int currentHP;
-    
     public LayerMask obstacleMask;
 
-    float fireTimer;
-    Transform currentTarget;
+    [Header("Health")]
+    public int maxHP = 100;
+    public int currentHP;
+
+    private float fireTimer;
+    private Transform currentTarget;
+    private TurretInventory turretInventory;
 
     void Awake()
     {
-        currentAmmo = maxAmmo;
         currentHP = maxHP;
+        turretInventory = GetComponent<TurretInventory>();
     }
 
     void Update()
@@ -52,6 +52,7 @@ public class Turret : MonoBehaviour
         }
     }
 
+    // === Line of Sight ===
     bool HasLineOfSight(Transform target)
     {
         if (target == null) return false;
@@ -91,6 +92,7 @@ public class Turret : MonoBehaviour
         return Vector2.Distance(transform.position, t.position) <= detectionRadius;
     }
 
+    // === Rotation ===
     void RotateTowardTarget()
     {
         Vector2 dir = currentTarget.position - transform.position;
@@ -102,19 +104,25 @@ public class Turret : MonoBehaviour
     // === Shooting ===
     void TryShoot()
     {
-        if (currentAmmo <= 0) return;
-
         fireTimer -= Time.deltaTime;
-        if (fireTimer <= 0f)
+        if (fireTimer > 0f)
+            return;
+
+        // ✅ Only consume ammo when it's time to shoot
+        if (!turretInventory || !turretInventory.TryConsumeAmmo())
         {
-            fireTimer = fireRate;
-            Shoot();
+            // Out of ammo → skip firing
+            return;
         }
+
+        fireTimer = fireRate;
+        Shoot();
     }
 
     void Shoot()
     {
         if (!bulletPrefab || !firePoint || !currentTarget) return;
+
         if (currentTarget.TryGetComponent<Rigidbody2D>(out var targetRb))
         {
             Vector2 shooterPos = firePoint.position;
@@ -132,8 +140,6 @@ public class Turret : MonoBehaviour
 
             if (bulletObj.TryGetComponent<Bullet>(out var bullet))
                 bullet.Init(aimDir, bulletSpeed, damagePerShot, maxRange);
-
-            currentAmmo--;
         }
     }
 
@@ -151,5 +157,15 @@ public class Turret : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
+
+        if (turretInventory)
+        {
+            float frac = turretInventory.GetAmmoFraction();
+            Vector3 pos = transform.position + Vector3.up * 1.3f;
+            Gizmos.color = Color.black;
+            Gizmos.DrawCube(pos, new Vector3(1f, 0.1f, 0f));
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawCube(pos - Vector3.right * (0.5f - frac / 2f), new Vector3(frac, 0.1f, 0f));
+        }
     }
 }

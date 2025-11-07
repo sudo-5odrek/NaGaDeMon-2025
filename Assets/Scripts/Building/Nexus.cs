@@ -15,7 +15,7 @@ public class Nexus : MonoBehaviour
     {
         currentHP -= amount;
         currentHP = Mathf.Max(currentHP, 0);
-        Debug.Log($"Nexus HP: {currentHP}/{maxHP}");
+        //Debug.Log($"Nexus HP: {currentHP}/{maxHP}");
 
         if (currentHP <= 0)
             GameOver();
@@ -23,7 +23,7 @@ public class Nexus : MonoBehaviour
 
     void GameOver()
     {
-        Debug.Log("💀 GAME OVER — Nexus destroyed!");
+        //Debug.Log("💀 GAME OVER — Nexus destroyed!");
         // later: trigger UI, stop spawns, pause game, etc.
     }
 }

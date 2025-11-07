@@ -1,3 +1,4 @@
+using Player;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]
@@ -52,8 +53,8 @@ public class LootItemMover : MonoBehaviour
             return;
         }
 
-        PlayerInventory.Instance.AddLoot(lootData.lootType, lootData.amount);
-        Debug.Log($"✅ Collected {lootData.lootType} x{lootData.amount}");
+        PlayerInventory.Instance.AddItem(lootData.lootType, lootData.amount);
+        //Debug.Log($"✅ Collected {lootData.lootType} x{lootData.amount}");
         Destroy(gameObject);
     }
 }

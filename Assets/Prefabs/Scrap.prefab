@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: -32674855056326451}
   - component: {fileID: -1978810621377054372}
   m_Layer: 0
-  m_Name: Scraps
+  m_Name: Scrap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -184,5 +184,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35cd3ee9c4149c54b98a90311b200191, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lootType: 0
+  lootType: Scrap
   amount: 1
