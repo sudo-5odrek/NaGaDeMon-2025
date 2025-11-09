@@ -10,4 +10,7 @@ public interface IBuildPlacementLogic
     // 🆕 Called every frame even before placing, for preview updates
     void UpdatePreview(Vector3 worldCurrent);
     void ClearPreview();
+    
+    // 🧩 Optional callback registration
+    void SetPlacementCallback(System.Action<Vector3, GameObject> onPlaced);
 }

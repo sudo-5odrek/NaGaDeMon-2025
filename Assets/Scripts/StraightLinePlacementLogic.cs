@@ -14,9 +14,16 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     private Vector3 worldStart;
     private bool isDragging = false;
     
+    private System.Action<Vector3, GameObject> onPlaced; // ✅ callback reference
+    
 
     private GameObject hoverPreview;
     private readonly List<GameObject> previewLine = new();
+    
+    public void SetPlacementCallback(System.Action<Vector3, GameObject> callback)
+    {
+        onPlaced = callback;
+    }
 
     // --------------------------------------------------
     // SETUP
@@ -127,24 +134,37 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
         (int endX, int endY) = GridManager.Instance.GridFromWorld(end);
 
         bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
+        GameObject firstPlaced = null;
+
         if (vertical)
         {
             int step = startY < endY ? 1 : -1;
             for (int y = startY; y != endY + step; y += step)
-                Place(GridManager.Instance.WorldFromGrid(startX, y));
+            {
+                var obj = Place(GridManager.Instance.WorldFromGrid(startX, y));
+                if (firstPlaced == null) firstPlaced = obj;
+            }
         }
         else
         {
             int step = startX < endX ? 1 : -1;
             for (int x = startX; x != endX + step; x += step)
-                Place(GridManager.Instance.WorldFromGrid(x, startY));
+            {
+                var obj = Place(GridManager.Instance.WorldFromGrid(x, startY));
+                if (firstPlaced == null) firstPlaced = obj;
+            }
         }
+
+        // ✅ Notify ConnectionModeManager
+        if (firstPlaced != null)
+            onPlaced?.Invoke(GridManager.Instance.WorldFromGrid(startX, startY), firstPlaced);
     }
 
-    private void Place(Vector3 pos)
+    private GameObject Place(Vector3 pos)
     {
         var obj = Object.Instantiate(prefab, pos, Quaternion.Euler(0, 0, rotation));
         GridManager.Instance.BlockNodesUnderObject(obj);
+        return obj;
     }
 
     public void ClearPreview()

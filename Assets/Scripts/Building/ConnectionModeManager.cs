@@ -145,10 +145,7 @@ namespace Building
             // ✅ End drag logic
             placementLogic.OnEndDrag(mouseWorld);
             isDragging = false;
-
-            // ✅ Immediately recreate hover preview for next placement
-            //placementLogic.Setup(connectionPrefab, 0f);
-
+            
             startBuilding = null;
         }
 
@@ -162,6 +159,17 @@ namespace Building
             Vector3 world = cam.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, -cam.transform.position.z));
             world.z = 0;
             return world;
+        }
+        
+        // Called by placement logic after successful placement
+        private void OnPlacementConfirmed(Vector3 firstTilePos, GameObject firstConnection)
+        {
+            if (startBuilding)
+            {
+                // Register the new connection with the building
+                startBuilding.RegisterOutputConnection(firstConnection, firstTilePos);
+                Debug.Log($"✅ Connection registered from {startBuilding.name} to line starting at {firstTilePos}");
+            }
         }
     }
 

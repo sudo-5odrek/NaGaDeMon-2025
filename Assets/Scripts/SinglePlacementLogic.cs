@@ -8,6 +8,11 @@ public class SinglePlacementLogic : ScriptableObject, IBuildPlacementLogic
     private float rotation;
     private GameObject previewObject;
     private bool isPlacing = false;
+    
+    public void SetPlacementCallback(System.Action<Vector3, GameObject> callback)
+    {
+       
+    }
 
     // --------------------------------------------------
     // SETUP
