@@ -4,7 +4,7 @@ public class InputContextManager : MonoBehaviour
 {
     public static InputContextManager Instance { get; private set; }
 
-    public enum InputMode { Normal, Build }
+    public enum InputMode { Normal, Build, Connect }
     public InputMode CurrentMode { get; private set; } = InputMode.Normal;
 
     public InputSystem_Actions input; // your generated class
@@ -41,6 +41,17 @@ public class InputContextManager : MonoBehaviour
                 input.Player.Place.Enable();
                 input.Player.Cancel.Enable();
                 break;
+            
+            case InputMode.Connect:
+                input.Player.Attack.Disable();
+                //input.Player.Move.Disable();
+                //input.Player.Look.Disable();
+
+                input.Player.Place.Enable();
+                input.Player.Cancel.Enable();
+                break;
+            
+            
         }
     }
 }

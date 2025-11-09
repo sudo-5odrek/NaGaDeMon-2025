@@ -61,7 +61,6 @@ namespace Player
 
             Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.2f, interactableMask);
             IInteractable newTarget = hit ? hit.GetComponent<IInteractable>() : null;
-            Debug.unityLogger.Log(newTarget);
 
             if (newTarget != currentTarget)
             {

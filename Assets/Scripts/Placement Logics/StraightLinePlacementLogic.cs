@@ -14,13 +14,13 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     private Vector3 worldStart;
     private bool isDragging = false;
     
-    private System.Action<Vector3, GameObject> onPlaced; // ✅ callback reference
+    private System.Action<List<GameObject>> onPlaced; // ✅ callback reference
     
 
     private GameObject hoverPreview;
     private readonly List<GameObject> previewLine = new();
     
-    public void SetPlacementCallback(System.Action<Vector3, GameObject> callback)
+    public void SetPlacementCallback(System.Action<List<GameObject>> callback)
     {
         onPlaced = callback;
     }
@@ -29,12 +29,14 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     // SETUP
     // --------------------------------------------------
 
-    public void Setup(GameObject prefab, float rotation)
+    public void Setup(GameObject prefab, float rotation, bool createPreview)
     {
          // 🧠 skip preview creation if still placing
         this.prefab = prefab;
         this.rotation = rotation;
-        CreateHoverPreview();
+        
+        if (createPreview)
+            CreateHoverPreview();
     }
 
     // --------------------------------------------------
@@ -75,12 +77,8 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
         if (!isDragging) return;
         isDragging = false;
 
-        // 🧠 Suppress immediate preview recreation
-
         ClearPreviewLine();
         PlaceLine(worldStart, worldEnd);
-        
-        
     }
 
     // --------------------------------------------------
@@ -130,6 +128,8 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
 
     private void PlaceLine(Vector3 start, Vector3 end)
     {
+        List<GameObject> line = new List<GameObject>();
+        
         (int startX, int startY) = GridManager.Instance.GridFromWorld(start);
         (int endX, int endY) = GridManager.Instance.GridFromWorld(end);
 
@@ -142,7 +142,7 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
             for (int y = startY; y != endY + step; y += step)
             {
                 var obj = Place(GridManager.Instance.WorldFromGrid(startX, y));
-                if (firstPlaced == null) firstPlaced = obj;
+                line.Add(obj);
             }
         }
         else
@@ -151,13 +151,13 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
             for (int x = startX; x != endX + step; x += step)
             {
                 var obj = Place(GridManager.Instance.WorldFromGrid(x, startY));
-                if (firstPlaced == null) firstPlaced = obj;
+                line.Add(obj);
             }
         }
 
         // ✅ Notify ConnectionModeManager
-        if (firstPlaced != null)
-            onPlaced?.Invoke(GridManager.Instance.WorldFromGrid(startX, startY), firstPlaced);
+        if (line.Count > 0)
+            onPlaced?.Invoke(line);
     }
 
     private GameObject Place(Vector3 pos)

@@ -6,10 +6,17 @@ namespace Building
     {
         [Header("Runtime Direction")]
         public Vector2Int direction;   // grid direction of item flow
-        public ConveyorTile nextTile;  // the conveyor this tile feeds into
+        public Transform nextTile;  // the conveyor this tile feeds into
         public BuildingConnector targetBuilding; // if it ends on a building input
 
+        public GameObject visual;
+
         public Vector3Int GridPos { get; private set; }
+
+        public void SetAsFirst()
+        {
+            visual.SetActive(false);
+        }
 
         private void Start()
         {

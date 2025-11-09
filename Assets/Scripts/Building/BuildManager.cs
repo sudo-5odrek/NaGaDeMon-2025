@@ -116,7 +116,7 @@ public class BuildManager : MonoBehaviour
             return;
         }
 
-        activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
+        activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation, true);
         InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
 
         buildMenu?.Hide(); // hide menu while placing
@@ -189,7 +189,7 @@ public class BuildManager : MonoBehaviour
     {
         yield return null; // wait one frame
         if (isPlacing && selectedBuilding != null)
-            activePlacementLogic?.Setup(selectedBuilding.prefab, currentRotation);
+            activePlacementLogic?.Setup(selectedBuilding.prefab, currentRotation, true);
     }
 
     private void OnCancelPerformed(InputAction.CallbackContext ctx)

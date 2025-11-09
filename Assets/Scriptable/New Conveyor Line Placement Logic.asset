@@ -9,6 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc1e8696e9eb40e4691df4be5feb3752, type: 3}
-  m_Name: New Conveyor Placement Logic
+  m_Script: {fileID: 11500000, guid: ce41aa74b6a2d894c83fabe461634718, type: 3}
+  m_Name: New Conveyor Line Placement Logic
   m_EditorClassIdentifier: 
+  previewColor: {r: 1, g: 1, b: 1, a: 0.4}
+  conveyorPathPrefab: {fileID: 551381116501606478, guid: 2cda4db82e36a354e8216cafb42a67bf, type: 3}

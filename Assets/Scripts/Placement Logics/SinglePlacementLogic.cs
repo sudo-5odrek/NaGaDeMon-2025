@@ -18,7 +18,7 @@ public class SinglePlacementLogic : ScriptableObject, IBuildPlacementLogic
     // SETUP
     // --------------------------------------------------
 
-    public void Setup(GameObject prefab, float rotation)
+    public void Setup(GameObject prefab, float rotation, bool createPreview)
     {
         // Avoid recreating preview mid-placement
         if (isPlacing) return;

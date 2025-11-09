@@ -5,8 +5,9 @@ using Grid;
 namespace Building
 {
     /// <summary>
-    /// Handles logical links between buildings (inputs/outputs).
-    /// Tracks first connection tiles and other connectors feeding into this building.
+    /// Handles logical links between buildings (inputs/outputs)
+    /// and mediates resource flow with the building's inventory.
+    /// Works with both SharedInventory and Port-based setups.
     /// </summary>
     public class BuildingConnector : MonoBehaviour
     {
@@ -23,59 +24,135 @@ namespace Building
         [Tooltip("Maximum number of input connections allowed.")]
         public int maxInputs = 1;
 
-        [Header("Registered Connections")]
-        [Tooltip("Grid coordinates of first conveyor tiles placed from this building.")]
-        public List<Vector3Int> outputTilePositions = new();
+        [Header("Inventory Link")]
+        [Tooltip("Reference to this building's inventory component (shared or multi-port).")]
+        public BuildingInventory buildingInventory;
 
-        [Tooltip("Other connectors feeding into this building.")]
-        public List<BuildingConnector> inputSources = new();
+        [Tooltip("If using multi-port inventory, specify which port this connector uses.")]
+        public string portName;
 
         public Vector3Int GridOrigin { get; private set; }
+
+        public int currentInputAmount;
+        public int currentOutputAmount;
+
+        // --- Private cache ---
+        private IInventoryAccess inventoryPort;
+
+        // --------------------------------------------------
+        // INITIALIZATION
+        // --------------------------------------------------
 
         private void Start()
         {
             (int gx, int gy) = GridManager.Instance.GridFromWorld(transform.position);
             GridOrigin = new Vector3Int(gx, gy, 0);
+
+            CacheInventoryAccess();
+        }
+
+        /// <summary>
+        /// Resolves and caches the correct inventory access (shared or port-based).
+        /// </summary>
+        private void CacheInventoryAccess()
+        {
+            if (buildingInventory == null)
+            {
+                Debug.LogWarning($"[{name}] No BuildingInventory linked to connector!");
+                return;
+            }
+
+            // ✅ SHARED INVENTORY MODE
+            if (buildingInventory.useSingleSharedInventory)
+            {
+                if (buildingInventory.SharedRuntimeInventory != null)
+                {
+                    inventoryPort = new InventoryProxy(buildingInventory.SharedRuntimeInventory);
+                    Debug.Log($"[{name}] Using shared inventory from {buildingInventory.name}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[{name}] Shared inventory enabled but not assigned!");
+                }
+                return;
+            }
+
+            // ✅ MULTI-PORT MODE
+            if (!string.IsNullOrEmpty(portName))
+            {
+                var port = buildingInventory.ports.Find(p => p.portName == portName);
+                if (port != null)
+                    inventoryPort = port;
+                else
+                    Debug.LogWarning($"[{name}] No port named '{portName}' found on {buildingInventory.name}.");
+            }
+            else
+            {
+                // fallback — grab first matching direction
+                if (canOutput)
+                    inventoryPort = buildingInventory.GetOutput();
+                else
+                    inventoryPort = buildingInventory.GetInput();
+            }
         }
 
         // --------------------------------------------------
         // STATE CHECKS
         // --------------------------------------------------
 
-        public bool CanAcceptInput() => canInput && inputSources.Count < maxInputs;
-        public bool CanProvideOutput() => canOutput && outputTilePositions.Count < maxOutputs;
+        public bool CanAcceptInput() =>
+            canInput;
+
+        public bool CanProvideOutput() =>
+            canOutput;
+
+        public bool IsFull() => inventoryPort != null && inventoryPort.IsFull;
+        public bool IsEmpty() => inventoryPort == null || inventoryPort.IsEmpty;
 
         // --------------------------------------------------
-        // REGISTRATION
+        // INVENTORY ACCESS
         // --------------------------------------------------
 
-        /// <summary>
-        /// Registers an output connection starting from this building.
-        /// Called by ConnectionModeManager when placement logic confirms placement.
-        /// </summary>
-        /// <param name="firstConnection">The first connection object placed after this building.</param>
-        /// <param name="worldPosition">World position of the first connection tile.</param>
-        public void RegisterOutputConnection(GameObject firstConnection, Vector3 worldPosition)
+        public float TryInsertResource(string resourceId, float amount = 1f)
+        {
+            if (!canInput || inventoryPort == null) return 0f;
+            return inventoryPort.Add(resourceId, amount);
+        }
+
+        public float TryExtractResource(string resourceId, float amount = 1f)
+        {
+            if (!canOutput || inventoryPort == null) return 0f;
+            return inventoryPort.Remove(resourceId, amount);
+        }
+
+        public bool HasResource(string resourceId, float amount = 1f)
+        {
+            if (inventoryPort == null) return false;
+            return inventoryPort.CanProvide(resourceId, amount);
+        }
+
+        public bool CanReceive(string resourceId, float amount = 1f)
+        {
+            if (inventoryPort == null) return false;
+            return inventoryPort.CanAccept(resourceId, amount);
+        }
+
+        // --------------------------------------------------
+        // CONNECTION REGISTRATION
+        // --------------------------------------------------
+
+        public void RegisterOutputConnection(Vector3 worldPosition)
         {
             if (!CanProvideOutput())
             {
                 Debug.LogWarning($"[{name}] Reached max output limit ({maxOutputs}).");
                 return;
             }
-
-            (int gx, int gy) = GridManager.Instance.GridFromWorld(worldPosition);
-            Vector3Int gridPos = new(gx, gy, 0);
-
-            if (!outputTilePositions.Contains(gridPos))
-            {
-                outputTilePositions.Add(gridPos);
-                Debug.Log($"🔗 [{name}] registered output connection at {gridPos}");
-            }
+            currentOutputAmount++;
+            if (currentOutputAmount >= maxOutputs)
+                canOutput = false;
         }
 
-        /// <summary>
-        /// Registers another building as an input source.
-        /// </summary>
         public void RegisterInput(BuildingConnector source)
         {
             if (!CanAcceptInput())
@@ -84,20 +161,32 @@ namespace Building
                 return;
             }
 
-            if (!inputSources.Contains(source))
-            {
-                inputSources.Add(source);
-                Debug.Log($"🔗 [{name}] accepted input from {source.name}");
-            }
+            currentInputAmount++;
+            if (currentInputAmount >= maxInputs)
+                canInput = false;
         }
 
-        /// <summary>
-        /// Clears all registered connections (optional for rebuilding or destruction).
-        /// </summary>
         public void ClearConnections()
         {
-            outputTilePositions.Clear();
-            inputSources.Clear();
+            currentInputAmount = 0;
+            currentOutputAmount = 0;
         }
+    }
+
+    /// <summary>
+    /// Helper adapter to make a plain Inventory behave as IInventoryAccess.
+    /// Used for shared inventories so we can treat them like ports.
+    /// </summary>
+    internal class InventoryProxy : IInventoryAccess
+    {
+        private readonly Inventory inventory;
+        public InventoryProxy(Inventory inventory) => this.inventory = inventory;
+
+        public bool CanAccept(string resourceId, float amount = 1f) => inventory.HasFreeSpace();
+        public bool CanProvide(string resourceId, float amount = 1f) => inventory.Contains(resourceId, amount);
+        public float Add(string resourceId, float amount) => inventory.Add(resourceId, amount);
+        public float Remove(string resourceId, float amount) => inventory.Remove(resourceId, amount);
+        public bool IsFull => !inventory.HasFreeSpace();
+        public bool IsEmpty => inventory.IsEmpty();
     }
 }
