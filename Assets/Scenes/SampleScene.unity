@@ -140,6 +140,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4b9958b72b24700429cd3182049a2a7e, type: 2}
   - {fileID: 11400000, guid: c87e27273b88d1441b937b63587b1472, type: 2}
   - {fileID: 11400000, guid: 9e0529315eb0552419a4b5fcb8d8b5dc, type: 2}
+  - {fileID: 11400000, guid: 13a835d162141a64f8ef21fbc29db8e7, type: 2}
   buildRange: 10
   player: {fileID: 646885667}
 --- !u!1 &519420028
@@ -462,6 +463,43 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &968775032 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7309010346709286061, guid: bca2f375b91ad9240a0b0b0ac13648fe, type: 3}
+  m_PrefabInstance: {fileID: 6356317078061628698}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &968775037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968775032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81ef6e3e01017cc42825a287b17cb53d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weightSlowdownFactor: 0.005
+  weightBuffer: 10
+  totalWeight: 0
+  debugInventoryView: 
+--- !u!114 &968775038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968775032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af8413f67e850340942c99d695f98c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactRange: 5
+  interactableMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!224 &1418256474 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8883672550166191809, guid: 55017667454614d42b7e4a180f67cb15, type: 3}
@@ -1170,7 +1208,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7309010346709286061, guid: bca2f375b91ad9240a0b0b0ac13648fe, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 968775037}
+    - targetCorrespondingSourceObject: {fileID: 7309010346709286061, guid: bca2f375b91ad9240a0b0b0ac13648fe, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 968775038}
   m_SourcePrefab: {fileID: 100100000, guid: bca2f375b91ad9240a0b0b0ac13648fe, type: 3}
 --- !u!1001 &6699850683324895506
 PrefabInstance:

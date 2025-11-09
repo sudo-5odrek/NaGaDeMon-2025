@@ -1,197 +1,201 @@
 using System.Collections.Generic;
+using Grid;
 using UnityEngine;
 
-[ExecuteAlways]
-[RequireComponent(typeof(Rigidbody2D))]
-public class EnemyPathMover : MonoBehaviour
+namespace Enemy
 {
-    [Header("Target & Movement")]
-    public Transform target;
-    public float speed = 2f;
-    public float repathInterval = 1.5f;
-    [Range(0.1f, 2f)] public float turnDistance = 0.5f;   // when to start blending to next-next node
-    [Range(1f, 20f)] public float turnSmoothness = 8f;    // how quickly to steer
-
-    [Header("Debug")]
-    public bool drawPath = true;
-    public Color pathColor = Color.yellow;
-    public bool resetRequested = false;
-
-    [HideInInspector] public List<Node> path;
-    [HideInInspector] public int index;
-
-    Rigidbody2D rb;
-    float timer;
-    Vector2 currentDir;
-    Vector3 startPos;
-
-    void Awake()
+    [ExecuteAlways]
+    [RequireComponent(typeof(Rigidbody2D))]
+    public class EnemyPathMover : MonoBehaviour
     {
-        rb = GetComponent<Rigidbody2D>();
-        startPos = transform.position;
-    }
-    
-    private void OnEnable()
-    {
-        GridManager.Instance.OnGridUpdated += HandleGridUpdate;
-    }
+        [Header("Target & Movement")]
+        public Transform target;
+        public float speed = 2f;
+        public float repathInterval = 1.5f;
+        [Range(0.1f, 2f)] public float turnDistance = 0.5f;   // when to start blending to next-next node
+        [Range(1f, 20f)] public float turnSmoothness = 8f;    // how quickly to steer
 
-    private void OnDisable()
-    {
-        if (GridManager.Instance != null)
-            GridManager.Instance.OnGridUpdated -= HandleGridUpdate;
-    }
-    
-    private void HandleGridUpdate()
-    {
-        RecalculatePath();
-    }
-    
-    void Start()
-    {
-        if (!Application.isPlaying) return;
-        RecalculatePath();
-    }
+        [Header("Debug")]
+        public bool drawPath = true;
+        public Color pathColor = Color.yellow;
+        public bool resetRequested = false;
 
-    void FixedUpdate()
-    {
-        if (!Application.isPlaying) return;
+        [HideInInspector] public List<Node> path;
+        [HideInInspector] public int index;
 
-        if (resetRequested)
+        Rigidbody2D rb;
+        float timer;
+        Vector2 currentDir;
+        Vector3 startPos;
+
+        void Awake()
         {
-            ResetEnemy();
-            resetRequested = false;
+            rb = GetComponent<Rigidbody2D>();
+            startPos = transform.position;
+        }
+    
+        private void OnEnable()
+        {
+            GridManager.Instance.OnGridUpdated += HandleGridUpdate;
         }
 
-        timer += Time.fixedDeltaTime;
-        if (timer >= repathInterval)
+        private void OnDisable()
         {
-            timer = 0;
-            //RecalculatePath();
+            if (GridManager.Instance != null)
+                GridManager.Instance.OnGridUpdated -= HandleGridUpdate;
+        }
+    
+        private void HandleGridUpdate()
+        {
+            RecalculatePath();
+        }
+    
+        void Start()
+        {
+            if (!Application.isPlaying) return;
+            RecalculatePath();
         }
 
-        FollowPath();
-    }
-
-    public void ResetEnemy()
-    {
-        transform.position = startPos;
-        rb.linearVelocity = Vector2.zero;
-        index = 0;
-        RecalculatePath();
-    }
-
-    public void RecalculatePath()
-    {
-        if (!target || !GridManager.Instance) return;
-
-        var (sx, sy) = GridManager.Instance.GridFromWorld(transform.position);
-        var (tx, ty) = GridManager.Instance.GridFromWorld(target.position);
-
-        var start = GridManager.Instance.GetNode(sx, sy);
-        var goal = GridManager.Instance.GetNode(tx, ty);
-
-        path = Pathfinder.FindPath(start, goal);
-        index = 0;
-    }
-
-    void FollowPath()
-    {
-        if (path == null || index >= path.Count)
+        void FixedUpdate()
         {
+            if (!Application.isPlaying) return;
+
+            if (resetRequested)
+            {
+                ResetEnemy();
+                resetRequested = false;
+            }
+
+            timer += Time.fixedDeltaTime;
+            if (timer >= repathInterval)
+            {
+                timer = 0;
+                //RecalculatePath();
+            }
+
+            FollowPath();
+        }
+
+        public void ResetEnemy()
+        {
+            transform.position = startPos;
             rb.linearVelocity = Vector2.zero;
-            return;
+            index = 0;
+            RecalculatePath();
         }
 
-        Vector2 currentNode = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
-        Vector2 dirToCurrent = (currentNode - rb.position).normalized;
-        Vector2 finalDir = dirToCurrent;
-
-        float dist = Vector2.Distance(rb.position, currentNode);
-
-        // --- Blend toward the following node (smooth turn) ---
-        if (dist < turnDistance && index + 1 < path.Count)
+        public void RecalculatePath()
         {
-            Vector2 nextNode = GridManager.Instance.WorldFromGrid(path[index + 1].x, path[index + 1].y);
-            Vector2 dirToNext = (nextNode - rb.position).normalized;
-            finalDir = Vector2.Lerp(dirToCurrent, dirToNext, 1f - (dist / turnDistance));
+            if (!target || !GridManager.Instance) return;
+
+            var (sx, sy) = GridManager.Instance.GridFromWorld(transform.position);
+            var (tx, ty) = GridManager.Instance.GridFromWorld(target.position);
+
+            var start = GridManager.Instance.GetNode(sx, sy);
+            var goal = GridManager.Instance.GetNode(tx, ty);
+
+            path = Pathfinder.FindPath(start, goal, true);
+            index = 0;
         }
 
-        // --- Apply smooth steering ---
-        currentDir = Vector2.Lerp(currentDir, finalDir, Time.fixedDeltaTime * turnSmoothness);
-        rb.linearVelocity = currentDir * speed;
+        void FollowPath()
+        {
+            if (path == null || index >= path.Count)
+            {
+                rb.linearVelocity = Vector2.zero;
+                return;
+            }
 
-        // --- Advance waypoint when reached or passed ---
-        if (HasReachedOrPassedNode(currentNode))
-            index++;
-    }
+            Vector2 currentNode = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
+            Vector2 dirToCurrent = (currentNode - rb.position).normalized;
+            Vector2 finalDir = dirToCurrent;
+
+            float dist = Vector2.Distance(rb.position, currentNode);
+
+            // --- Blend toward the following node (smooth turn) ---
+            if (dist < turnDistance && index + 1 < path.Count)
+            {
+                Vector2 nextNode = GridManager.Instance.WorldFromGrid(path[index + 1].x, path[index + 1].y);
+                Vector2 dirToNext = (nextNode - rb.position).normalized;
+                finalDir = Vector2.Lerp(dirToCurrent, dirToNext, 1f - (dist / turnDistance));
+            }
+
+            // --- Apply smooth steering ---
+            currentDir = Vector2.Lerp(currentDir, finalDir, Time.fixedDeltaTime * turnSmoothness);
+            rb.linearVelocity = currentDir * speed;
+
+            // --- Advance waypoint when reached or passed ---
+            if (HasReachedOrPassedNode(currentNode))
+                index++;
+        }
     
-    bool HasReachedOrPassedNode(Vector2 nodePos)
-    {
-        // --- 1. proximity check ---
-        if (Vector2.Distance(rb.position, nodePos) < 1f)
-            return true;
-
-        // --- 2. projected distance along segment ---
-        if (index > 0)
+        bool HasReachedOrPassedNode(Vector2 nodePos)
         {
-            Vector2 prev = GridManager.Instance.WorldFromGrid(path[index - 1].x, path[index - 1].y);
-
-            Vector2 seg = nodePos - prev;
-            Vector2 toEnemy = rb.position - prev;
-
-            float segLenSq = seg.sqrMagnitude;
-            float proj = Vector2.Dot(toEnemy, seg);
-
-            // if projection is past segment length, we are beyond the node
-            if (proj > segLenSq)
+            // --- 1. proximity check ---
+            if (Vector2.Distance(rb.position, nodePos) < 1f)
                 return true;
+
+            // --- 2. projected distance along segment ---
+            if (index > 0)
+            {
+                Vector2 prev = GridManager.Instance.WorldFromGrid(path[index - 1].x, path[index - 1].y);
+
+                Vector2 seg = nodePos - prev;
+                Vector2 toEnemy = rb.position - prev;
+
+                float segLenSq = seg.sqrMagnitude;
+                float proj = Vector2.Dot(toEnemy, seg);
+
+                // if projection is past segment length, we are beyond the node
+                if (proj > segLenSq)
+                    return true;
+            }
+
+            return false;
         }
 
-        return false;
-    }
-
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        // Did we hit a Nexus?
-        if (other.TryGetComponent<Nexus>(out var nexus))
+        void OnTriggerEnter2D(Collider2D other)
         {
-            nexus.TakeDamage(10);   // 🔧 set your damage value
-            Destroy(gameObject);    // enemy dies on impact
+            // Did we hit a Nexus?
+            if (other.TryGetComponent<Nexus>(out var nexus))
+            {
+                nexus.TakeDamage(10);   // 🔧 set your damage value
+                Destroy(gameObject);    // enemy dies on impact
+            }
         }
-    }
 
-    // ============================================================
-    // DEBUG GIZMOS
-    void OnDrawGizmos()
-    {
-        if (!drawPath || path == null || path.Count == 0) return;
-
-        // --- Path lines and waypoints ---
-        Gizmos.color = pathColor;
-
-        for (int i = 0; i < path.Count - 1; i++)
+        // ============================================================
+        // DEBUG GIZMOS
+        void OnDrawGizmos()
         {
-            Vector3 a = GridManager.Instance.WorldFromGrid(path[i].x, path[i].y);
-            Vector3 b = GridManager.Instance.WorldFromGrid(path[i + 1].x, path[i + 1].y);
-            Gizmos.color = new Color(255f, 255f, 0f, 0.01f);
-            Gizmos.DrawLine(a, b);
-            Gizmos.DrawSphere(a, 0.08f);
+            if (!drawPath || path == null || path.Count == 0) return;
+
+            // --- Path lines and waypoints ---
+            Gizmos.color = pathColor;
+
+            for (int i = 0; i < path.Count - 1; i++)
+            {
+                Vector3 a = GridManager.Instance.WorldFromGrid(path[i].x, path[i].y);
+                Vector3 b = GridManager.Instance.WorldFromGrid(path[i + 1].x, path[i + 1].y);
+                Gizmos.color = new Color(255f, 255f, 0f, 0.01f);
+                Gizmos.DrawLine(a, b);
+                Gizmos.DrawSphere(a, 0.08f);
+            }
+
+            // --- Final target node highlight ---
+            Vector3 goalPos = GridManager.Instance.WorldFromGrid(path[^1].x, path[^1].y);
+            Gizmos.color = Color.cyan; // 👈 change this color as you wish
+            Gizmos.DrawSphere(goalPos, 0.12f);
+            Gizmos.DrawWireSphere(goalPos, 0.18f);
+
+            // --- Optional: Draw current node the enemy is moving toward ---
+            if (index < path.Count)
+            {
+                Vector3 currentPos = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
+                Gizmos.color = Color.green;
+                Gizmos.DrawSphere(currentPos, 0.1f);
+            }
         }
 
-        // --- Final target node highlight ---
-        Vector3 goalPos = GridManager.Instance.WorldFromGrid(path[^1].x, path[^1].y);
-        Gizmos.color = Color.cyan; // 👈 change this color as you wish
-        Gizmos.DrawSphere(goalPos, 0.12f);
-        Gizmos.DrawWireSphere(goalPos, 0.18f);
-
-        // --- Optional: Draw current node the enemy is moving toward ---
-        if (index < path.Count)
-        {
-            Vector3 currentPos = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(currentPos, 0.1f);
-        }
     }
-
 }

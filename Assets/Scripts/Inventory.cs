@@ -15,6 +15,9 @@ public class Inventory
     // --- DATA ---
     [SerializeField] private float totalCapacity = -1f; // -1 = infinite
     [SerializeField] private Dictionary<string, float> items = new();
+    
+    public bool HasAnyOutputResource() => items.Count > 0;
+    public bool HasFreeSpace() => GetTotalAmount() < totalCapacity;
 
     // --- PROPERTIES ---
     public float TotalCapacity => totalCapacity;
@@ -38,16 +41,16 @@ public class Inventory
     public float Add(string resourceId, float amount)
     {
         if (amount <= 0f) return 0f;
-        Debug.Log("Amount okay");
+        
         float space = HasCapacityLimit ? Mathf.Min(FreeCapacity, amount) : amount;
         if (space <= 0f) return 0f;
-        Debug.Log("capacity okay");
+        
 
         if (!items.ContainsKey(resourceId))
             items[resourceId] = 0f;
 
         items[resourceId] += space;
-        Debug.Log("added " + items[resourceId]);
+        
         OnInventoryChanged?.Invoke();
         return space;
     }

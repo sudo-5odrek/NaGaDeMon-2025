@@ -23,7 +23,7 @@ namespace Building.Turrets
 
         [Header("Debug")]
         [SerializeField] private float currentAmmo;
-
+        
         // --- Core ---
         public Inventory Inventory { get; private set; }
         private Turret turretController;

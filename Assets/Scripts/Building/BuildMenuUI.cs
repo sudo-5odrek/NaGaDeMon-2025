@@ -1,106 +1,84 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
-using TMPro;
 
-public class BuildMenuUI : MonoBehaviour
+namespace Building
 {
-    [Header("UI References")]
-    public GameObject menuPanel;          // The root panel of the build menu
-    public Transform buttonContainer;     // Parent for all dynamically created buttons
-    public GameObject buttonPrefab;       // A prefab with: Button + Icon (Image) + Name (TMP Text)
-
-    private InputSystem_Actions input;
-
-    private void Awake()
+    public class BuildMenuUI : MonoBehaviour
     {
-        // Reuse the same input instance used globally
-        input = InputContextManager.Instance.input;
+        [Header("UI References")]
+        public GameObject menuPanel;          
+        public Transform buttonContainer;     
+        public GameObject buttonPrefab;       
 
-        // Bind the toggle menu input (e.g. B key)
-        input.Player.BuildMenu.performed += OnToggleMenu;
-    }
+        public bool IsOpen => menuPanel != null && menuPanel.activeSelf;
 
-    private void OnEnable()
-    {
-        if (menuPanel != null)
-            menuPanel.SetActive(false);
-    }
-
-    private void OnDestroy()
-    {
-        input.Player.BuildMenu.performed -= OnToggleMenu;
-    }
-
-    // --------------------------------------------------
-    // MENU MANAGEMENT
-    // --------------------------------------------------
-
-    private void OnToggleMenu(InputAction.CallbackContext ctx)
-    {
-        ToggleMenu();
-    }
-
-    public void ToggleMenu()
-    {
-        if (menuPanel == null) return;
-
-        bool isOpen = menuPanel.activeSelf;
-        menuPanel.SetActive(!isOpen);
-
-        if (!isOpen)
+        private void OnEnable()
         {
-            PopulateMenu();
+            if (menuPanel != null)
+                menuPanel.SetActive(false);
         }
-        else
+
+        // --------------------------------------------------
+        // MENU CONTROL
+        // --------------------------------------------------
+
+        public void Show()
         {
-            // If menu closes while placing, cancel placement
-            if (BuildManager.Instance != null && BuildManager.Instance.isActiveAndEnabled)
+            if (menuPanel == null) return;
+            PopulateMenu();
+            menuPanel.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            if (menuPanel == null) return;
+            if (!menuPanel.activeSelf) return;
+            menuPanel.SetActive(false);
+        }
+
+        public void ToggleMenu()
+        {
+            if (menuPanel == null) return;
+            if (IsOpen)
+                Hide();
+            else
+                Show();
+        }
+
+        // --------------------------------------------------
+        // MENU POPULATION
+        // --------------------------------------------------
+
+        private void PopulateMenu()
+        {
+            foreach (Transform child in buttonContainer)
+                Destroy(child.gameObject);
+
+            foreach (var building in BuildManager.Instance.availableBuildings)
             {
-                InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
+                GameObject btnObj = Instantiate(buttonPrefab, buttonContainer);
+                Button btn = btnObj.GetComponent<Button>();
+
+                btn.onClick.AddListener(() => SelectBuilding(building));
+
+                Transform icon = btnObj.transform.Find("Icon");
+                Transform name = btnObj.transform.Find("Name");
+
+                if (icon != null && icon.TryGetComponent(out Image img))
+                    img.sprite = building.icon;
+
+                if (name != null && name.TryGetComponent(out TMP_Text text))
+                    text.text = building.buildingName;
             }
         }
-    }
 
-    // --------------------------------------------------
-    // POPULATION
-    // --------------------------------------------------
-
-    private void PopulateMenu()
-    {
-        // Clear existing buttons
-        foreach (Transform child in buttonContainer)
-            Destroy(child.gameObject);
-
-        // Create new buttons from the building data in BuildManager
-        foreach (var building in BuildManager.Instance.availableBuildings)
+        private void SelectBuilding(BuildingData building)
         {
-            GameObject btnObj = Instantiate(buttonPrefab, buttonContainer);
-            Button btn = btnObj.GetComponent<Button>();
+            if (BuildManager.Instance == null) return;
 
-            // Assign onClick event
-            btn.onClick.AddListener(() => SelectBuilding(building));
-
-            // Optional visuals (depends on your prefab structure)
-            Transform icon = btnObj.transform.Find("Icon");
-            Transform name = btnObj.transform.Find("Name");
-
-            if (icon != null && icon.TryGetComponent(out Image img))
-                img.sprite = building.icon;
-
-            if (name != null && name.TryGetComponent(out TMP_Text text))
-                text.text = building.buildingName;
+            BuildManager.Instance.StartPlacement(building);
+            Hide(); // Close the menu immediately after selecting
         }
-    }
-
-    private void SelectBuilding(BuildingData building)
-    {
-        if (BuildManager.Instance == null) return;
-
-        BuildManager.Instance.StartPlacement(building);
-        menuPanel.SetActive(false);
-
-        // Switch input context
-        InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
     }
 }

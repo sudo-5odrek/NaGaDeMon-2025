@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Grid;
 
 [CreateAssetMenu(menuName = "Build/Placement Logic/Straight Line")]
 public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
@@ -12,9 +13,10 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
 
     private Vector3 worldStart;
     private bool isDragging = false;
+    
 
-    private GameObject hoverPreview;                // single ghost under cursor before drag
-    private readonly List<GameObject> previewLine = new(); // line of ghosts during drag
+    private GameObject hoverPreview;
+    private readonly List<GameObject> previewLine = new();
 
     // --------------------------------------------------
     // SETUP
@@ -22,75 +24,62 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
 
     public void Setup(GameObject prefab, float rotation)
     {
+         // 🧠 skip preview creation if still placing
         this.prefab = prefab;
         this.rotation = rotation;
         CreateHoverPreview();
     }
 
     // --------------------------------------------------
-    // HOVER PREVIEW (before click)
+    // PREVIEW (before drag)
     // --------------------------------------------------
 
     public void UpdatePreview(Vector3 worldCurrent)
     {
-        // Only show single-cell hover preview before clicking
         if (!isDragging && hoverPreview)
-        {
             hoverPreview.transform.position = worldCurrent;
-        }
     }
 
     // --------------------------------------------------
-    // CLICK → DRAG → RELEASE
+    // DRAG EVENTS
     // --------------------------------------------------
 
-    public void OnStartDrag(Vector3 worldStart)
+    public void OnStartDrag(Vector3 start)
     {
-        this.worldStart = worldStart;
         isDragging = true;
+        worldStart = start;
 
-        // Remove hover preview once dragging starts
         if (hoverPreview)
             Object.Destroy(hoverPreview);
 
         ClearPreviewLine();
     }
 
-    public void OnDragging(Vector3 worldCurrent)
+    public void OnDragging(Vector3 current)
     {
         if (!isDragging) return;
-        Debug.Log("Dragging from " + worldStart + " to " + worldCurrent);
 
         ClearPreviewLine();
-        DrawPreviewLine(worldStart, worldCurrent);
+        DrawPreviewLine(worldStart, current);
     }
 
     public void OnEndDrag(Vector3 worldEnd)
     {
         if (!isDragging) return;
+        isDragging = false;
+
+        // 🧠 Suppress immediate preview recreation
 
         ClearPreviewLine();
         PlaceLine(worldStart, worldEnd);
-
-        isDragging = false;
-        CreateHoverPreview(); // return to hover mode after placement
-    }
-
-    public void ClearPreview()
-    {
-        ClearPreviewLine();
-        if (hoverPreview) Object.Destroy(hoverPreview);
+        
+        
     }
 
     // --------------------------------------------------
     // INTERNAL HELPERS
     // --------------------------------------------------
-
-    private void CreateHoverPreview()
-    {
-        hoverPreview = Object.Instantiate(prefab);
-        BuildUtils.MakePreview(hoverPreview);
-    }
+    
 
     private void ClearPreviewLine()
     {
@@ -99,12 +88,17 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
         previewLine.Clear();
     }
 
-    private void DrawPreviewLine(Vector3 startWorld, Vector3 endWorld)
+    private void CreateHoverPreview()
     {
-        (int startX, int startY) = GridManager.Instance.GridFromWorld(startWorld);
-        (int endX, int endY) = GridManager.Instance.GridFromWorld(endWorld);
+        hoverPreview = Object.Instantiate(prefab);
+        BuildUtils.MakePreview(hoverPreview);
+    }
 
-        // Decide main axis
+    private void DrawPreviewLine(Vector3 start, Vector3 end)
+    {
+        (int startX, int startY) = GridManager.Instance.GridFromWorld(start);
+        (int endX, int endY) = GridManager.Instance.GridFromWorld(end);
+
         bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
         if (vertical)
         {
@@ -127,10 +121,10 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
         return ghost;
     }
 
-    private void PlaceLine(Vector3 startWorld, Vector3 endWorld)
+    private void PlaceLine(Vector3 start, Vector3 end)
     {
-        (int startX, int startY) = GridManager.Instance.GridFromWorld(startWorld);
-        (int endX, int endY) = GridManager.Instance.GridFromWorld(endWorld);
+        (int startX, int startY) = GridManager.Instance.GridFromWorld(start);
+        (int endX, int endY) = GridManager.Instance.GridFromWorld(end);
 
         bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
         if (vertical)
@@ -151,5 +145,12 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     {
         var obj = Object.Instantiate(prefab, pos, Quaternion.Euler(0, 0, rotation));
         GridManager.Instance.BlockNodesUnderObject(obj);
+    }
+
+    public void ClearPreview()
+    {
+        ClearPreviewLine();
+        if (hoverPreview)
+            Object.Destroy(hoverPreview);
     }
 }

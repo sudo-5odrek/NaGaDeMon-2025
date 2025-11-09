@@ -1,3 +1,4 @@
+using Grid;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Build/Placement Logic/Single")]
@@ -6,23 +7,46 @@ public class SinglePlacementLogic : ScriptableObject, IBuildPlacementLogic
     private GameObject prefab;
     private float rotation;
     private GameObject previewObject;
+    private bool isPlacing = false;
+
+    // --------------------------------------------------
+    // SETUP
+    // --------------------------------------------------
 
     public void Setup(GameObject prefab, float rotation)
     {
+        // Avoid recreating preview mid-placement
+        if (isPlacing) return;
+
         this.prefab = prefab;
         this.rotation = rotation;
         CreatePreview();
     }
 
-    public void OnStartDrag(Vector3 start) { } // not used here
+    // --------------------------------------------------
+    // PREVIEW & DRAG
+    // --------------------------------------------------
 
-    public void OnDragging(Vector3 current) { } // not used here
+    public void OnStartDrag(Vector3 start)
+    {
+        isPlacing = true;
+    }
+
+    public void OnDragging(Vector3 current)
+    {
+        // Single placement — not used
+    }
 
     public void OnEndDrag(Vector3 worldEnd)
     {
-        // Place real object
+        // ✅ Place object at target
         Place(worldEnd);
+
+        // ✅ Clear preview immediately after placement
         ClearPreview();
+
+        // ✅ Release placement flag
+        isPlacing = false;
     }
 
     public void UpdatePreview(Vector3 worldCurrent)
@@ -34,12 +58,19 @@ public class SinglePlacementLogic : ScriptableObject, IBuildPlacementLogic
     public void ClearPreview()
     {
         if (previewObject)
+        {
             Object.Destroy(previewObject);
+            previewObject = null;
+        }
     }
+
+    // --------------------------------------------------
+    // INTERNAL HELPERS
+    // --------------------------------------------------
 
     private void CreatePreview()
     {
-        previewObject = Object.Instantiate(prefab);
+        previewObject = Object.Instantiate(prefab, Vector3.zero, Quaternion.Euler(0, 0, rotation));
         BuildUtils.MakePreview(previewObject);
     }
 
