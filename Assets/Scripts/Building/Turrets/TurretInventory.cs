@@ -25,12 +25,12 @@ namespace Building.Turrets
         [SerializeField] private float currentAmmo;
         
         // --- Core ---
-        public Inventory Inventory { get; private set; }
+        public Inventory.Inventory Inventory { get; private set; }
         private Turret turretController;
 
         private void Awake()
         {
-            Inventory = new Inventory(maxAmmoCapacity);
+            Inventory = new Inventory.Inventory(maxAmmoCapacity);
             turretController = GetComponent<Turret>();
             Inventory.OnInventoryChanged += OnInventoryChanged;
         }

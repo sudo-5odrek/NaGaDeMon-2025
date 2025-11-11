@@ -1,12 +1,16 @@
 using UnityEngine;
 
-public interface IInventoryAccess
+namespace Inventory
 {
-    bool CanAccept(string resourceId, float amount = 1f);
-    bool CanProvide(string resourceId, float amount = 1f);
-    float Add(string resourceId, float amount);
-    float Remove(string resourceId, float amount);
-    bool IsFull { get; }
-    bool IsEmpty { get; }
+    public interface IInventoryAccess
+    {
+        bool CanAccept(ItemDefinition item, float amount);
+        bool CanProvide(ItemDefinition item, float amount);
+        float Add(ItemDefinition item, float amount);
+        float Remove(ItemDefinition item, float amount);
+
+        bool IsFull { get; }
+        bool IsEmpty { get; }
+    }
 }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Player
@@ -15,21 +16,24 @@ namespace Player
         [Header("Inventory Settings")]
         [Tooltip("Multiplier applied to movement speed per unit of weight.")]
         [SerializeField] private float weightSlowdownFactor = 0.005f;
+
         [Tooltip("Base inventory weight before slowdown is noticeable.")]
         [SerializeField] private float weightBuffer = 10f;
 
         [Header("Debug Info (Read-Only)")]
         [SerializeField] private float totalWeight;
 
-        // --- Core data ---
-        public Inventory Inventory { get; private set; }
+        // --- Core Data ---
+        public Inventory.Inventory Inventory { get; private set; }
+
+        // Reference table for item definitions currently in inventory
+        private readonly Dictionary<string, ItemDefinition> itemRefs = new();
 
         // --- Events ---
         public event Action OnInventoryChanged;
 
         private void Awake()
         {
-            // Singleton instance
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -37,7 +41,7 @@ namespace Player
             }
 
             Instance = this;
-            Inventory = new Inventory(-1); // -1 = infinite capacity
+            Inventory = new Inventory.Inventory(-1); // -1 = infinite capacity
             Inventory.OnInventoryChanged += HandleInventoryChanged;
         }
 
@@ -51,31 +55,83 @@ namespace Player
         //  INVENTORY MANAGEMENT
         // ------------------------------------------------------------
 
-        public void AddItem(string resourceId, float amount)
+        /// <summary>
+        /// Add an item using a direct ItemDefinition reference.
+        /// </summary>
+        public void AddItem(ItemDefinition item, float amount)
         {
-            if (amount <= 0) return;
-            Inventory.Add(resourceId, amount);
+            if (item == null || amount <= 0f) return;
+
+            Inventory.Add(item.itemID, amount);
+            if (!itemRefs.ContainsKey(item.itemID))
+                itemRefs[item.itemID] = item;
         }
 
-        public void RemoveItem(string resourceId, float amount)
+        /// <summary>
+        /// Remove an item using its ItemDefinition reference.
+        /// </summary>
+        public void RemoveItem(ItemDefinition item, float amount)
         {
-            if (amount <= 0) return;
-            Inventory.Remove(resourceId, amount);
+            if (item == null || amount <= 0f) return;
+
+            Inventory.Remove(item.itemID, amount);
+            CleanupEmpty(item);
         }
 
-        public float GetAmount(string resourceId)
+        public float GetAmount(ItemDefinition item)
         {
-            return Inventory.Get(resourceId);
+            return item != null ? Inventory.Get(item.itemID) : 0f;
         }
 
-        public bool Has(string resourceId, float amount = 1f)
+        public bool Has(ItemDefinition item, float amount = 1f)
         {
-            return Inventory.Contains(resourceId, amount);
+            return item != null && Inventory.Contains(item.itemID, amount);
         }
 
         public void Clear()
         {
             Inventory.Clear();
+            itemRefs.Clear();
+            totalWeight = 0f;
+            OnInventoryChanged?.Invoke();
+        }
+
+        private void CleanupEmpty(ItemDefinition item)
+        {
+            if (item == null) return;
+            if (Inventory.Get(item.itemID) <= 0f && itemRefs.ContainsKey(item.itemID))
+                itemRefs.Remove(item.itemID);
+        }
+
+        // ------------------------------------------------------------
+        //  ITEM DEFINITION ACCESS
+        // ------------------------------------------------------------
+
+        /// <summary>
+        /// Returns all stored items and their quantities.
+        /// </summary>
+        public Dictionary<ItemDefinition, float> GetAllItems()
+        {
+            var result = new Dictionary<ItemDefinition, float>();
+
+            foreach (var kvp in Inventory.GetAll())
+            {
+                string id = kvp.Key;
+                float qty = kvp.Value;
+
+                if (itemRefs.TryGetValue(id, out var def))
+                    result[def] = qty;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns all unique ItemDefinitions currently held.
+        /// </summary>
+        public List<ItemDefinition> GetAllDefinitions()
+        {
+            return new List<ItemDefinition>(itemRefs.Values);
         }
 
         // ------------------------------------------------------------
@@ -84,7 +140,19 @@ namespace Player
 
         private void HandleInventoryChanged()
         {
-            totalWeight = Inventory.GetTotalAmount();
+            totalWeight = 0f;
+
+            foreach (var kvp in Inventory.GetAll())
+            {
+                string id = kvp.Key;
+                float qty = kvp.Value;
+
+                if (itemRefs.TryGetValue(id, out var def))
+                    totalWeight += qty * def.weight;
+                else
+                    totalWeight += qty; // default weight = 1 if no def
+            }
+
             OnInventoryChanged?.Invoke();
         }
 
@@ -95,32 +163,28 @@ namespace Player
         {
             float excess = Mathf.Max(0, totalWeight - weightBuffer);
             float slowdown = 1f - (excess * weightSlowdownFactor);
-            return Mathf.Clamp(slowdown, 0.3f, 1f); // never go below 30% speed
+            return Mathf.Clamp(slowdown, 0.3f, 1f);
         }
 
         public float GetTotalWeight() => totalWeight;
-        
+
+        // ------------------------------------------------------------
+        //  DEBUG VIEW (Editor only)
+        // ------------------------------------------------------------
+
 #if UNITY_EDITOR
         [SerializeField, TextArea, Tooltip("Runtime debug view of inventory contents.")]
         private string debugInventoryView;
 
         private void Update()
         {
-            // Only update debug string in the editor for convenience
-#if UNITY_EDITOR
-            if (Inventory != null)
-            {
-                var items = Inventory.GetAll();
-                debugInventoryView = items.Count == 0
-                    ? "(empty)"
-                    : string.Join("\n", items.Select(kv => $"{kv.Key}: {kv.Value}"));
-            }
-#endif
+            if (Inventory == null) return;
+
+            var items = GetAllItems();
+            debugInventoryView = items.Count == 0
+                ? "(empty)"
+                : string.Join("\n", items.Select(kv => $"{kv.Key.displayName}: {kv.Value}"));
         }
 #endif
-
     }
 }
-
-
-

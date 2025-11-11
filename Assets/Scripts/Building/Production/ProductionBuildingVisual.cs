@@ -1,3 +1,4 @@
+using Building.Production;
 using UnityEngine;
 
 [RequireComponent(typeof(ProductionBuilding))]

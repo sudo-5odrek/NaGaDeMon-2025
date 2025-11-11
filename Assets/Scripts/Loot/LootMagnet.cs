@@ -1,3 +1,4 @@
+using Loot;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]

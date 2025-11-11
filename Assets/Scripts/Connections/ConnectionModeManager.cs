@@ -1,23 +1,27 @@
 using System.Collections.Generic;
+using Building;
+using Building.Conveyer;
+using Grid;
+using Inventory;
+using Placement_Logics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Grid;
-using Placement_Logics;
 
-namespace Building
+namespace Connections
 {
+    /// <summary>
+    /// Handles connection (conveyor) placement mode:
+    /// start from a building, draw conveyor lines, accumulate all tiles,
+    /// and finalize the path when canceled or toggled off.
+    /// </summary>
     public class ConnectionModeManager : MonoBehaviour
     {
         public static ConnectionModeManager Instance;
 
         [Header("Settings")]
-        [Tooltip("The conveyor tile prefab used for placement.")]
-        public GameObject connectionPrefab;
-
-        [Tooltip("Placement logic ScriptableObject (e.g., ConveyorLinePlacementLogic).")]
+        public GameObject connectionPrefab;   // single conveyor tile prefab
+        public GameObject conveyorPathPrefab; // root prefab with ConveyorPathController
         public ScriptableObject placementLogicAsset;
-
-        [Tooltip("Which layers count as valid buildings for connection starts.")]
         public LayerMask buildingMask;
 
         [Header("References")]
@@ -30,22 +34,22 @@ namespace Building
         private bool isActive;
         private bool isBuildingChain;
 
-        private Vector3? startPoint;     // current segment start
-        private Vector3? lastEndPoint;   // last segment end
-        private BuildingConnector startBuilding;
+        private Vector3? startPoint;
+        private BuildingInventory startBuilding;
+        private BuildingInventory endBuilding;
+        private ConveyorPathController currentController;
 
         // --------------------------------------------------
-        // INITIALIZATION
+        // INIT
         // --------------------------------------------------
-
         private void Awake()
         {
             Instance = this;
             cam = Camera.main;
             input = InputContextManager.Instance.input;
 
-            if (placementLogicAsset is IBuildPlacementLogic logic)
-                placementLogic = logic;
+            if (placementLogicAsset is IBuildPlacementLogic)
+                placementLogic = Instantiate(placementLogicAsset) as IBuildPlacementLogic;
             else
                 Debug.LogError($"[ConnectionModeManager] {placementLogicAsset.name} does not implement IBuildPlacementLogic!");
         }
@@ -66,17 +70,21 @@ namespace Building
 
         private void Update()
         {
-            if (!isActive || !isBuildingChain || !startPoint.HasValue) return;
+            if (!isActive) return;
 
-            // Continuous preview update
             Vector3 mouseWorld = GetMouseWorldPosition();
-            placementLogic.OnDragging(mouseWorld);
+
+            // Always update hover ghost
+            placementLogic.UpdatePreview(mouseWorld);
+
+            // Draw line preview if currently chaining
+            if (isBuildingChain && startPoint.HasValue)
+                placementLogic.OnDragging(mouseWorld);
         }
 
         // --------------------------------------------------
         // MODE TOGGLE
         // --------------------------------------------------
-
         private void OnToggleMode(InputAction.CallbackContext ctx)
         {
             isActive = !isActive;
@@ -84,129 +92,147 @@ namespace Building
             if (isActive)
             {
                 InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Connect);
-                placementLogic?.Setup(connectionPrefab, 0f, false);
+                placementLogic?.Setup(connectionPrefab, 0f, createPreview: true);
 
-                if (placementLogic is ConveyorLinePlacementLogic conveyorLogic)
-                {
-                    conveyorLogic.SetPlacementCallback(OnPlacementConfirmed);
-                    conveyorLogic.BeginChain(); // ✅ Start parent path for this chain
-                }
+                if (placementLogic is ConveyorLinePlacementLogic lineLogic)
+                    lineLogic.SetPlacementCallback(OnPlacementConfirmed);
 
                 Debug.Log("🟢 Connection Mode ON");
             }
             else
             {
-                ExitConnectionMode();
+                FinalizeAndExit();
             }
         }
 
-        private void ExitConnectionMode()
-        {
-            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
-
-            if (placementLogic is ConveyorLinePlacementLogic conveyorLogic)
-                conveyorLogic.EndChain(); // ✅ Clean up chain parent
-
-            placementLogic?.ClearPreview();
-
-            isActive = false;
-            isBuildingChain = false;
-            startPoint = null;
-            lastEndPoint = null;
-            startBuilding = null;
-
-            Debug.Log("🔴 Connection Mode OFF");
-        }
-
         // --------------------------------------------------
-        // LEFT CLICK: PLACE / EXTEND
+        // LEFT CLICK (start or extend)
         // --------------------------------------------------
-
         private void OnLeftClick(InputAction.CallbackContext ctx)
         {
             if (!isActive) return;
-
             Vector3 mouseWorld = GetMouseWorldPosition();
 
-            // STEP 1 — Start chain from a building
+            // STEP 1: start chain from a building
             if (!isBuildingChain)
             {
                 RaycastHit2D hit = Physics2D.Raycast(mouseWorld, Vector2.zero, 0.1f, buildingMask);
-                if (hit.collider && hit.collider.TryGetComponent(out BuildingConnector connector))
+                if (hit.collider && hit.collider.TryGetComponent(out BuildingInventory inventory))
                 {
-                    if (connector.CanProvideOutput())
-                    {
-                        startBuilding = connector;
-                        startPoint = connector.transform.position;
-                        placementLogic.OnStartDrag(startPoint.Value);
-                        isBuildingChain = true;
-                        Debug.Log($"🟩 Started conveyor chain from {connector.name}");
-                    }
+                    startBuilding = inventory;
+                    startPoint = SnapToGrid(mouseWorld);
+
+                    // create conveyor root + controller
+                    GameObject pathRoot = Instantiate(conveyorPathPrefab);
+                    pathRoot.name = $"ConveyorPath_{inventory.name}";
+                    currentController = pathRoot.GetComponent<ConveyorPathController>();
+
+                    // ✅ Register start based on building reference
+                    var startPort = startBuilding.GetOutput();
+
+                    placementLogic.OnStartDrag(startPoint.Value);
+                    isBuildingChain = true;
+
+                    Debug.Log($"🟩 Started conveyor chain from {startBuilding.name}");
                 }
                 return;
             }
 
-            // STEP 2 — Already chaining: confirm this segment
+            // STEP 2: extend current chain
             if (isBuildingChain && startPoint.HasValue)
             {
                 Vector3 endPoint = SnapToGrid(mouseWorld);
 
-                placementLogic.OnEndDrag(endPoint); // place tiles between start and end
-                lastEndPoint = endPoint;
-                startPoint = endPoint;
+                if (placementLogic is not ConveyorLinePlacementLogic lineLogic)
+                    return;
 
-                // Start a new preview immediately for the next segment
+                List<GameObject> newTiles = lineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
+
+                placementLogic.OnEndDrag(endPoint);
+                startPoint = endPoint;
                 placementLogic.OnStartDrag(startPoint.Value);
             }
         }
 
         // --------------------------------------------------
-        // RIGHT CLICK: CANCEL CHAIN
+        // RIGHT CLICK (finalize)
         // --------------------------------------------------
-
         private void OnRightClick(InputAction.CallbackContext ctx)
         {
             if (!isActive) return;
-
-            Debug.Log("🛑 Conveyor chain canceled by right-click.");
-            ExitConnectionMode();
+            Debug.Log("🛑 Conveyor chain finalized by player.");
+            FinalizeAndExit();
         }
 
         // --------------------------------------------------
         // CALLBACK FROM PLACEMENT LOGIC
         // --------------------------------------------------
-
         private void OnPlacementConfirmed(List<GameObject> placedObjects)
         {
-            if (placedObjects == null || placedObjects.Count < 2)
-                return;
+            if (placedObjects == null || placedObjects.Count == 0) return;
 
-            // Determine direction from first two tiles
-            Vector3 p1 = placedObjects[0].transform.position;
-            Vector3 p2 = placedObjects[1].transform.position;
+            if (currentController)
+                currentController.AddToPath(placedObjects);
 
-            Vector2Int dir = Vector2Int.zero;
-            float dx = p2.x - p1.x;
-            float dy = p2.y - p1.y;
+            // ✅ Determine overall segment direction
+            Vector3 start = placedObjects[0].transform.position;
+            Vector3 end = placedObjects[^1].transform.position;
+            Vector2 dir = (end - start).normalized;
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
-            if (Mathf.Abs(dx) > Mathf.Abs(dy))
-                dir = dx > 0 ? Vector2Int.right : Vector2Int.left;
+            // ✅ Apply same rotation to all tiles in the segment
+            foreach (var tile in placedObjects)
+                tile.transform.rotation = Quaternion.Euler(0, 0, angle);
+
+            Debug.Log($"✅ Segment confirmed: {placedObjects.Count} tiles added to {currentController.name}");
+        }
+
+
+        // --------------------------------------------------
+        // FINALIZATION (driven by start building)
+        // --------------------------------------------------
+        private void FinalizeAndExit()
+        {
+            if (currentController != null && startBuilding != null)
+            {
+                Debug.Log("<UNK> Conveyor chain finalized by player.");
+                // find end building at last tile
+                if (currentController.pathTiles.Count > 0)
+                {
+                    GameObject lastTile = currentController.pathTiles[^1];
+                    Collider2D hit = Physics2D.OverlapCircle(lastTile.transform.position, 0.1f, buildingMask);
+                    
+                    if (hit)
+                    {
+                        endBuilding = hit.GetComponent<BuildingInventory>();
+                    }
+                    
+                    var startPort = startBuilding?.GetOutput() as BuildingInventoryPort;
+                    var endPort = endBuilding?.GetInput() as BuildingInventoryPort;
+                    currentController.Initialize(startBuilding, startPort, endBuilding, endPort);
+                }
+            }
+
+            // cleanup visuals
+            if (placementLogic is ConveyorLinePlacementLogic lineLogic)
+                lineLogic.FinalizePath();
             else
-                dir = dy > 0 ? Vector2Int.up : Vector2Int.down;
+                placementLogic?.ClearPreview();
 
-            float angle = GetRotationFromDirection(dir);
+            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
 
-            foreach (var obj in placedObjects)
-                obj.transform.rotation = Quaternion.Euler(0, 0, angle);
+            isActive = false;
+            isBuildingChain = false;
+            startPoint = null;
+            startBuilding = null;
+            currentController = null;
 
-            lastEndPoint = placedObjects[^1].transform.position;
-            Debug.Log($"✅ Segment placed. Direction: {dir}");
+            Debug.Log("🔴 Connection Mode OFF");
         }
 
         // --------------------------------------------------
         // UTILITIES
         // --------------------------------------------------
-
         private Vector3 GetMouseWorldPosition()
         {
             Vector2 mousePos = input.Player.Point.ReadValue<Vector2>();
@@ -219,15 +245,6 @@ namespace Building
         {
             (int gx, int gy) = GridManager.Instance.GridFromWorld(pos);
             return GridManager.Instance.WorldFromGrid(gx, gy);
-        }
-
-        private float GetRotationFromDirection(Vector2Int dir)
-        {
-            if (dir == Vector2Int.up) return 0f;
-            if (dir == Vector2Int.right) return -90f;
-            if (dir == Vector2Int.down) return 180f;
-            if (dir == Vector2Int.left) return 90f;
-            return 0f;
         }
     }
 }

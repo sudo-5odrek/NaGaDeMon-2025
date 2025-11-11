@@ -99,9 +99,7 @@ GameObject:
   - component: {fileID: 271445947934582259}
   - component: {fileID: 9106147487681771381}
   - component: {fileID: 7099415531531461329}
-  - component: {fileID: -4626973974041051718}
   - component: {fileID: 4104471154743127817}
-  - component: {fileID: -8093091064411184184}
   - component: {fileID: 7665879688305416385}
   m_Layer: 7
   m_Name: Storage
@@ -199,26 +197,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &-4626973974041051718
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6074686097958532318}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3ae9c3910c8c784894ffb3f52fb27ee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  canOutput: 1
-  canInput: 1
-  maxOutputs: 1
-  maxInputs: 1
-  buildingInventory: {fileID: 4104471154743127817}
-  portName: 
-  currentInputAmount: 0
-  currentOutputAmount: 0
 --- !u!114 &4104471154743127817
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -231,28 +209,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5ffc9d8fb2d50d408c7304fe2b3f44f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  useSingleSharedInventory: 1
-  sharedInventory: {fileID: -8093091064411184184}
   ports:
-  - portName: Input
-    isInput: 1
+  - portName: Chest
+    portType: 2
     acceptedResources: []
-    maxCapacity: 50
-    transferRate: 0
---- !u!114 &-8093091064411184184
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6074686097958532318}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6a9f080c3727bf4eaccc2d40cfd4bcd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  capacity: 50
-  acceptedResources: []
+    capacity: 50
+    transferRate: 1
+  maxInputs: 1
+  maxOutputs: 1
 --- !u!114 &7665879688305416385
 MonoBehaviour:
   m_ObjectHideFlags: 0

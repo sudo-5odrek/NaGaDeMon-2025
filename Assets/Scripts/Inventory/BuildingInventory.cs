@@ -1,69 +1,170 @@
-using UnityEngine;
 using System.Collections.Generic;
+using Building;
+using UnityEngine;
 
-namespace Building
+namespace Inventory
 {
+    /// <summary>
+    /// Centralized inventory system for a building.
+    /// Manages all ports, their connections, capacity limits,
+    /// and provides access/control methods for belts and logic systems.
+    /// </summary>
+    [DisallowMultipleComponent]
     public class BuildingInventory : MonoBehaviour
     {
-        [Header("Mode")]
-        public bool useSingleSharedInventory = false;
+        [Header("Port Configuration")]
+        [Tooltip("List of inventory ports attached to this building.")]
+        public List<BuildingInventoryPort> ports = new();
 
-        [Header("Shared inventory (if enabled)")]
-        public SharedBuildingInventory sharedInventory;
+        [Header("Connection Limits")]
+        [Tooltip("Maximum number of incoming belts or connections allowed.")]
+        public int maxInputs = 2;
 
-        [Header("Port inventories (if not shared)")]
-        public List<InventoryPort> ports = new();
+        [Tooltip("Maximum number of outgoing belts or connections allowed.")]
+        public int maxOutputs = 2;
 
-        public Inventory SharedRuntimeInventory => sharedInventory?.RuntimeInventory;
-        public List<InventoryPort> Ports => ports;
+        private int currentInputs;
+        private int currentOutputs;
 
-        
+        // --------------------------------------------------
+        // LIFECYCLE
+        // --------------------------------------------------
+
         private void Awake()
         {
-            if (!useSingleSharedInventory)
-                foreach (var port in ports) port.Init();
+            foreach (var port in ports)
+                port.Init();
         }
 
+        // --------------------------------------------------
+        // INVENTORY ACCESSORS
+        // --------------------------------------------------
+
+        /// <summary>
+        /// Returns a specific port by name.
+        /// </summary>
+        public BuildingInventoryPort GetPort(string portName)
+            => ports.Find(p => p.portName == portName);
+
+        /// <summary>
+        /// Returns the first available input-compatible port.
+        /// </summary>
         public IInventoryAccess GetInput()
         {
-            if (useSingleSharedInventory) return sharedInventory;
-            return ports.Find(p => p.isInput);
+            return ports.Find(p =>
+                p.portType == BuildingInventoryPort.PortType.Input ||
+                p.portType == BuildingInventoryPort.PortType.Both);
         }
 
+        /// <summary>
+        /// Returns the first available output-compatible port.
+        /// </summary>
         public IInventoryAccess GetOutput()
         {
-            if (useSingleSharedInventory) return sharedInventory;
-            return ports.Find(p => !p.isInput);
+            return ports.Find(p =>
+                p.portType == BuildingInventoryPort.PortType.Output ||
+                p.portType == BuildingInventoryPort.PortType.Both);
         }
-        
+
+        /// <summary>
+        /// Returns the shared inventory port (the first one marked Both).
+        /// </summary>
+        private IInventoryAccess GetSharedInventory()
+        {
+            var shared = ports.Find(p => p.portType == BuildingInventoryPort.PortType.Both);
+            if (shared == null)
+                Debug.LogWarning($"[{name}] Shared inventory requested but none marked as 'Both'.");
+            return shared;
+        }
+
+        // --------------------------------------------------
+        // CONNECTION MANAGEMENT
+        // --------------------------------------------------
+
+        public bool CanAcceptNewInput => currentInputs < maxInputs;
+        public bool CanAcceptNewOutput => currentOutputs < maxOutputs;
+
+        public void RegisterConnection(bool isInput)
+        {
+            if (isInput) currentInputs++;
+            else currentOutputs++;
+        }
+
+        public void UnregisterConnection(bool isInput)
+        {
+            if (isInput && currentInputs > 0) currentInputs--;
+            else if (!isInput && currentOutputs > 0) currentOutputs--;
+        }
+
+        // --------------------------------------------------
+        // INVENTORY QUERIES (Updated for ItemDefinition)
+        // --------------------------------------------------
+
+        public bool IsPortFull(string portName)
+        {
+            var port = GetPort(portName);
+            return port?.IsFull ?? true;
+        }
+
+        public bool IsPortEmpty(string portName)
+        {
+            var port = GetPort(portName);
+            return port?.IsEmpty ?? true;
+        }
+
+        /// <summary>
+        /// Returns true if this port can output its assigned item.
+        /// </summary>
+        public bool CanPushFrom(string portName)
+        {
+            var port = GetPort(portName);
+            if (port == null) return false;
+
+            var item = port.itemDefinition;
+            return item != null && port.CanProvide(item, 1f);
+        }
+
+        /// <summary>
+        /// Returns true if this port can accept its assigned item (or any if unassigned).
+        /// </summary>
+        public bool CanPullInto(string portName, ItemDefinition item = null)
+        {
+            var port = GetPort(portName);
+            if (port == null) return false;
+
+            // If no item passed, test using port's own item type (or null if uninitialized)
+            var targetItem = item ?? port.itemDefinition;
+            return port.CanAccept(targetItem, 1f);
+        }
+
+        // --------------------------------------------------
+        // DEBUG VISUALIZATION
+        // --------------------------------------------------
+
+#if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
             if (!Application.isPlaying) return;
 
             Vector3 pos = transform.position + Vector3.up * 1.5f;
-            string label = "";
+            string label = $"Inputs: {currentInputs}/{maxInputs} | Outputs: {currentOutputs}/{maxOutputs}\n";
 
-            if (useSingleSharedInventory && sharedInventory?.RuntimeInventory != null)
+            foreach (var port in ports)
             {
-                foreach (var kvp in sharedInventory.RuntimeInventory.GetAll())
-                    label += $"{kvp.Key}:{kvp.Value}  ";
-            }
-            else
-            {
-                foreach (var port in ports)
-                {
-                    label += $"[{port.portName}] ";
-                    foreach (var kvp in port.inventory.GetAll())
-                        label += $"{kvp.Key}:{kvp.Value} ";
-                    label += "\n";
-                }
+                var inv = port.RuntimeInventory;
+                if (inv == null) continue;
+
+                string itemName = port.itemDefinition ? port.itemDefinition.displayName : "(unassigned)";
+                label += $"[{port.portName}] ({port.portType}) {itemName}: ";
+
+                foreach (var kvp in inv.GetAll())
+                    label += $"{kvp.Key}:{kvp.Value} ";
+
+                label += "\n";
             }
 
-#if UNITY_EDITOR
             UnityEditor.Handles.Label(pos, label);
-#endif
         }
+#endif
     }
-    
-    
 }

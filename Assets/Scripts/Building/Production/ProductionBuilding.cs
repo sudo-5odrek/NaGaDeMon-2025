@@ -1,179 +1,239 @@
 using System.Collections.Generic;
+using Inventory;
 using UnityEngine;
 
-[ExecuteAlways] // so you can test even in Edit mode
-public class ProductionBuilding : MonoBehaviour
+namespace Building.Production
 {
-    [Header("Assigned Data")]
-    public ProductionBuildingData productionData;
-
-    [Header("Runtime State (Debug)")]
-    [SerializeField] private RecipeData activeRecipe;
-    [SerializeField] private float craftTimer;
-    [SerializeField] private bool isCrafting;
-
-    [SerializeField] private List<ResourceStack> inputView = new();
-    [SerializeField] private List<ResourceStack> outputView = new();
-
-    // internal storage dictionaries (runtime only)
-    private Dictionary<string, int> inputStorage = new();
-    private Dictionary<string, int> outputStorage = new();
-    
-    public RecipeData ActiveRecipe => activeRecipe;
-    public bool IsCrafting => isCrafting;
-    public float CraftTimer => craftTimer;
-
-
-    // --------------------------------------------------
-    // UNITY LIFECYCLE
-    // --------------------------------------------------
-
-    private void Start()
+    /// <summary>
+    /// Handles crafting logic for a production building using the unified BuildingInventory system.
+    /// Inputs are pulled from input ports, outputs are pushed into output ports.
+    /// </summary>
+    [DisallowMultipleComponent]
+    public class ProductionBuilding : MonoBehaviour
     {
-        if (productionData == null)
+        [Header("Assigned Data")]
+        [Tooltip("Production parameters, including recipe and storage capacities.")]
+        public ProductionBuildingData productionData;
+
+        [Tooltip("Building inventory containing all input/output ports.")]
+        public BuildingInventory buildingInventory;
+
+        [Header("Runtime State")]
+        [SerializeField] private RecipeData activeRecipe;
+        [SerializeField] private float craftTimer;
+        [SerializeField] private bool isCrafting;
+
+        [Header("Debug View (Read Only)")]
+        [SerializeField] private List<string> inputDebugView = new();
+        [SerializeField] private List<string> outputDebugView = new();
+
+        // Cached runtime ports
+        private List<BuildingInventoryPort> inputPorts = new();
+        private List<BuildingInventoryPort> outputPorts = new();
+
+        public RecipeData ActiveRecipe => activeRecipe;
+        public bool IsCrafting => isCrafting;
+        public float CraftTimer => craftTimer;
+
+        // --------------------------------------------------
+        // UNITY LIFECYCLE
+        // --------------------------------------------------
+
+        private void Start()
         {
-            Debug.LogError($"ProductionBuilding '{name}' missing ProductionBuildingData!");
-            return;
+            if (productionData == null)
+            {
+                Debug.LogError($"⚠️ {name}: Missing ProductionBuildingData!");
+                return;
+            }
+
+            if (buildingInventory == null)
+            {
+                Debug.LogError($"⚠️ {name}: Missing BuildingInventory reference!");
+                return;
+            }
+
+            CachePorts();
+            SetRecipe(productionData.defaultRecipe);
+            SyncDebugView();
         }
 
-        SetRecipe(productionData.defaultRecipe);
-        SyncInspectorView();
-    }
-
-    private void Update()
-    {
-        if (!Application.isPlaying || activeRecipe == null)
-            return;
-
-        if (!isCrafting)
+        private void Update()
         {
-            if (CanStartCraft())
+            if (!Application.isPlaying || activeRecipe == null)
+                return;
+
+            if (!isCrafting)
             {
-                ConsumeInputs();
-                isCrafting = true;
-                craftTimer = activeRecipe.craftTime;
+                if (CanStartCraft())
+                {
+                    ConsumeInputs();
+                    isCrafting = true;
+                    craftTimer = activeRecipe.craftTime;
+                }
+            }
+            else
+            {
+                craftTimer -= Time.deltaTime;
+                if (craftTimer <= 0f)
+                {
+                    FinishCraft();
+                    isCrafting = false;
+                }
+            }
+
+            SyncDebugView();
+        }
+
+        // --------------------------------------------------
+        // INITIALIZATION
+        // --------------------------------------------------
+
+        private void CachePorts()
+        {
+            inputPorts.Clear();
+            outputPorts.Clear();
+
+            foreach (var port in buildingInventory.ports)
+            {
+                switch (port.portType)
+                {
+                    case BuildingInventoryPort.PortType.Input:
+                        inputPorts.Add(port);
+                        break;
+                    case BuildingInventoryPort.PortType.Output:
+                        outputPorts.Add(port);
+                        break;
+                    case BuildingInventoryPort.PortType.Both:
+                        // Both-type ports can handle both input and output
+                        inputPorts.Add(port);
+                        outputPorts.Add(port);
+                        break;
+                }
+            }
+
+            if (inputPorts.Count == 0)
+                Debug.LogWarning($"⚠️ {name}: No input ports found!");
+            if (outputPorts.Count == 0)
+                Debug.LogWarning($"⚠️ {name}: No output ports found!");
+        }
+
+        // --------------------------------------------------
+        // RECIPE LOGIC
+        // --------------------------------------------------
+
+        public void SetRecipe(RecipeData recipe)
+        {
+            if (recipe == null) return;
+            activeRecipe = recipe;
+            Debug.Log($"🏭 {name} set to recipe: {recipe.recipeName}");
+        }
+
+        private bool CanStartCraft()
+        {
+            // 1️⃣ Check all inputs are available
+            foreach (var input in activeRecipe.inputs)
+            {
+                float available = 0f;
+                foreach (var port in inputPorts)
+                    available += port.GetItemAmount(input.itemDefinition);
+
+                if (available < input.amount)
+                    return false;
+            }
+
+            // 2️⃣ Check if outputs can fit
+            foreach (var output in activeRecipe.outputs)
+            {
+                float space = 0f;
+                foreach (var port in outputPorts)
+                    space += port.GetFreeSpace();
+
+                if (space < output.amount)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private void ConsumeInputs()
+        {
+            foreach (var input in activeRecipe.inputs)
+            {
+                float remaining = input.amount;
+                foreach (var port in inputPorts)
+                {
+                    if (remaining <= 0) break;
+                    float removed = port.Remove(input.itemDefinition, remaining);
+                    remaining -= removed;
+                }
             }
         }
-        else
+
+        private void FinishCraft()
         {
-            craftTimer -= Time.deltaTime;
-            if (craftTimer <= 0f)
+            foreach (var output in activeRecipe.outputs)
             {
-                FinishCraft();
-                isCrafting = false;
+                float remaining = output.amount;
+                foreach (var port in outputPorts)
+                {
+                    if (remaining <= 0) break;
+                    float added = port.Add(output.itemDefinition, remaining);
+                    remaining -= added;
+                }
             }
         }
 
-        SyncInspectorView();
-    }
+        // --------------------------------------------------
+        // DEBUG / INSPECTOR
+        // --------------------------------------------------
 
-    // --------------------------------------------------
-    // RECIPE
-    // --------------------------------------------------
-
-    public void SetRecipe(RecipeData recipe)
-    {
-        if (recipe == null) return;
-        activeRecipe = recipe;
-        Debug.Log($"{name} set to recipe: {recipe.recipeName}");
-    }
-
-    private bool CanStartCraft()
-    {
-        foreach (var input in activeRecipe.inputs)
+        private void SyncDebugView()
         {
-            if (!inputStorage.ContainsKey(input.resourceId) || inputStorage[input.resourceId] < input.amount)
-                return false;
+            inputDebugView.Clear();
+            outputDebugView.Clear();
+
+            foreach (var port in inputPorts)
+            {
+                var inv = port.RuntimeInventory;
+                foreach (var kvp in inv.GetAll())
+                    inputDebugView.Add($"[{port.portName}] {kvp.Key}:{kvp.Value}");
+            }
+
+            foreach (var port in outputPorts)
+            {
+                var inv = port.RuntimeInventory;
+                foreach (var kvp in inv.GetAll())
+                    outputDebugView.Add($"[{port.portName}] {kvp.Key}:{kvp.Value}");
+            }
         }
-
-        foreach (var output in activeRecipe.outputs)
-        {
-            int stored = outputStorage.ContainsKey(output.resourceId) ? outputStorage[output.resourceId] : 0;
-            if (stored + output.amount > productionData.outputStorageCapacity)
-                return false;
-        }
-
-        return true;
-    }
-
-    private void ConsumeInputs()
-    {
-        foreach (var input in activeRecipe.inputs)
-            inputStorage[input.resourceId] -= input.amount;
-    }
-
-    private void FinishCraft()
-    {
-        foreach (var output in activeRecipe.outputs)
-        {
-            if (!outputStorage.ContainsKey(output.resourceId))
-                outputStorage[output.resourceId] = 0;
-            outputStorage[output.resourceId] += output.amount;
-        }
-    }
-
-    // --------------------------------------------------
-    // STORAGE
-    // --------------------------------------------------
-
-    public bool AddInput(string resourceId, int amount)
-    {
-        if (!inputStorage.ContainsKey(resourceId))
-            inputStorage[resourceId] = 0;
-
-        if (inputStorage[resourceId] + amount > productionData.inputStorageCapacity)
-            return false;
-
-        inputStorage[resourceId] += amount;
-        SyncInspectorView();
-        return true;
-    }
-
-    public int TakeOutput(string resourceId, int amount)
-    {
-        if (!outputStorage.ContainsKey(resourceId))
-            return 0;
-
-        int available = outputStorage[resourceId];
-        int taken = Mathf.Min(available, amount);
-        outputStorage[resourceId] -= taken;
-        SyncInspectorView();
-        return taken;
-    }
-
-    // --------------------------------------------------
-    // INSPECTOR DEBUGGING
-    // --------------------------------------------------
-
-    private void SyncInspectorView()
-    {
-        inputView.Clear();
-        foreach (var kvp in inputStorage)
-            inputView.Add(new ResourceStack { resourceId = kvp.Key, amount = kvp.Value });
-
-        outputView.Clear();
-        foreach (var kvp in outputStorage)
-            outputView.Add(new ResourceStack { resourceId = kvp.Key, amount = kvp.Value });
-    }
-
-    // 🔹 This method lets you live-edit resources from the inspector
-    private void ApplyInspectorChanges()
-    {
-        inputStorage.Clear();
-        foreach (var stack in inputView)
-            inputStorage[stack.resourceId] = stack.amount;
-
-        outputStorage.Clear();
-        foreach (var stack in outputView)
-            outputStorage[stack.resourceId] = stack.amount;
-    }
-
 
 #if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (!Application.isPlaying) return;
-        ApplyInspectorChanges();
-    }
+        private void OnDrawGizmosSelected()
+        {
+            if (buildingInventory == null) return;
+
+            Vector3 pos = transform.position + Vector3.up * 2.0f;
+            string label = $"Active Recipe: {(activeRecipe ? activeRecipe.recipeName : "None")}\n";
+
+            foreach (var port in inputPorts)
+            {
+                label += $"IN {port.portName}: ";
+                foreach (var kvp in port.RuntimeInventory.GetAll())
+                    label += $"{kvp.Key}:{kvp.Value} ";
+                label += "\n";
+            }
+
+            foreach (var port in outputPorts)
+            {
+                label += $"OUT {port.portName}: ";
+                foreach (var kvp in port.RuntimeInventory.GetAll())
+                    label += $"{kvp.Key}:{kvp.Value} ";
+                label += "\n";
+            }
+
+            UnityEditor.Handles.Label(pos, label);
+        }
 #endif
+    }
 }

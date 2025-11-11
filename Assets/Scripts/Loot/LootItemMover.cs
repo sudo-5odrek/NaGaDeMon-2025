@@ -1,60 +1,75 @@
 using Player;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
-public class LootItemMover : MonoBehaviour
+namespace Loot
 {
-    [Header("Flight Settings")]
-    public float flySmooth = 10f;      // how smoothly loot moves toward player
-    public float collectDistance = 0.3f; // for visual polish before pickup
-
-    Transform target;
-    float attractSpeed;
-    bool isAttracted;
-
-    void Update()
+    [RequireComponent(typeof(Collider2D))]
+    public class LootItemMover : MonoBehaviour
     {
-        if (!isAttracted || !target) return;
+        [Header("Flight Settings")]
+        public float flySmooth = 10f;           // How smoothly loot moves toward player
+        public float collectDistance = 0.3f;    // For visual polish before pickup
 
-        Vector3 dir = target.position - transform.position;
-        float dist = dir.magnitude;
+        [Header("Item Data")]
+        public ItemDefinition itemDefinition;   // 🔗 Reference to the item definition
+        public float amount = 1f;               // Quantity (optional for stackables)
 
-        // Move toward the player smoothly
-        transform.position += dir.normalized * attractSpeed * Time.deltaTime;
+        private Transform target;
+        private float attractSpeed;
+        private bool isAttracted;
 
-        // Optional: small scale or spin animation
-        transform.Rotate(Vector3.forward * 360f * Time.deltaTime);
-
-        // Once we're very close, call Collect
-        if (dist <= collectDistance)
+        // ------------------------------------------------------------
+        // MOVEMENT LOGIC
+        // ------------------------------------------------------------
+        private void Update()
         {
-            Collect();
-        }
-    }
+            if (!isAttracted || !target) return;
 
-    public void AttractTo(Transform player, float force)
-    {
-        target = player;
-        attractSpeed = force;
-        isAttracted = true;
-    }
+            Vector3 dir = target.position - transform.position;
+            float dist = dir.magnitude;
 
-    void Collect()
-    {
-        if (PlayerInventory.Instance == null)
-        {
-            Debug.LogError("❌ PlayerInventory.Instance is null!");
-            return;
+            // Move smoothly toward the player
+            transform.position += dir.normalized * attractSpeed * Time.deltaTime;
+
+            // Optional: spin or scale animation
+            transform.Rotate(Vector3.forward * 360f * Time.deltaTime);
+
+            // Collect when close enough
+            if (dist <= collectDistance)
+                Collect();
         }
 
-        if (!TryGetComponent<LootPickup>(out var lootData))
+        public void AttractTo(Transform player, float force)
         {
-            Debug.LogError("❌ LootPickup not found on loot object!");
-            return;
+            target = player;
+            attractSpeed = force;
+            isAttracted = true;
         }
 
-        PlayerInventory.Instance.AddItem(lootData.lootType, lootData.amount);
-        //Debug.Log($"✅ Collected {lootData.lootType} x{lootData.amount}");
-        Destroy(gameObject);
+        // ------------------------------------------------------------
+        // COLLECTION LOGIC
+        // ------------------------------------------------------------
+        private void Collect()
+        {
+            if (PlayerInventory.Instance == null)
+            {
+                Debug.LogError("❌ PlayerInventory.Instance is null!");
+                return;
+            }
+
+            if (itemDefinition == null)
+            {
+                Debug.LogError($"❌ LootItem '{gameObject.name}' missing ItemDefinition!");
+                return;
+            }
+
+            // ✅ Add item to player inventory using new item system
+            PlayerInventory.Instance.AddItem(itemDefinition, amount);
+
+            // Optional: play pickup VFX or sound
+            // VFXManager.Play("pickup_glow", transform.position);
+
+            Destroy(gameObject);
+        }
     }
 }

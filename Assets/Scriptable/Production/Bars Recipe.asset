@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Bars Recipe
   m_EditorClassIdentifier: 
   recipeName: Bars
+  craftTime: 3
   inputs:
-  - resourceId: Scraps
-    amount: 2
-  outputs:
-  - resourceId: Bars
+  - itemDefinition: {fileID: 11400000, guid: 69672051b415a8d42b88f09d9b527808, type: 2}
     amount: 1
-  craftTime: 4
+  outputs:
+  - itemDefinition: {fileID: 11400000, guid: 6f34383a4287c8647985c17c69a60943, type: 2}
+    amount: 2

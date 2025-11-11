@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a6fb837b36d94649894d75d706918a2, type: 3}
+  m_Name: Bar
+  m_EditorClassIdentifier: 
+  itemID: bar
+  displayName: Bar
+  icon: {fileID: 21300000, guid: 1470a863d30b29343a4ac594ebc594d2, type: 3}
+  weight: 1
+  maxStack: 99
+  worldPrefab: {fileID: 9076442126225451036, guid: 100071f7e287b524185c92e33fa0382d, type: 3}
+  beltPrefab: {fileID: 858438457945975229, guid: a05020567ea010147a425bdfc3830724, type: 3}
+  uiPrefab: {fileID: 0}
+  itemType: 1

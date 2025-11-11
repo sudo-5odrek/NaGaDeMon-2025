@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a6fb837b36d94649894d75d706918a2, type: 3}
+  m_Name: Scrap
+  m_EditorClassIdentifier: 
+  itemID: scrap
+  displayName: Scrap
+  icon: {fileID: 21300000, guid: ebe61263ffefa4e47996d58e3a5ee5b1, type: 3}
+  weight: 1
+  maxStack: 99
+  worldPrefab: {fileID: 7824504021662710725, guid: 04bb8131db4c2214ab437e59c1fba207, type: 3}
+  beltPrefab: {fileID: 766617374011353691, guid: 5dc96014bac67c046b2cb71a2fba2fe6, type: 3}
+  uiPrefab: {fileID: 0}
+  itemType: 0

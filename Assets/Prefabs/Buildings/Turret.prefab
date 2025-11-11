@@ -275,8 +275,8 @@ GameObject:
   - component: {fileID: 4077218936898542987}
   - component: {fileID: 8507046086999811280}
   - component: {fileID: 7676971857518419373}
-  - component: {fileID: 3173455750362849989}
-  - component: {fileID: -2797650135272846837}
+  - component: {fileID: -5841354928336557763}
+  - component: {fileID: 6444439087543775509}
   m_Layer: 7
   m_Name: Turret
   m_TagString: Untagged
@@ -402,7 +402,7 @@ MonoBehaviour:
     m_Bits: 8
   maxHP: 100
   currentHP: 100
---- !u!114 &3173455750362849989
+--- !u!114 &-5841354928336557763
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -411,29 +411,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 6509753260026444512}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05fb748e4e4b2f84c9d446541202f76a, type: 3}
+  m_Script: {fileID: 11500000, guid: a5ffc9d8fb2d50d408c7304fe2b3f44f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ammoResourceId: Scrap
-  maxAmmoCapacity: 50
-  ammoPerShot: 1
-  transferInterval: 0.1
-  currentAmmo: 0
---- !u!114 &-2797650135272846837
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6509753260026444512}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3ae9c3910c8c784894ffb3f52fb27ee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  canOutput: 0
-  canInput: 1
-  maxOutputs: 0
+  ports:
+  - portName: Mag
+    portType: 0
+    itemDefinition: {fileID: 0}
+    capacity: 50
+    transferRate: 1
   maxInputs: 1
-  outputTargets: []
-  inputSources: []
+  maxOutputs: 0
+--- !u!114 &6444439087543775509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6509753260026444512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f0c2d1d7c171064cb00eab0244a82de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
