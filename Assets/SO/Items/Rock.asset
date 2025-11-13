@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a6fb837b36d94649894d75d706918a2, type: 3}
   m_Name: Rock
   m_EditorClassIdentifier: 
-  itemID: 
-  displayName: 
-  icon: {fileID: 0}
+  itemID: rock
+  displayName: Rock
+  icon: {fileID: 21300000, guid: 687aea69239907842b8b8e0731167fe4, type: 3}
   weight: 1
   maxStack: 99
-  worldPrefab: {fileID: 0}
-  beltPrefab: {fileID: 0}
+  worldPrefab: {fileID: 3558125815799847726, guid: 2322c2a1089c8eb4e992ff2dd27fe7d8, type: 3}
+  beltPrefab: {fileID: 617888436571809745, guid: 05ea1f290bdd0b442beca264e6fe4178, type: 3}
   uiPrefab: {fileID: 0}
   itemType: 0

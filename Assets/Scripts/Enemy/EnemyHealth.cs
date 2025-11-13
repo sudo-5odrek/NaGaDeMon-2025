@@ -1,33 +1,51 @@
+using Floating_Text_Service;
 using UnityEngine;
 
-public class EnemyHealth : MonoBehaviour
+namespace Enemy
 {
-    [Header("Stats")]
-    public int maxHP = 20;
-    public int currentHP;
-
-    void Awake()
+    public class EnemyHealth : MonoBehaviour
     {
-        currentHP = maxHP;
-    }
+        [Header("Stats")]
+        public int maxHP = 20;
+        public int currentHP;
+    
+        [Header("Floating Text")]
+        public FloatingTextStyle damageTextStyle;
 
-    public void TakeDamage(int amount)
-    {
-        currentHP -= amount;
-        //Debug.Log($"{name} took {amount} damage. HP: {currentHP}");
+        void Awake()
+        {
+            currentHP = maxHP;
+        }
 
-        if (currentHP <= 0)
-            Die();
-    }
-
-    void Die()
-    {
-        //Debug.Log($"{name} died!");
+        public void TakeDamage(int amount)
+        {
+            currentHP -= amount;
+            //Debug.Log($"{name} took {amount} damage. HP: {currentHP}");
         
-        // Drop loot if loot table exists
-        if (TryGetComponent<LootTable>(out var lootTable))
-            lootTable.DropLoot();
+            if (FloatingTextService.Instance != null && damageTextStyle != null)
+            {
+                var data = FloatingTextData.FromWorld(
+                    $"-{amount}",
+                    transform.position + Vector3.up * 0.5f  // slight offset above enemy
+                );
+
+                FloatingTextService.Instance.Spawn(damageTextStyle, data);
+            }
+            // ------------------------------------------
+
+            if (currentHP <= 0)
+                Die();
+        }
+
+        void Die()
+        {
+            //Debug.Log($"{name} died!");
         
-        Destroy(gameObject); // later: replace with pooling or death animation
+            // Drop loot if loot table exists
+            if (TryGetComponent<LootTable>(out var lootTable))
+                lootTable.DropLoot();
+        
+            Destroy(gameObject); // later: replace with pooling or death animation
+        }
     }
 }

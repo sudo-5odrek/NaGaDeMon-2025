@@ -1,4 +1,5 @@
 using System.Collections;
+using Floating_Text_Service;
 using UnityEngine;
 
 namespace Player
@@ -10,6 +11,10 @@ namespace Player
         private Coroutine miningRoutine;
         private bool isMining;
         public PlayerInventory inventory;
+
+        [Header("Feedback")]
+        [Tooltip("Floating text style for mined resources")]
+        public FloatingTextStyle miningTextStyle;
 
         private void OnTriggerEnter2D(Collider2D other)
         {
@@ -62,6 +67,18 @@ namespace Player
                     {
                         inventory.AddItem(item, amount);
                         Debug.Log($"⛏️ Mined {amount}x {item.displayName}");
+
+                        // ✅ SPAWN FLOATING TEXT
+                        if (FloatingTextService.Instance != null && miningTextStyle != null)
+                        {
+                            Vector3 spawnPos = transform.position;
+                            string text = $"+{amount}";
+                            FloatingTextService.Instance.SpawnQuick(
+                                miningTextStyle,
+                                spawnPos,
+                                text
+                            );
+                        }
                     }
                     else
                         Debug.LogWarning("⚠️ No inventory on player to store mined items!");
