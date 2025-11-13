@@ -194,29 +194,28 @@ public class BuildManager : MonoBehaviour
 
     private void OnCancelPerformed(InputAction.CallbackContext ctx)
     {
+        if (InputContextManager.Instance.CurrentMode != InputContextManager.InputMode.Build)
+            return;
+        
         // 🖱️ Right-click behavior depends on current state
         if (isPlacing)
         {
             // ✅ Exit build mode and reopen menu
             activePlacementLogic?.ClearPreview();
-            ExitBuildMode(showMenu: true);
-        }
-        else if (buildMenu != null && buildMenu.IsOpen)
-        {
-            // ✅ Close menu if open
-            buildMenu.Hide();
+            buildMenu?.Show();
         }
         else
         {
-            // ✅ Optional fallback: open menu from gameplay
-            buildMenu?.Show();
+            // ✅ Close menu if open
+            buildMenu.Hide();
+            ExitBuildMode(showMenu: true);
         }
     }
 
     private void OnMenuPerformed(InputAction.CallbackContext ctx)
     {
         // ⌨️ E pressed
-        if (isPlacing)
+        if (InputContextManager.Instance.CurrentMode == InputContextManager.InputMode.Build)
         {
             // ✅ Cancel placement and close everything
             activePlacementLogic?.ClearPreview();
@@ -224,12 +223,9 @@ public class BuildManager : MonoBehaviour
             buildMenu?.Hide();
             return;
         }
-
-        // ✅ Toggle menu normally
-        if (buildMenu.IsOpen)
-            buildMenu.Hide();
-        else
-            buildMenu.Show();
+        
+        InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
+        buildMenu.Show();
     }
 
     // --------------------------------------------------

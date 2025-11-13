@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 namespace Player
 {
     [RequireComponent(typeof(Rigidbody2D))]
-    [RequireComponent(typeof(PlayerAttack))]
     public class PlayerMovement : MonoBehaviour
     {
         [Header("Movement")]

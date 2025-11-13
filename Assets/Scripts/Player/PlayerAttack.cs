@@ -6,6 +6,7 @@ namespace Player
     public class PlayerAttack : MonoBehaviour
     {
         public enum AttackMode { Manual, Auto }
+
         [Header("Attack Settings")]
         public AttackMode mode = AttackMode.Manual;
         public float bulletSpeed = 5f;
@@ -15,21 +16,29 @@ namespace Player
         public float attackCooldown = 0.8f;
         public int damagePerShot = 5;
         public LayerMask enemyMask;
+        public LayerMask obstacleMask;
+
+        [Header("References")]
         public Transform firePoint; // where projectiles originate
         public GameObject projectilePrefab;
-    
-        public LayerMask obstacleMask;
+        [Tooltip("If left empty, will auto-assign the topmost parent (player root).")]
+        public Transform playerRoot;
 
         private InputSystem_Actions input;
         private Camera cam;
         private float lastAttackTime;
         private Collider2D currentTarget;
-    
+
+        private Vector3 PlayerPos => playerRoot ? playerRoot.position : transform.position;
 
         private void Awake()
         {
             cam = Camera.main;
             input = InputContextManager.Instance.input;
+
+            // Automatically assign root if not set manually
+            if (!playerRoot)
+                playerRoot = transform.root;
         }
 
         private void OnEnable()
@@ -50,13 +59,12 @@ namespace Player
             }
             else
             {
-                // Manual aim cursor feedback, optional
                 RotateTowardMouse();
             }
         }
 
         // ------------------------------------------------------
-        // Manual Attack (Mode 1)
+        // Manual Attack
         // ------------------------------------------------------
 
         private void OnAttackInput(InputAction.CallbackContext ctx)
@@ -71,13 +79,15 @@ namespace Player
         private void RotateTowardMouse()
         {
             Vector3 mouseWorld = GetMouseWorldPosition();
-            Vector3 dir = (mouseWorld - transform.position).normalized;
+            Vector3 dir = (mouseWorld - PlayerPos).normalized;
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+            // Rotate the *attack controller* child, not the player root
             transform.rotation = Quaternion.Euler(0, 0, angle - 90f);
         }
 
         // ------------------------------------------------------
-        // Auto Attack (Mode 2)
+        // Auto Attack
         // ------------------------------------------------------
 
         private void AutoAttack()
@@ -85,28 +95,26 @@ namespace Player
             if (Time.time - lastAttackTime < attackCooldown) return;
 
             // Find the closest enemy in range
-            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, maxRange, enemyMask);
+            Collider2D[] hits = Physics2D.OverlapCircleAll(PlayerPos, maxRange, enemyMask);
             if (hits.Length == 0)
             {
                 currentTarget = null;
                 return;
             }
 
-            // --- Find closest visible enemy ---
             float minDist = Mathf.Infinity;
             Collider2D closest = null;
 
             foreach (var h in hits)
             {
-                Vector2 dir = h.transform.position - transform.position;
+                Vector2 dir = (h.transform.position - PlayerPos);
                 float dist = dir.magnitude;
 
-                // ✅ Perform line-of-sight check
-                bool blocked = Physics2D.Raycast(transform.position, dir.normalized, dist, obstacleMask);
+                // ✅ Line of sight check from player root
+                bool blocked = Physics2D.Raycast(PlayerPos, dir.normalized, dist, obstacleMask);
                 if (blocked)
-                    continue; // skip targets behind walls
+                    continue;
 
-                // ✅ If visible and closer, pick this target
                 if (dist < minDist)
                 {
                     minDist = dist;
@@ -115,13 +123,23 @@ namespace Player
             }
 
             currentTarget = closest;
-        
+
             if (currentTarget)
             {
                 Vector2 shooterPos = firePoint.position;
                 Vector2 targetPos = currentTarget.transform.position;
-                Vector2 targetVel = currentTarget.TryGetComponent<Rigidbody2D>(out var rbT) ? rbT.linearVelocity : Vector2.zero;
-                Vector2 predictedPos = TargetPrediction.PredictAimPosition(shooterPos, targetPos, targetVel, bulletSpeed);
+
+                Vector2 targetVel = Vector2.zero;
+                if (currentTarget.TryGetComponent<Rigidbody2D>(out var rbT))
+                    targetVel = rbT.linearVelocity;
+
+                Vector2 predictedPos = TargetPrediction.PredictAimPosition(
+                    shooterPos,
+                    targetPos,
+                    targetVel,
+                    bulletSpeed
+                );
+
                 FireProjectile(predictedPos - (Vector2)firePoint.position);
             }
         }
@@ -136,8 +154,9 @@ namespace Player
             direction.Normalize();
 
             GameObject bulletObj = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+
             if (bulletObj.TryGetComponent<Bullet>(out var bullet))
-                bullet.Init(direction, bulletSpeed, damagePerShot, maxRange); // or whatever speed you prefer
+                bullet.Init(direction, bulletSpeed, damagePerShot, maxRange);
         }
 
         private Vector3 GetMouseWorldPosition()
@@ -157,9 +176,8 @@ namespace Player
             if (mode == AttackMode.Auto)
             {
                 Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(transform.position, maxRange);
+                Gizmos.DrawWireSphere(PlayerPos, maxRange);
             }
         }
     }
 }
-

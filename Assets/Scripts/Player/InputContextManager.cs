@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class InputContextManager : MonoBehaviour
@@ -8,6 +9,8 @@ public class InputContextManager : MonoBehaviour
     public InputMode CurrentMode { get; private set; } = InputMode.Normal;
 
     public InputSystem_Actions input; // your generated class
+    
+    public event Action OnContextChange;
 
     private void Awake()
     {
@@ -21,22 +24,23 @@ public class InputContextManager : MonoBehaviour
     public void SetInputMode(InputMode mode)
     {
         CurrentMode = mode;
-
+        OnContextChange?.Invoke();
+        
         switch (mode)
         {
             case InputMode.Normal:
                 input.Player.Attack.Enable();
-                //input.Player.Move.Enable();
-                //input.Player.Look.Enable();
 
                 input.Player.Place.Disable();
                 input.Player.Cancel.Disable();
+                
+                input.Player.BuildMenu.Enable();
+                input.Player.ConnectMode.Enable();
                 break;
 
             case InputMode.Build:
                 input.Player.Attack.Disable();
-                //input.Player.Move.Disable();
-                //input.Player.Look.Disable();
+                input.Player.ConnectMode.Disable();
 
                 input.Player.Place.Enable();
                 input.Player.Cancel.Enable();
@@ -44,14 +48,11 @@ public class InputContextManager : MonoBehaviour
             
             case InputMode.Connect:
                 input.Player.Attack.Disable();
-                //input.Player.Move.Disable();
-                //input.Player.Look.Disable();
 
+                input.Player.BuildMenu.Disable();
                 input.Player.Place.Enable();
                 input.Player.Cancel.Enable();
                 break;
-            
-            
         }
     }
 }
