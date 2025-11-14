@@ -9,7 +9,7 @@ namespace Building.Production
     /// Inputs are pulled from input ports, outputs are pushed into output ports.
     /// </summary>
     [DisallowMultipleComponent]
-    public class ProductionBuilding : MonoBehaviour
+    public class ProductionBuilding : MonoBehaviour, IHasProgress
     {
         [Header("Assigned Data")]
         [Tooltip("Production parameters, including recipe and storage capacities.")]
@@ -34,11 +34,21 @@ namespace Building.Production
         public RecipeData ActiveRecipe => activeRecipe;
         public bool IsCrafting => isCrafting;
         public float CraftTimer => craftTimer;
+        
+        public bool IsProcessing => isCrafting;
 
         // --------------------------------------------------
         // UNITY LIFECYCLE
         // --------------------------------------------------
-
+        public float ProgressNormalized
+        {
+            get
+            {
+                if (activeRecipe == null || !isCrafting) return 0f;
+                return Mathf.Clamp01(1f - (craftTimer / activeRecipe.craftTime));
+            }
+        }
+        
         private void Start()
         {
             if (productionData == null)
