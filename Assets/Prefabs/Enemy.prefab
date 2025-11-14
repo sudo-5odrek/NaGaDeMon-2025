@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4286203704291815437}
   - component: {fileID: 5347485638661887479}
   - component: {fileID: 5819370214835820413}
+  - component: {fileID: 1457918011556990477}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Enemy
@@ -175,6 +176,7 @@ MonoBehaviour:
   drawPath: 1
   pathColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   resetRequested: 0
+  myAttackPattern: {fileID: 1457918011556990477}
   path: []
   index: 0
 --- !u!114 &5347485638661887479
@@ -209,3 +211,19 @@ MonoBehaviour:
     dropChance: 1
     minAmount: 6
     maxAmount: 8
+--- !u!114 &1457918011556990477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3709453401263859751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01797f704c5001847bbdc33d9383dbc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attackMode: 0
+  attackInterval: 1
+  attackDamage: 5
+  damageTextStyle: {fileID: 11400000, guid: 68a0f8e8e239510409effbd4cff8dd2c, type: 2}

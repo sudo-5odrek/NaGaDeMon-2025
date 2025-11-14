@@ -20,6 +20,8 @@ namespace Enemy
         public Color pathColor = Color.yellow;
         public bool resetRequested = false;
 
+        public EnemyAttack myAttackPattern;
+            
         [HideInInspector] public List<Node> path;
         [HideInInspector] public int index;
 
@@ -27,7 +29,15 @@ namespace Enemy
         float timer;
         Vector2 currentDir;
         Vector3 startPos;
-
+        
+        private bool movementStopped = false;
+        
+        public void StopMovement()
+        {
+            movementStopped = true;
+            rb.linearVelocity = Vector2.zero;
+        }
+        
         void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
@@ -100,8 +110,18 @@ namespace Enemy
 
         void FollowPath()
         {
+            Debug.Log("Following path");
+            // 🚨 Stop movement IMMEDIATELY, with priority
+            if (movementStopped)
+            {
+                Debug.Log("Stop movement");
+                rb.linearVelocity = Vector2.zero;
+                return;
+            }
+            
             if (path == null || index >= path.Count)
             {
+                Debug.Log("Stop movement");
                 rb.linearVelocity = Vector2.zero;
                 return;
             }
@@ -156,11 +176,11 @@ namespace Enemy
 
         void OnTriggerEnter2D(Collider2D other)
         {
-            // Did we hit a Nexus?
             if (other.TryGetComponent<Nexus>(out var nexus))
             {
-                nexus.TakeDamage(10);   // 🔧 set your damage value
-                Destroy(gameObject);    // enemy dies on impact
+                Debug.Log("NEXUS REACHED");
+                myAttackPattern.OnReachNexus(nexus);
+                rb.linearVelocity = Vector3.zero;
             }
         }
 

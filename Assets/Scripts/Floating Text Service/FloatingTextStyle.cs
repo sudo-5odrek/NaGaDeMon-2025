@@ -19,10 +19,24 @@ namespace Floating_Text_Service
         [Header("Timing")]
         [Min(0.05f)] public float duration = 1.0f;
 
-        [Header("Motion")]
+        [Header("Motion - Vertical")]
         public Vector3 spawnOffset = new Vector3(0f, 0.75f, 0f);
         public Vector3 endOffset = new Vector3(0f, 1.5f, 0f);
         public AnimationCurve motionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+        [Header("Motion - Horizontal (optional)")]
+        public bool useHorizontalMotion = false;
+
+        // 0 → 1 → 0 typical jiggle curve
+        public AnimationCurve xMotionCurve = new AnimationCurve(
+            new Keyframe(0f, 0.5f),
+            new Keyframe(0.25f, 1f),
+            new Keyframe(0.5f, 0.5f),
+            new Keyframe(0.75f, 0f),
+            new Keyframe(1f, 0.5f)
+        );
+
+        [Min(0f)] public float xAmplitude = 0.3f;
 
         [Header("Fade")]
         public AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);

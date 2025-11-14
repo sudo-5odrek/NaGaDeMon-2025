@@ -10,6 +10,8 @@ public class EnemySpawner : MonoBehaviour
     public float startInterval = 3f;  // initial delay between spawns
     public float minInterval = 0.5f;  // fastest possible spawn rate
     public float acceleration = 0.05f; // how fast interval decreases per spawn
+    
+    public EnemyAttack.EnemyAttackMode currentAttackMode = EnemyAttack.EnemyAttackMode.Impact;
 
     float currentInterval;
     float timer;
@@ -46,6 +48,8 @@ public class EnemySpawner : MonoBehaviour
         {
             mover.target = nexus; // assign the nexus as the target
         }
+        if (enemy.TryGetComponent(out EnemyAttack attack))
+            attack.SetAttackMode(currentAttackMode);
 
         Debug.DrawLine(nexus.position, spawnPos, Color.red, 2f);
     }

@@ -10,7 +10,7 @@ namespace Floating_Text_Service
         [Header("References")]
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private TextMeshProUGUI tmp;
-        [SerializeField] private Image iconImage;   // ← assign in inspector
+        [SerializeField] private Image iconImage;
 
         private FloatingTextPool originPool;
         private Camera mainCam;
@@ -38,11 +38,11 @@ namespace Floating_Text_Service
             // ----------------------------
             tmp.text = data.text ?? "?";
 
-            if (style.font) 
+            if (style.font)
                 tmp.font = style.font;
 
-            tmp.fontSize = (data.fontSizeOverride > 0f) 
-                ? data.fontSizeOverride 
+            tmp.fontSize = (data.fontSizeOverride > 0f)
+                ? data.fontSizeOverride
                 : style.fontSize;
 
             // ----------------------------
@@ -51,17 +51,26 @@ namespace Floating_Text_Service
             baseColor = data.color.HasValue ? data.color.Value : style.color;
             tmp.color = baseColor;
 
-            // Outline
+            // ----------------------------
+            // OUTLINE (FORCE EXTERNAL OUTLINE)
+            // ----------------------------
             var mat = tmp.fontMaterial;
+
             if (style.useOutline)
             {
                 mat.EnableKeyword("OUTLINE_ON");
+
+                // Permanent rule: FULL external outline
+                mat.SetFloat(ShaderUtilities.ID_FaceDilate, 1f);     // shrink text face fully
+                mat.SetFloat(ShaderUtilities.ID_OutlineWidth, 1f);   // max external outline
+                mat.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);
+
                 mat.SetColor(ShaderUtilities.ID_OutlineColor, style.outlineColor);
-                mat.SetFloat(ShaderUtilities.ID_OutlineWidth, style.outlineWidth);
             }
             else
             {
                 mat.DisableKeyword("OUTLINE_ON");
+                mat.SetFloat(ShaderUtilities.ID_FaceDilate, 0f);
                 mat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
             }
 
@@ -105,8 +114,8 @@ namespace Floating_Text_Service
 
         private IEnumerator Animate(FloatingTextData data)
         {
-            float duration = (data.durationOverride > 0f) 
-                ? data.durationOverride 
+            float duration = (data.durationOverride > 0f)
+                ? data.durationOverride
                 : style.duration;
 
             Vector3 start = transform.position;
@@ -118,15 +127,33 @@ namespace Floating_Text_Service
             {
                 float p = t / duration;
 
-                // ↑ MOTION
+                // -------------------------
+                // VERTICAL MOTION
+                // -------------------------
                 float m = style.motionCurve.Evaluate(p);
-                transform.position = Vector3.LerpUnclamped(start, end, m);
+                Vector3 pos = Vector3.LerpUnclamped(start, end, m);
 
-                // 🟡 FADE
+                // -------------------------
+                // OPTIONAL HORIZONTAL JIGGLE
+                // -------------------------
+                if (style.useHorizontalMotion)
+                {
+                    float xCurve = style.xMotionCurve.Evaluate(p);  // 0 → 1
+                    float centered = xCurve * 2f - 1f;              // -1 → +1
+                    pos.x += centered * style.xAmplitude;
+                }
+
+                transform.position = pos;
+
+                // -------------------------
+                // FADE
+                // -------------------------
                 float a = style.fadeCurve.Evaluate(p);
                 tmp.color = new Color(baseColor.r, baseColor.g, baseColor.b, a);
 
-                // 🔍 SCALE (optional)
+                // -------------------------
+                // SCALE (optional)
+                // -------------------------
                 if (style.useScaleCurve)
                 {
                     float s = style.scaleCurve.Evaluate(p);

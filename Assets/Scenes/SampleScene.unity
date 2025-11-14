@@ -203,6 +203,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c87e27273b88d1441b937b63587b1472, type: 2}
   - {fileID: 11400000, guid: 9e0529315eb0552419a4b5fcb8d8b5dc, type: 2}
   - {fileID: 11400000, guid: 13a835d162141a64f8ef21fbc29db8e7, type: 2}
+  - {fileID: 11400000, guid: 2ab9d7cc632620042866064eb1b03cd9, type: 2}
   buildRange: 50
   player: {fileID: 646885667}
   buildMenu: {fileID: 1927120294}
@@ -1001,6 +1002,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Rock Node
       objectReference: {fileID: 0}
+    - target: {fileID: 4039765646983766489, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5134329088031365668, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 6194418850977126177, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5
@@ -1015,11 +1024,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6401089813021539603, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 6.76
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6401089813021539603, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.94
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6401089813021539603, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1052,6 +1061,14 @@ PrefabInstance:
     - target: {fileID: 6401089813021539603, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6713731043090498638, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
+      propertyPath: m_Radius
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9195923321850412702, guid: e1b1a7a623aa1d148bd0a75e157af26b, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
