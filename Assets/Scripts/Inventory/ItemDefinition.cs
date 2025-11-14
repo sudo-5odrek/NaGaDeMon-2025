@@ -1,30 +1,33 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Game/Item Definition", fileName = "NewItem")]
-public class ItemDefinition : ScriptableObject
+namespace Inventory
 {
-    [Header("Identification")]
-    public string itemID;            // unique string ID (e.g. "iron_ore")
-    public string displayName;
-    public Sprite icon;
+    [CreateAssetMenu(menuName = "Game/Item Definition", fileName = "NewItem")]
+    public class ItemDefinition : ScriptableObject
+    {
+        [Header("Identification")]
+        public string itemID;            // unique string ID (e.g. "iron_ore")
+        public string displayName;
+        public Sprite icon;
 
-    [Header("Properties")]
-    public float weight = 1f;
-    public int maxStack = 99;
+        [Header("Properties")]
+        public float weight = 1f;
+        public int maxStack = 99;
 
-    [Header("Prefabs")]
-    public GameObject worldPrefab;   // for enemy drops / pick-ups
-    public GameObject beltPrefab;    // for conveyors
-    public GameObject uiPrefab;      // for UI icons, if needed
+        [Header("Prefabs")]
+        public GameObject worldPrefab;   // for enemy drops / pick-ups
+        public GameObject beltPrefab;    // for conveyors
+        public GameObject uiPrefab;      // for UI icons, if needed
 
-    [Header("Category / Tags")]
-    public ItemType itemType;
-}
+        [Header("Category / Tags")]
+        public ItemType itemType;
+    }
 
-public enum ItemType
-{
-    Resource,
-    Component,
-    Equipment,
-    Consumable,
+    public enum ItemType
+    {
+        Resource,
+        Component,
+        Equipment,
+        Consumable,
+    }
 }

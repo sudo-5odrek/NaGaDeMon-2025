@@ -5,11 +5,6 @@ using Player;
 
 namespace Building
 {
-    /// <summary>
-    /// Allows the player to interact with a building’s inventory system.
-    /// Left-click: dump player items into building.
-    /// Right-click: take items out of the building.
-    /// </summary>
     [RequireComponent(typeof(BuildingInventory))]
     public class BuildingInteractable : MonoBehaviour, IInteractable
     {
@@ -21,108 +16,105 @@ namespace Building
         }
 
         public void OnHoverEnter() => Debug.Log($"🟢 Hovering {name}");
-        public void OnHoverExit() => Debug.Log($"⚫ Stopped hovering {name}");
+        public void OnHoverExit()  => Debug.Log($"⚫ Stopped hovering {name}");
 
         // ------------------------------------------------------------
-        //  PLAYER INTERACTION
+        // LEFT CLICK — DUMP SELECTED ITEM TYPE
         // ------------------------------------------------------------
-
-        /// <summary>
-        /// Player left-clicks: dump first carried item into the building.
-        /// </summary>
-        public void OnInteractHoldLeft(PlayerInventory playerInventory)
+        public void OnInteractHoldLeft(PlayerInventory playerInventory, ItemDefinition selectedItem)
         {
-            var port = buildingInventory.GetInput() as BuildingInventoryPort;
-            if (port == null) return;
+            if (playerInventory == null || selectedItem == null)
+                return;
 
-            TransferFromPlayerToBuilding(playerInventory, port);
+            var inputPort = buildingInventory.GetInput() as BuildingInventoryPort;
+            if (inputPort == null)
+                return;
+
+            TransferPlayerToBuilding(playerInventory, inputPort, selectedItem);
         }
 
-        /// <summary>
-        /// Player right-clicks: take resources from the building.
-        /// </summary>
+        // ------------------------------------------------------------
+        // RIGHT CLICK — TAKE ITEMS FROM BUILDING
+        // ------------------------------------------------------------
         public void OnInteractHoldRight(PlayerInventory playerInventory)
         {
-            var port = buildingInventory.GetOutput() as BuildingInventoryPort;
-            if (port == null) return;
+            if (playerInventory == null)
+                return;
 
-            TransferFromBuildingToPlayer(port, playerInventory);
+            var outputPort = buildingInventory.GetOutput() as BuildingInventoryPort;
+            if (outputPort == null)
+                return;
+
+            TransferBuildingToPlayer(outputPort, playerInventory);
         }
 
         // ------------------------------------------------------------
-        //  TRANSFER LOGIC
+        // TRANSFER LOGIC: PLAYER → BUILDING
         // ------------------------------------------------------------
-
-        private void TransferFromPlayerToBuilding(PlayerInventory player, BuildingInventoryPort buildingPort)
+        private void TransferPlayerToBuilding(PlayerInventory player, BuildingInventoryPort port, ItemDefinition item)
         {
-            if (player == null || buildingPort == null) return;
-            if (player.Inventory.IsEmpty()) return;
-
-            // get first item in player inventory
-            var all = player.Inventory.GetAll();
-            var first = all.Count > 0 ? all.GetEnumerator() : default;
-            if (all.Count == 0) return;
-            first.MoveNext();
-            var kvp = first.Current;
-            string resourceId = kvp.Key;
-            float amount = Mathf.Min(kvp.Value, 1f);
-
-            // find corresponding ItemDefinition from player's known items
-            ItemDefinition itemDef = null;
-            var allDefs = player.GetAllItems();
-            foreach (var defPair in allDefs)
-            {
-                if (defPair.Key.itemID == resourceId)
-                {
-                    itemDef = defPair.Key;
-                    break;
-                }
-            }
-
-            if (itemDef == null)
-            {
-                Debug.LogWarning($"[BuildingInteractable] Could not find ItemDefinition for {resourceId}");
-                return;
-            }
-
-            // auto-assign the port's definition if it's empty
-            if (buildingPort.itemDefinition == null)
-            {
-                buildingPort.itemDefinition = itemDef;
-                Debug.Log($"🏗️ Port '{buildingPort.portName}' learned new item type: {itemDef.displayName}");
-            }
-
-            // if item type doesn't match, skip
-            if (buildingPort.itemDefinition != itemDef)
+            if (player == null || port == null || item == null)
                 return;
 
-            // transfer 1 unit
-            if (!player.Inventory.Contains(resourceId, amount) || !buildingPort.CanAccept(itemDef, amount))
+            // Check if player has this item at all.
+            float amountAvailable = player.GetAmount(item);
+            if (amountAvailable <= 0f)
                 return;
 
-            float removed = player.Inventory.Remove(resourceId, amount);
-            float added = buildingPort.Add(itemDef, removed);
+            float amount = Mathf.Min(1f, amountAvailable); // 1 unit per frame
 
-            Debug.Log($"🔄 Transferred {added}x {itemDef.displayName} → {buildingPort.portName}");
+            // Auto-bind the port item type if empty
+            if (port.itemDefinition == null)
+            {
+                port.itemDefinition = item;
+                Debug.Log($"🏗️ Port '{port.portName}' set to item type {item.displayName}");
+            }
+
+            // If port only accepts a different type → skip
+            if (port.itemDefinition != item)
+                return;
+
+            // Check acceptance & execute transfer
+            if (!port.CanAccept(item, amount))
+                return;
+
+            float removed = player.Inventory.Remove(item.itemID, amount);
+            float added = port.Add(item, removed);
+
+            Debug.Log($"🔄 Transferred {added}x {item.displayName} → {port.portName}");
         }
 
-        private void TransferFromBuildingToPlayer(BuildingInventoryPort buildingPort, PlayerInventory player)
+        // ------------------------------------------------------------
+        // TRANSFER LOGIC: BUILDING → PLAYER
+        // ------------------------------------------------------------
+        private void TransferBuildingToPlayer(BuildingInventoryPort port, PlayerInventory player)
         {
-            if (buildingPort == null || player == null) return;
-            if (buildingPort.IsEmpty) return;
-
-            var itemDef = buildingPort.itemDefinition;
-            if (itemDef == null)
+            if (port == null || player == null)
                 return;
 
-            float amount = 1f;
-            if (!buildingPort.CanProvide(itemDef, amount))
+            if (port.IsEmpty)
                 return;
 
-            float removed = buildingPort.Remove(itemDef, amount);
-            player.AddItem(itemDef, removed);
+            ItemDefinition item = port.itemDefinition;
+            if (item == null)
+                return;
 
-            Debug.Log($"🔄 Transferred {removed}x {itemDef.displayName} → Player");
+            const float amount = 1f;
+
+            if (!port.CanProvide(item, amount))
+                return;
+
+            float removed = port.Remove(item, amount);
+            player.AddItem(item, removed);
+
+            Debug.Log($"🔄 Transferred {removed}x {item.displayName} → Player");
+
+            // 🆕 Reset item type if port is now empty
+            if (port.Amount <= 0f)
+            {
+                Debug.Log($"🧹 Port '{port.portName}' is now empty → clearing item type");
+                port.itemDefinition = null;
+            }
         }
     }
 }

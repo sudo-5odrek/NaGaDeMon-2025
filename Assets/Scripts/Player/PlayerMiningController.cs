@@ -1,5 +1,6 @@
 using System.Collections;
 using Floating_Text_Service;
+using Inventory;
 using UnityEngine;
 
 namespace Player

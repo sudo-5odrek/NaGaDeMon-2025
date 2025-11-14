@@ -1,6 +1,8 @@
 using Interface;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
+using Inventory;
 
 namespace Player
 {
@@ -11,14 +13,25 @@ namespace Player
         [SerializeField] private float interactRange = 2f;
         [SerializeField] private LayerMask interactableMask;
 
+        [Header("UI")]
+        [SerializeField] private ItemWheelUI wheelPrefab;
+        [SerializeField] private float wheelHoverSelectTime = 0.4f;
+
         private InputSystem_Actions input;
         private Camera cam;
         private PlayerInventory playerInventory;
 
         private IInteractable currentTarget;
-        
-        private bool isHolding;
-        private bool isLeftInteraction;
+
+        // Dumping
+        private bool isHoldingDump = false;
+        private bool isDumping = false;
+        private ItemDefinition selectedDumpItem;
+
+        // Taking
+        private bool isTaking = false;
+
+        [SerializeField] ItemWheelUI activeWheelUI;
 
         private void Awake()
         {
@@ -29,37 +42,60 @@ namespace Player
 
         private void OnEnable()
         {
-            input.Player.Dump.started += OnLeftInteractStarted;
-            input.Player.Dump.canceled += OnInteractCanceled;
-            input.Player.Take.started += OnRightInteractStarted;
-            input.Player.Take.canceled += OnInteractCanceled;
+            // Dump (Left Click)
+            input.Player.Dump.started += OnDumpStarted;
+            input.Player.Dump.canceled += OnDumpCanceled;
+
+            // Take (Right Click)
+            input.Player.Take.performed += OnTakePerformed;
+            input.Player.Take.canceled += OnTakeCanceled;
         }
 
         private void OnDisable()
         {
-            input.Player.Dump.started -= OnLeftInteractStarted;
-            input.Player.Dump.canceled -= OnInteractCanceled;
-            input.Player.Take.started -= OnRightInteractStarted;
-            input.Player.Take.canceled -= OnInteractCanceled;
+            input.Player.Dump.started -= OnDumpStarted;
+            input.Player.Dump.canceled -= OnDumpCanceled;
+
+            input.Player.Take.performed -= OnTakePerformed;
+            input.Player.Take.canceled -= OnTakeCanceled;
         }
 
         private void Update()
         {
+            // If wheel is open, freeze targeting
+            if (activeWheelUI != null)
+            {
+                HandleDump();
+                HandleTake();
+                return;
+            }
+
+            // ❗ NEW: freeze targeting during actual transfer
+            if (isDumping || isTaking)
+            {
+                HandleDump();
+                HandleTake();
+                return;
+            }
+
+            // Normal mode
             UpdateHoverTarget();
-            HandleHoldInteraction();
+            HandleDump();
+            HandleTake();
         }
 
         // ------------------------------------------------------------
-        //  HOVER + RANGE
+        // HOVERING
         // ------------------------------------------------------------
-
         private void UpdateHoverTarget()
         {
             Vector2 mousePos = input.Player.Point.ReadValue<Vector2>();
-            Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, -cam.transform.position.z));
+            Vector3 worldPos = cam.ScreenToWorldPoint(
+                new Vector3(mousePos.x, mousePos.y, -cam.transform.position.z)
+            );
             worldPos.z = 0;
 
-            Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.2f, interactableMask);
+            Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.25f, interactableMask);
             IInteractable newTarget = hit ? hit.GetComponent<IInteractable>() : null;
 
             if (newTarget != currentTarget)
@@ -71,58 +107,116 @@ namespace Player
         }
 
         // ------------------------------------------------------------
-        //  INPUT EVENTS
+        // TAKE (RIGHT CLICK)
         // ------------------------------------------------------------
-
-        private void OnLeftInteractStarted(InputAction.CallbackContext ctx)
+        private void OnTakePerformed(InputAction.CallbackContext ctx)
         {
             if (currentTarget == null) return;
-            isLeftInteraction = true;
-            isHolding = true;
+            if (DistToTarget(currentTarget) > interactRange) return;
+
+            isTaking = true;
         }
 
-        private void OnRightInteractStarted(InputAction.CallbackContext ctx)
+        private void OnTakeCanceled(InputAction.CallbackContext ctx)
         {
-            if (currentTarget == null) return;
-            isLeftInteraction = false;
-            isHolding = true;
+            isTaking = false;
         }
 
-        private void OnInteractCanceled(InputAction.CallbackContext ctx)
+        private void HandleTake()
         {
-            isHolding = false;
-        }
-
-        // ------------------------------------------------------------
-        //  HOLD INTERACTION
-        // ------------------------------------------------------------
-
-        private void HandleHoldInteraction()
-        {
-            if (!isHolding || currentTarget == null)
+            if (!isTaking || currentTarget == null)
                 return;
-            
-            // Range guard
-            var targetMb = (MonoBehaviour)currentTarget;
-            float dist = Vector2.Distance(transform.position, targetMb.transform.position);
-            
-            if (dist > interactRange)
+
+            if (DistToTarget(currentTarget) > interactRange)
             {
-                currentTarget.OnHoverExit();
-                currentTarget = null;
-                isHolding = false;
+                isTaking = false;
                 return;
             }
-            
-            Debug.Log($"Holding {(isLeftInteraction ? "LMB" : "RMB")} on {currentTarget}");
-            
-            // 🔁 Continuous transfer every frame while held.
-            // Implementers (e.g., TurretInventory) should use Time.deltaTime and a transferRate
-            // to do "X units per second".
-            if (isLeftInteraction)
-                currentTarget.OnInteractHoldLeft(playerInventory);
-            else
-                currentTarget.OnInteractHoldRight(playerInventory);
+
+            // Continuous interaction
+            currentTarget.OnInteractHoldRight(playerInventory);
+        }
+
+        // ------------------------------------------------------------
+        // DUMP (LEFT CLICK)
+        // ------------------------------------------------------------
+        private void OnDumpStarted(InputAction.CallbackContext ctx)
+        {
+            if (currentTarget == null) return;
+            if (DistToTarget(currentTarget) > interactRange) return;
+
+            List<ItemDefinition> defs = playerInventory.GetAllDefinitions();
+            if (defs.Count == 0) return;
+
+            isHoldingDump = true;
+
+            // Only one item → no need for wheel
+            if (defs.Count == 1)
+            {
+                selectedDumpItem = defs[0];
+                isDumping = true;
+                return;
+            }
+
+            // MULTIPLE ITEMS → open wheel
+            Vector2 screenPos = input.Player.Point.ReadValue<Vector2>();
+
+            activeWheelUI = wheelPrefab;
+            activeWheelUI.gameObject.SetActive(true);
+
+            activeWheelUI.Open(
+                screenPos,
+                defs,
+                wheelHoverSelectTime,
+                OnItemSelectedFromWheel
+            );
+        }
+
+        private void OnDumpCanceled(InputAction.CallbackContext ctx)
+        {
+            isHoldingDump = false;
+            isDumping = false;
+            selectedDumpItem = null;
+
+            if (activeWheelUI != null)
+                activeWheelUI.gameObject.SetActive(false);
+            activeWheelUI = null;
+        }
+
+        private void OnItemSelectedFromWheel(ItemDefinition def)
+        {
+            selectedDumpItem = def;
+            isDumping = true;
+
+            if (activeWheelUI != null)
+                activeWheelUI.gameObject.SetActive(false);
+            activeWheelUI = null;
+        }
+
+        private void HandleDump()
+        {
+            if (!isDumping || selectedDumpItem == null || currentTarget == null)
+                return;
+
+            if (DistToTarget(currentTarget) > interactRange)
+            {
+                isDumping = false;
+                return;
+            }
+
+            // Continuous interaction
+            currentTarget.OnInteractHoldLeft(playerInventory, selectedDumpItem);
+        }
+
+        // ------------------------------------------------------------
+        // UTIL
+        // ------------------------------------------------------------
+        private float DistToTarget(IInteractable t)
+        {
+            return Vector2.Distance(
+                transform.position,
+                ((MonoBehaviour)t).transform.position
+            );
         }
 
         private void OnDrawGizmosSelected()

@@ -11,7 +11,8 @@ namespace Inventory
     public class BuildingInventoryPort : IInventoryAccess
     {
         public enum PortType { Input, Output, Both }
-
+        public float Amount => inventory.UsedCapacity;
+        
         [Header("Port Settings")]
         public string portName = "Port";
         public PortType portType = PortType.Both;

@@ -1,3 +1,4 @@
+using Inventory;
 using Player;
 
 namespace Interface
@@ -6,7 +7,17 @@ namespace Interface
     {
         void OnHoverEnter();
         void OnHoverExit();
-        void OnInteractHoldLeft(PlayerInventory playerInventory);
-        void OnInteractHoldRight(PlayerInventory playerInventory);
+
+        /// <summary>
+        /// Dump items into this interactable.
+        /// Now includes selected ItemDefinition from wheel.
+        /// </summary>
+        void OnInteractHoldLeft(PlayerInventory inventory, ItemDefinition item);
+
+        /// <summary>
+        /// Take items from this interactable.
+        /// No change needed.
+        /// </summary>
+        void OnInteractHoldRight(PlayerInventory inventory);
     }
 }
