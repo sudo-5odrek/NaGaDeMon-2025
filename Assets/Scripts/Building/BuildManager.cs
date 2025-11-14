@@ -200,15 +200,16 @@ public class BuildManager : MonoBehaviour
         // 🖱️ Right-click behavior depends on current state
         if (isPlacing)
         {
-            // ✅ Exit build mode and reopen menu
+            // Clear preview and FULLY EXIT build mode
             activePlacementLogic?.ClearPreview();
+            ExitBuildMode();
             buildMenu?.Show();
         }
         else
         {
             // ✅ Close menu if open
             buildMenu.Hide();
-            ExitBuildMode(showMenu: true);
+            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
         }
     }
 
@@ -219,8 +220,9 @@ public class BuildManager : MonoBehaviour
         {
             // ✅ Cancel placement and close everything
             activePlacementLogic?.ClearPreview();
-            ExitBuildMode(showMenu: false);
+            ExitBuildMode();
             buildMenu?.Hide();
+            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
             return;
         }
         
@@ -232,7 +234,7 @@ public class BuildManager : MonoBehaviour
     // STATE MANAGEMENT
     // --------------------------------------------------
 
-    private void ExitBuildMode(bool showMenu)
+    private void ExitBuildMode()
     {
         activePlacementLogic?.ClearPreview();
         selectedBuilding = null;
@@ -240,11 +242,6 @@ public class BuildManager : MonoBehaviour
         isPlacing = false;
         isDragging = false;
         validDragStarted = false;
-
-        InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
-
-        if (showMenu)
-            buildMenu?.Show();
     }
 
     // --------------------------------------------------
