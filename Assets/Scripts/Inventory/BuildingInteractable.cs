@@ -78,7 +78,8 @@ namespace Building
             if (!port.CanAccept(item, amount))
                 return;
 
-            float removed = player.Inventory.Remove(item.itemID, amount);
+            player.RemoveItem(item, amount);
+            float removed = amount;
             float added = port.Add(item, removed);
 
             Debug.Log($"🔄 Transferred {added}x {item.displayName} → {port.portName}");
