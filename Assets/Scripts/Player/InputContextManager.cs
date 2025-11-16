@@ -36,6 +36,9 @@ public class InputContextManager : MonoBehaviour
                 
                 input.Player.BuildMenu.Enable();
                 input.Player.ConnectMode.Enable();
+                
+                input.Player.Take.Enable();
+                input.Player.Dump.Enable();
                 break;
 
             case InputMode.Build:
@@ -44,6 +47,9 @@ public class InputContextManager : MonoBehaviour
 
                 input.Player.Place.Enable();
                 input.Player.Cancel.Enable();
+                
+                input.Player.Take.Disable();
+                input.Player.Dump.Disable();
                 break;
             
             case InputMode.Connect:
@@ -52,6 +58,9 @@ public class InputContextManager : MonoBehaviour
                 input.Player.BuildMenu.Disable();
                 input.Player.Place.Enable();
                 input.Player.Cancel.Enable();
+                
+                input.Player.Take.Disable();
+                input.Player.Dump.Disable();
                 break;
         }
     }

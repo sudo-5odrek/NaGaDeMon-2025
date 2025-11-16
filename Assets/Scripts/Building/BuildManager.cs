@@ -1,263 +1,234 @@
+using Grid;
+using Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Grid;
-using Building;
 
-public class BuildManager : MonoBehaviour
+namespace Building
 {
-    public static BuildManager Instance;
-
-    [Header("Settings")]
-    public BuildingData[] availableBuildings;
-    public float buildRange = 5f;
-
-    [Header("References")]
-    public Transform player;
-    public BuildMenuUI buildMenu;
-
-    private BuildingData selectedBuilding;
-    private bool isPlacing = false;
-    private bool isDragging = false;
-    private bool validDragStarted = false;
-
-    private float currentRotation = 0f;
-
-    private Camera cam;
-    private InputSystem_Actions input;
-    private IBuildPlacementLogic activePlacementLogic;
-
-    // --------------------------------------------------
-    // INITIALIZATION
-    // --------------------------------------------------
-
-    private void Awake()
+    public class BuildManager : MonoBehaviour
     {
-        Instance = this;
-        cam = Camera.main;
-        input = InputContextManager.Instance.input;
-    }
+        public static BuildManager Instance;
 
-    private void OnEnable()
-    {
-        input.Player.Place.started += OnPlaceStarted;
-        input.Player.Place.canceled += OnPlaceCanceled;
-        input.Player.Cancel.performed += OnCancelPerformed;   // Right-click
-        input.Player.Rotate.performed += OnRotatePerformed;
-        input.Player.BuildMenu.performed += OnMenuPerformed;    // E key
-    }
+        [Header("Settings")]
+        public BuildingData[] availableBuildings;
+        public float buildRange = 5f;
 
-    private void OnDisable()
-    {
-        input.Player.Place.started -= OnPlaceStarted;
-        input.Player.Place.canceled -= OnPlaceCanceled;
-        input.Player.Cancel.performed -= OnCancelPerformed;
-        input.Player.Rotate.performed -= OnRotatePerformed;
-        input.Player.BuildMenu.performed -= OnMenuPerformed;
-    }
+        [Header("References")]
+        public Transform player;
+        public BuildMenuUI buildMenu;
 
-    // --------------------------------------------------
-    // UPDATE LOOP
-    // --------------------------------------------------
+        private BuildingData selectedBuilding;
+        private bool isPlacing = false;
+        private bool isDragging = false;
 
-    private void Update()
-    {
-        if (!isPlacing || activePlacementLogic == null)
-            return;
+        private float currentRotation = 0f;
 
-        Vector3 snappedPos = SnapToGrid(GetMouseWorldPosition());
-        float dist = Vector2.Distance(snappedPos, player.position);
+        private Camera cam;
+        private InputSystem_Actions input;
+        private IBuildPlacementLogic activePlacementLogic;
 
-        if (isDragging)
+        private void Awake()
         {
-            activePlacementLogic.OnDragging(snappedPos);
-        }
-        else
-        {
-            activePlacementLogic.UpdatePreview(snappedPos);
-
-            // 🔴 Optional visual feedback (if implemented in placement logic)
-            // Example: activePlacementLogic.SetPreviewTint(dist > buildRange ? Color.red : Color.white);
-        }
-    }
-
-    // --------------------------------------------------
-    // ROTATION
-    // --------------------------------------------------
-
-    private void OnRotatePerformed(InputAction.CallbackContext ctx)
-    {
-        if (!isPlacing)
-            return;
-
-        float scrollValue = ctx.ReadValue<float>();
-        if (Mathf.Abs(scrollValue) < 0.01f)
-            return;
-
-        float direction = Mathf.Sign(scrollValue);
-        currentRotation += direction * 90f;
-    }
-
-    // --------------------------------------------------
-    // START PLACEMENT
-    // --------------------------------------------------
-
-    public void StartPlacement(BuildingData building)
-    {
-        selectedBuilding = building;
-        isPlacing = true;
-        isDragging = false;
-        validDragStarted = false;
-        currentRotation = 0f;
-
-        activePlacementLogic = selectedBuilding.GetPlacementLogic();
-        if (activePlacementLogic == null)
-        {
-            Debug.LogError($"No placement logic assigned for {building.name}");
-            return;
+            Instance = this;
+            cam = Camera.main;
+            input = InputContextManager.Instance.input;
         }
 
-        activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation, true);
-        InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
-
-        buildMenu?.Hide(); // hide menu while placing
-    }
-
-    // --------------------------------------------------
-    // INPUT HANDLING
-    // --------------------------------------------------
-
-    private void OnPlaceStarted(InputAction.CallbackContext ctx)
-    {
-        if (!isPlacing || selectedBuilding == null)
-            return;
-
-        Vector3 snappedPos = SnapToGrid(GetMouseWorldPosition());
-        float dist = Vector2.Distance(snappedPos, player.position);
-        Node startNode = GridManager.Instance.GetClosestNode(snappedPos);
-
-        // 🚫 Invalid start: too far or unwalkable
-        if (dist > buildRange || startNode == null || !startNode.walkable)
+        private void OnEnable()
         {
-            validDragStarted = false;
-            Debug.Log("❌ Invalid drag start (out of range or unwalkable).");
-            return;
+            input.Player.Place.started += OnPlaceStarted;
+            input.Player.Place.canceled += OnPlaceCanceled;
+            input.Player.Cancel.performed += OnCancelPerformed;
+            input.Player.Rotate.performed += OnRotatePerformed;
+            input.Player.BuildMenu.performed += OnMenuPerformed;
         }
 
-        // ✅ Begin valid drag
-        isDragging = true;
-        validDragStarted = true;
-        activePlacementLogic?.OnStartDrag(snappedPos);
-    }
-
-    private void OnPlaceCanceled(InputAction.CallbackContext ctx)
-    {
-        if (!isPlacing || selectedBuilding == null)
-            return;
-
-        // 🚫 Skip invalid or aborted drags
-        if (!validDragStarted)
+        private void OnDisable()
         {
+            input.Player.Place.started -= OnPlaceStarted;
+            input.Player.Place.canceled -= OnPlaceCanceled;
+            input.Player.Cancel.performed -= OnCancelPerformed;
+            input.Player.Rotate.performed -= OnRotatePerformed;
+            input.Player.BuildMenu.performed -= OnMenuPerformed;
+        }
+
+        // -------------------------------------------------------------------
+        // COST SYSTEM (Only thing BuildManager truly owns)
+        // -------------------------------------------------------------------
+        private bool CanAfford(BuildingData building)
+        {
+            if (!building) return false;
+
+            var inv = PlayerInventory.Instance;
+            foreach (var c in building.cost)
+                if (inv.GetAmount(c.item) < c.amount)
+                    return false;
+
+            return true;
+        }
+
+        private void SpendCost(BuildingData building)
+        {
+            var inv = PlayerInventory.Instance;
+            foreach (var c in building.cost)
+                inv.RemoveItem(c.item, c.amount);
+        }
+
+        // -------------------------------------------------------------------
+        // MAIN UPDATE LOOP
+        // -------------------------------------------------------------------
+        private void Update()
+        {
+            if (!isPlacing || activePlacementLogic == null)
+                return;
+
+            Vector3 snapped = SnapToGrid(GetMouseWorldPosition());
+
+            if (isDragging)
+                activePlacementLogic.OnDragging(snapped);
+            else
+                activePlacementLogic.UpdatePreview(snapped);
+        }
+
+        // -------------------------------------------------------------------
+        // ROTATION (BuildManager only forwards the rotation)
+        // -------------------------------------------------------------------
+        private void OnRotatePerformed(InputAction.CallbackContext ctx)
+        {
+            if (!isPlacing || activePlacementLogic == null)
+                return;
+
+            float scroll = ctx.ReadValue<float>();
+            if (Mathf.Abs(scroll) < 0.01f)
+                return;
+
+            currentRotation += Mathf.Sign(scroll) * 90f;
+            activePlacementLogic.ApplyRotation(currentRotation);
+        }
+
+        // -------------------------------------------------------------------
+        // START PLACEMENT
+        // -------------------------------------------------------------------
+        public void StartPlacement(BuildingData building)
+        {
+            selectedBuilding = building;
+            isPlacing = true;
             isDragging = false;
-            validDragStarted = false;
-            return;
-        }
+            currentRotation = 0f;
 
-        Vector3 snappedPos = SnapToGrid(GetMouseWorldPosition());
-        float dist = Vector2.Distance(snappedPos, player.position);
-        Node endNode = GridManager.Instance.GetClosestNode(snappedPos);
+            activePlacementLogic = selectedBuilding.GetPlacementLogic();
 
-        // 🚫 Ignore invalid end positions
-        if (dist > buildRange || endNode == null || !endNode.walkable)
-        {
-            Debug.Log("❌ Invalid drag end (out of range or unwalkable).");
-            isDragging = false;
-            validDragStarted = false;
-            return;
-        }
+            if (activePlacementLogic == null)
+            {
+                Debug.LogError($"No placement logic for {building.name}");
+                return;
+            }
 
-        // ✅ Valid placement
-        activePlacementLogic?.OnEndDrag(snappedPos);
+            activePlacementLogic.Setup(building.prefab, currentRotation);
 
-        isDragging = false;
-        validDragStarted = false;
-
-        // ✅ Recreate hover preview for next placement
-        StartCoroutine(RecreatePreviewNextFrame());
-    }
-    
-    private System.Collections.IEnumerator RecreatePreviewNextFrame()
-    {
-        yield return null; // wait one frame
-        if (isPlacing && selectedBuilding != null)
-            activePlacementLogic?.Setup(selectedBuilding.prefab, currentRotation, true);
-    }
-
-    private void OnCancelPerformed(InputAction.CallbackContext ctx)
-    {
-        if (InputContextManager.Instance.CurrentMode != InputContextManager.InputMode.Build)
-            return;
-        
-        // 🖱️ Right-click behavior depends on current state
-        if (isPlacing)
-        {
-            // Clear preview and FULLY EXIT build mode
-            activePlacementLogic?.ClearPreview();
-            ExitBuildMode();
-            buildMenu?.Show();
-        }
-        else
-        {
-            // ✅ Close menu if open
+            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
             buildMenu.Hide();
-            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
         }
-    }
 
-    private void OnMenuPerformed(InputAction.CallbackContext ctx)
-    {
-        // ⌨️ E pressed
-        if (InputContextManager.Instance.CurrentMode == InputContextManager.InputMode.Build)
+        // -------------------------------------------------------------------
+        // INPUT HANDLERS
+        // -------------------------------------------------------------------
+        private void OnPlaceStarted(InputAction.CallbackContext ctx)
         {
-            // ✅ Cancel placement and close everything
-            activePlacementLogic?.ClearPreview();
-            ExitBuildMode();
-            buildMenu?.Hide();
-            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
-            return;
+            if (!isPlacing || selectedBuilding == null)
+                return;
+
+            Vector3 position = SnapToGrid(GetMouseWorldPosition());
+            float dist = Vector2.Distance(position, player.position);
+
+            if (dist > buildRange || !GridManager.Instance.GetClosestNode(position).walkable)
+                return;
+
+            isDragging = true;
+            activePlacementLogic.OnStartDrag(position);
         }
-        
-        InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
-        buildMenu.Show();
-    }
 
-    // --------------------------------------------------
-    // STATE MANAGEMENT
-    // --------------------------------------------------
+        private void OnPlaceCanceled(InputAction.CallbackContext ctx)
+        {
+            if (!isPlacing || selectedBuilding == null)
+                return;
 
-    private void ExitBuildMode()
-    {
-        activePlacementLogic?.ClearPreview();
-        selectedBuilding = null;
-        activePlacementLogic = null;
-        isPlacing = false;
-        isDragging = false;
-        validDragStarted = false;
-    }
+            // End placement attempt
+            Vector3 pos = SnapToGrid(GetMouseWorldPosition());
+            float dist = Vector2.Distance(pos, player.position);
 
-    // --------------------------------------------------
-    // UTILITY
-    // --------------------------------------------------
+            if (dist > buildRange || !GridManager.Instance.GetClosestNode(pos).walkable)
+            {
+                isDragging = false;
+                return;
+            }
 
-    private Vector3 GetMouseWorldPosition()
-    {
-        Vector2 mousePos = input.Player.Point.ReadValue<Vector2>();
-        Vector3 world = cam.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, -cam.transform.position.z));
-        world.z = 0;
-        return world;
-    }
+            // VALID placement → check cost
+            if (!CanAfford(selectedBuilding))
+            {
+                Debug.Log("Cannot afford!");
+                isDragging = false;
+                return;
+            }
 
-    private Vector3 SnapToGrid(Vector3 pos)
-    {
-        return GridManager.Instance.GetClosestNodeWorldPos(pos);
+            // place
+            activePlacementLogic.OnEndDrag(pos);
+            SpendCost(selectedBuilding);
+
+            isDragging = false;
+
+            // Immediately recreate preview so player can place again
+            activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
+        }
+
+        private void OnCancelPerformed(InputAction.CallbackContext ctx)
+        {
+            if (!isPlacing)
+                return;
+
+            activePlacementLogic.Cancel();
+            ExitBuildMode();
+            buildMenu.Show();
+        }
+
+        private void OnMenuPerformed(InputAction.CallbackContext ctx)
+        {
+            if (InputContextManager.Instance.CurrentMode == InputContextManager.InputMode.Build)
+            {
+                if (isPlacing)
+                    activePlacementLogic.Cancel();
+                ExitBuildMode();
+                buildMenu.Hide();
+                InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
+                return;
+            }
+
+            buildMenu.Show();
+            InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Build);
+        }
+
+        private void ExitBuildMode()
+        {
+            selectedBuilding = null;
+            isPlacing = false;
+            isDragging = false;
+            activePlacementLogic = null;
+        }
+
+        // -------------------------------------------------------------------
+        // UTILS
+        // -------------------------------------------------------------------
+        private Vector3 GetMouseWorldPosition()
+        {
+            Vector2 mouse = input.Player.Point.ReadValue<Vector2>();
+            Vector3 world = cam.ScreenToWorldPoint(new Vector3(mouse.x, mouse.y, -cam.transform.position.z));
+            world.z = 0;
+            return world;
+        }
+
+        private Vector3 SnapToGrid(Vector3 pos)
+        {
+            return GridManager.Instance.GetClosestNodeWorldPos(pos);
+        }
     }
 }

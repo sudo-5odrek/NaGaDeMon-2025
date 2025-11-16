@@ -1,7 +1,16 @@
+using System.Collections.Generic;
+using Inventory;
 using UnityEngine;
 
 namespace Building
 {
+    [System.Serializable]
+    public struct BuildingCost
+    {
+        public ItemDefinition item;
+        public int amount;
+    }
+
     public enum PlacementMode
     {
         Single,  // Click to place (default)
@@ -17,10 +26,7 @@ namespace Building
         public GameObject prefab;
 
         [Header("Economy")]
-        public int cost = 0;
-
-        [Header("Placement")]
-        public PlacementMode placementMode = PlacementMode.Single;
+        public List<BuildingCost> cost = new List<BuildingCost>();
 
         // 🔹 Optional: assign a ScriptableObject that implements IBuildPlacementLogic
         public ScriptableObject placementLogic;

@@ -26,8 +26,8 @@ public static class BuildUtils
         }
 
         // Disable colliders to avoid blocking placement
-        foreach (var col in obj.GetComponentsInChildren<Collider2D>())
-            col.enabled = false;
+        //foreach (var col in obj.GetComponentsInChildren<Collider2D>())
+            //col.enabled = false;
 
         // Disable rigidbodies to prevent physics
         foreach (var rb in obj.GetComponentsInChildren<Rigidbody2D>())

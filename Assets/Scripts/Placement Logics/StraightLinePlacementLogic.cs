@@ -5,43 +5,58 @@ using Grid;
 [CreateAssetMenu(menuName = "Build/Placement Logic/Straight Line")]
 public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
 {
-    [Header("Visual Settings")]
-    [SerializeField] private Color previewColor = new Color(1f, 1f, 1f, 0.4f);
-
     private GameObject prefab;
     private float rotation;
 
     private Vector3 worldStart;
     private bool isDragging = false;
-    
-    private System.Action<List<GameObject>> onPlaced; // ✅ callback reference
-    
 
+    // Hover preview (before drag)
     private GameObject hoverPreview;
+
+    // Line preview during drag
     private readonly List<GameObject> previewLine = new();
-    
+
+    // Optional callback when line is placed (useful for conveyors)
+    private System.Action<List<GameObject>> onPlaced;
+
     public void SetPlacementCallback(System.Action<List<GameObject>> callback)
     {
         onPlaced = callback;
     }
 
-    // --------------------------------------------------
+    // ----------------------------------------------------------------------
     // SETUP
-    // --------------------------------------------------
+    // ----------------------------------------------------------------------
 
-    public void Setup(GameObject prefab, float rotation, bool createPreview)
+    public void Setup(GameObject prefab, float rotation)
     {
-         // 🧠 skip preview creation if still placing
         this.prefab = prefab;
         this.rotation = rotation;
-        
-        if (createPreview)
-            CreateHoverPreview();
+
+        CreateHoverPreview();
     }
 
-    // --------------------------------------------------
-    // PREVIEW (before drag)
-    // --------------------------------------------------
+    // ----------------------------------------------------------------------
+    // ROTATION INPUT
+    // ----------------------------------------------------------------------
+
+    public void ApplyRotation(float newRotation)
+    {
+        rotation = newRotation;
+
+        // update preview objects
+        if (hoverPreview)
+            hoverPreview.transform.rotation = Quaternion.Euler(0, 0, rotation);
+
+        foreach (var g in previewLine)
+            if (g)
+                g.transform.rotation = Quaternion.Euler(0, 0, rotation);
+    }
+
+    // ----------------------------------------------------------------------
+    // PREVIEW (before dragging)
+    // ----------------------------------------------------------------------
 
     public void UpdatePreview(Vector3 worldCurrent)
     {
@@ -49,15 +64,16 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
             hoverPreview.transform.position = worldCurrent;
     }
 
-    // --------------------------------------------------
-    // DRAG EVENTS
-    // --------------------------------------------------
+    // ----------------------------------------------------------------------
+    // DRAG LOGIC
+    // ----------------------------------------------------------------------
 
-    public void OnStartDrag(Vector3 start)
+    public void OnStartDrag(Vector3 startWorldPos)
     {
         isDragging = true;
-        worldStart = start;
+        worldStart = startWorldPos;
 
+        // remove single hover ghost
         if (hoverPreview)
             Object.Destroy(hoverPreview);
 
@@ -75,28 +91,35 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     public void OnEndDrag(Vector3 worldEnd)
     {
         if (!isDragging) return;
-        isDragging = false;
 
+        isDragging = false;
         ClearPreviewLine();
+
+        // Final placement
         PlaceLine(worldStart, worldEnd);
     }
 
-    // --------------------------------------------------
-    // INTERNAL HELPERS
-    // --------------------------------------------------
-    
+    // ----------------------------------------------------------------------
+    // INTERNAL — Ghosts & Placement
+    // ----------------------------------------------------------------------
+
+    private void CreateHoverPreview()
+    {
+        ClearPreviewLine();
+
+        if (!prefab) return;
+
+        hoverPreview = Object.Instantiate(prefab);
+        BuildUtils.MakePreview(hoverPreview);
+        hoverPreview.transform.rotation = Quaternion.Euler(0, 0, rotation);
+    }
 
     private void ClearPreviewLine()
     {
         foreach (var g in previewLine)
             if (g) Object.Destroy(g);
-        previewLine.Clear();
-    }
 
-    private void CreateHoverPreview()
-    {
-        hoverPreview = Object.Instantiate(prefab);
-        BuildUtils.MakePreview(hoverPreview);
+        previewLine.Clear();
     }
 
     private void DrawPreviewLine(Vector3 start, Vector3 end)
@@ -105,17 +128,26 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
         (int endX, int endY) = GridManager.Instance.GridFromWorld(end);
 
         bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
+
         if (vertical)
         {
             int step = startY < endY ? 1 : -1;
+
             for (int y = startY; y != endY + step; y += step)
-                previewLine.Add(CreateGhost(GridManager.Instance.WorldFromGrid(startX, y)));
+            {
+                Vector3 pos = GridManager.Instance.WorldFromGrid(startX, y);
+                previewLine.Add(CreateGhost(pos));
+            }
         }
         else
         {
             int step = startX < endX ? 1 : -1;
+
             for (int x = startX; x != endX + step; x += step)
-                previewLine.Add(CreateGhost(GridManager.Instance.WorldFromGrid(x, startY)));
+            {
+                Vector3 pos = GridManager.Instance.WorldFromGrid(x, startY);
+                previewLine.Add(CreateGhost(pos));
+            }
         }
     }
 
@@ -128,36 +160,36 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
 
     private void PlaceLine(Vector3 start, Vector3 end)
     {
-        List<GameObject> line = new List<GameObject>();
-        
+        var placedObjects = new List<GameObject>();
+
         (int startX, int startY) = GridManager.Instance.GridFromWorld(start);
         (int endX, int endY) = GridManager.Instance.GridFromWorld(end);
 
         bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
-        GameObject firstPlaced = null;
 
         if (vertical)
         {
             int step = startY < endY ? 1 : -1;
+
             for (int y = startY; y != endY + step; y += step)
             {
-                var obj = Place(GridManager.Instance.WorldFromGrid(startX, y));
-                line.Add(obj);
+                Vector3 pos = GridManager.Instance.WorldFromGrid(startX, y);
+                placedObjects.Add(Place(pos));
             }
         }
         else
         {
             int step = startX < endX ? 1 : -1;
+
             for (int x = startX; x != endX + step; x += step)
             {
-                var obj = Place(GridManager.Instance.WorldFromGrid(x, startY));
-                line.Add(obj);
+                Vector3 pos = GridManager.Instance.WorldFromGrid(x, startY);
+                placedObjects.Add(Place(pos));
             }
         }
 
-        // ✅ Notify ConnectionModeManager
-        if (line.Count > 0)
-            onPlaced?.Invoke(line);
+        // Give higher systems the placed line
+        onPlaced?.Invoke(placedObjects);
     }
 
     private GameObject Place(Vector3 pos)
@@ -167,10 +199,23 @@ public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
         return obj;
     }
 
+    // ----------------------------------------------------------------------
+    // CANCEL & CLEAR
+    // ----------------------------------------------------------------------
+
+    public void Cancel()
+    {
+        isDragging = false;
+        ClearPreview();
+    }
+
     public void ClearPreview()
     {
         ClearPreviewLine();
+
         if (hoverPreview)
             Object.Destroy(hoverPreview);
+
+        hoverPreview = null;
     }
 }

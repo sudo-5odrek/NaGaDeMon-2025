@@ -11,7 +11,6 @@ namespace Placement_Logics
         private float rotation;
 
         private GameObject previewObject;
-        private bool isPlacing = false;
 
         private System.Action<Vector3, GameObject> onPlacedCallback;
 
@@ -21,19 +20,24 @@ namespace Placement_Logics
         private static readonly Color VALID = new Color(0f, 1f, 0f, 0.35f);
         private static readonly Color INVALID = new Color(1f, 0f, 0f, 0.35f);
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // SETUP
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
-        public void Setup(GameObject prefab, float rotation, bool createPreview)
+        public void Setup(GameObject prefab, float rotation)
         {
-            if (isPlacing) return;
-
             this.prefab = prefab;
             this.rotation = rotation;
 
-            if (createPreview)
-                CreatePreview();
+            CreatePreview();
+        }
+
+        public void ApplyRotation(float newRotation)
+        {
+            rotation = newRotation;
+
+            if (previewObject)
+                previewObject.transform.rotation = Quaternion.Euler(0, 0, rotation);
         }
 
         public void SetPlacementCallback(System.Action<Vector3, GameObject> callback)
@@ -41,26 +45,9 @@ namespace Placement_Logics
             onPlacedCallback = callback;
         }
 
-        // --------------------------------------------------
-        // DRAG FLOW
-        // --------------------------------------------------
-
-        public void OnStartDrag(Vector3 start)
-        {
-            isPlacing = true;
-        }
-
-        public void OnDragging(Vector3 current)
-        {
-            // Single placement — nothing to drag
-        }
-
-        public void OnEndDrag(Vector3 worldEnd)
-        {
-            TryPlace(worldEnd);
-            ClearPreview();
-            isPlacing = false;
-        }
+        // ----------------------------------------------------------------------
+        // UPDATE PREVIEW (Hover)
+        // ----------------------------------------------------------------------
 
         public void UpdatePreview(Vector3 worldCurrent)
         {
@@ -68,6 +55,7 @@ namespace Placement_Logics
 
             var grid = GridManager.Instance;
             var (gx, gy) = grid.GridFromWorld(worldCurrent);
+
             Vector3 snapPos = grid.WorldFromGrid(gx, gy);
             previewObject.transform.position = snapPos;
 
@@ -75,18 +63,30 @@ namespace Placement_Logics
             BuildUtils.SetPreviewTint(previewObject, valid ? VALID : INVALID);
         }
 
-        public void ClearPreview()
+        // ----------------------------------------------------------------------
+        // DRAG EVENTS
+        // For single node placement: only OnEndDrag matters
+        // ----------------------------------------------------------------------
+
+        public void OnStartDrag(Vector3 start)
         {
-            if (previewObject)
-            {
-                Object.Destroy(previewObject);
-                previewObject = null;
-            }
+            // Nothing needed for single placement
         }
 
-        // --------------------------------------------------
+        public void OnDragging(Vector3 current)
+        {
+            // Not used for single placement
+        }
+
+        public void OnEndDrag(Vector3 worldEnd)
+        {
+            TryPlace(worldEnd);
+            ClearPreview();
+        }
+
+        // ----------------------------------------------------------------------
         // INTERNAL LOGIC
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         private MiningNode GetNodeAt(int gx, int gy)
         {
@@ -113,38 +113,58 @@ namespace Placement_Logics
             }
 
             Vector3 snapPos = grid.WorldFromGrid(gx, gy);
+
+            // Instantiate the miner building
             GameObject obj = Object.Instantiate(prefab, snapPos, Quaternion.Euler(0, 0, rotation));
 
+            // Block the node
             grid.BlockNodesUnderObject(obj);
 
-            // 🔗 Assign the node to the miner
+            // Assign node to the miner
             if (obj.TryGetComponent(out MinerBuilding miner))
             {
                 miner.AssignNode(node);
                 Debug.Log($"🔗 Miner assigned to node: {node.name}");
             }
 
-            // ❌ Disable node collider so player cannot manually collect
+            // Disable the node collider — cannot collect manually anymore
             DisableNodeCollider(node);
 
+            // Callback
             onPlacedCallback?.Invoke(snapPos, obj);
         }
 
         private void DisableNodeCollider(MiningNode node)
         {
-            Collider2D nodeCol = node.GetComponent<Collider2D>();
-            if (nodeCol)
+            Collider2D col = node.GetComponent<Collider2D>();
+            if (col)
             {
-                nodeCol.enabled = false;
+                col.enabled = false;
                 Debug.Log($"🚫 Disabled collider on node: {node.name}");
             }
         }
 
         private void CreatePreview()
         {
-            previewObject = Object.Instantiate(prefab, Vector3.zero, Quaternion.Euler(0, 0, rotation));
+            ClearPreview();
+
+            previewObject = Object.Instantiate(prefab);
             BuildUtils.MakePreview(previewObject);
             BuildUtils.SetPreviewTint(previewObject, INVALID);
+            previewObject.transform.rotation = Quaternion.Euler(0, 0, rotation);
+        }
+
+        public void ClearPreview()
+        {
+            if (previewObject)
+                Object.Destroy(previewObject);
+
+            previewObject = null;
+        }
+
+        public void Cancel()
+        {
+            ClearPreview();
         }
     }
 }
