@@ -223,7 +223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01797f704c5001847bbdc33d9383dbc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackMode: 0
+  attackMode: 1
   attackInterval: 1
   attackDamage: 5
   damageTextStyle: {fileID: 11400000, guid: 68a0f8e8e239510409effbd4cff8dd2c, type: 2}
