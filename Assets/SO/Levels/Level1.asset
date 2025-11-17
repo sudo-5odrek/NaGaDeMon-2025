@@ -13,11 +13,42 @@ MonoBehaviour:
   m_Name: Level1
   m_EditorClassIdentifier: 
   waves:
-  - waveName: Wave 1
-    startTime: 30
+  - waveName: Wave 2
+    startTime: 5
     groups:
-    - spawnPoint: {fileID: 0}
-      stagger: 0
+    - spawnZone:
+        center: {x: 0, y: 30}
+        size: {x: 30, y: 1}
+      stagger: 1
       startDelay: 0
-      enemies: []
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
+        count: 5
+        weight: 0
+      pattern: 0
+  - waveName: Wave 3
+    startTime: 25
+    groups:
+    - spawnZone:
+        center: {x: 0, y: 30}
+        size: {x: 30, y: 1}
+      stagger: 0.5
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
+        count: 7
+        weight: 0
+      pattern: 0
+  - waveName: Wave 1
+    startTime: 45
+    groups:
+    - spawnZone:
+        center: {x: 0, y: 30}
+        size: {x: 30, y: 1}
+      stagger: 0.2
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
+        count: 10
+        weight: 0
       pattern: 0

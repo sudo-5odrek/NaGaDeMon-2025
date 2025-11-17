@@ -74,6 +74,40 @@ namespace Grid
 
             NotifyGridUpdated();
         }
+        
+        public void UnblockNodesUnderObject(GameObject obj)
+        {
+            if (nodes == null)
+                GenerateGrid();
+
+            Collider2D col = obj.GetComponent<Collider2D>();
+            if (col == null)
+            {
+                Debug.LogWarning($"[GridManager] No collider found on {obj.name} to unblock nodes.");
+                return;
+            }
+
+            Bounds bounds = col.bounds;
+
+            // Convert world bounds to grid coordinates, same logic as blocking
+            (int minX, int minY) = GridFromWorld(bounds.min);
+            (int maxX, int maxY) = GridFromWorld(bounds.max - Vector3.one * 0.001f);
+
+            minX = Mathf.Clamp(minX, 0, width - 1);
+            minY = Mathf.Clamp(minY, 0, height - 1);
+            maxX = Mathf.Clamp(maxX, 0, width - 1);
+            maxY = Mathf.Clamp(maxY, 0, height - 1);
+
+            for (int x = minX; x <= maxX; x++)
+            for (int y = minY; y <= maxY; y++)
+            {
+                Node node = GetNode(x, y);
+                if (node != null)
+                    node.walkable = true;     // ← opposite of BlockNodesUnderObject
+            }
+
+            NotifyGridUpdated();
+        }
     
         void GenerateGrid()
         {

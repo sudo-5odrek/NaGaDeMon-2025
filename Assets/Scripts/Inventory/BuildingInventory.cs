@@ -25,6 +25,8 @@ namespace Inventory
 
         private int currentInputs;
         private int currentOutputs;
+        
+        public BuildingData data;
 
         // --------------------------------------------------
         // LIFECYCLE
@@ -33,12 +35,49 @@ namespace Inventory
         private void Awake()
         {
             foreach (var port in ports)
+            {
+                port.parentBuilding = this;
                 port.Init();
+            }
         }
 
         // --------------------------------------------------
         // INVENTORY ACCESSORS
         // --------------------------------------------------
+        
+        public bool AllowsItem(ItemDefinition item)
+        {
+            // --- Building missing data ---
+            if (data == null)
+            {
+                Debug.LogWarning($"[{name}] No BuildingData assigned → accepting all items by default.");
+                return true;
+            }
+
+            // --- Accept-all toggle ---
+            if (data.acceptAllItems)
+            {
+                Debug.Log($"[{name}] Accepting {item?.displayName ?? "NULL"} because acceptAllItems = TRUE.");
+                return true;
+            }
+
+            // --- Null item (should never happen, but safe to check) ---
+            if (item == null)
+            {
+                Debug.LogWarning($"[{name}] Rejecting item: NULL (building requires whitelist items).");
+                return false;
+            }
+
+            // --- Check whitelist ---
+            bool allowed = data.itemWhitelist.Contains(item);
+
+            if (allowed)
+                Debug.Log($"[{name}] Accepting {item.displayName} — found in whitelist.");
+            else
+                Debug.Log($"[{name}] Rejecting {item.displayName} — NOT in whitelist.");
+
+            return allowed;
+        }
 
         /// <summary>
         /// Returns a specific port by name.

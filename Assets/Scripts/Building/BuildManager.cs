@@ -27,6 +27,18 @@ namespace Building
         private InputSystem_Actions input;
         private IBuildPlacementLogic activePlacementLogic;
 
+        // ------------------------------------------------------------
+        // DESTRUCTION SYSTEM
+        // ------------------------------------------------------------
+        [Header("Destroy Settings")]
+        public float destroyHoldTime = 1.0f;   // seconds to hold right-click
+        private float destroyTimer = 0f;
+
+        public LayerMask buildingLayer;        // assign your building layer here
+
+        // ------------------------------------------------------------
+        // INITIALIZATION
+        // ------------------------------------------------------------
         private void Awake()
         {
             Instance = this;
@@ -52,9 +64,9 @@ namespace Building
             input.Player.BuildMenu.performed -= OnMenuPerformed;
         }
 
-        // -------------------------------------------------------------------
-        // COST SYSTEM (Only thing BuildManager truly owns)
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
+        // COST SYSTEM
+        // ------------------------------------------------------------
         private bool CanAfford(BuildingData building)
         {
             if (!building) return false;
@@ -74,25 +86,35 @@ namespace Building
                 inv.RemoveItem(c.item, c.amount);
         }
 
-        // -------------------------------------------------------------------
-        // MAIN UPDATE LOOP
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
+        // UPDATE LOOP
+        // ------------------------------------------------------------
         private void Update()
         {
-            if (!isPlacing || activePlacementLogic == null)
-                return;
+            // --------------------------------------------------------
+            // PLACEMENT PREVIEW LOGIC
+            // --------------------------------------------------------
+            if (isPlacing && activePlacementLogic != null)
+            {
+                Vector3 snapped = SnapToGrid(GetMouseWorldPosition());
 
-            Vector3 snapped = SnapToGrid(GetMouseWorldPosition());
+                if (isDragging)
+                    activePlacementLogic.OnDragging(snapped);
+                else
+                    activePlacementLogic.UpdatePreview(snapped);
 
-            if (isDragging)
-                activePlacementLogic.OnDragging(snapped);
-            else
-                activePlacementLogic.UpdatePreview(snapped);
+                return; // Do NOT allow destruction while placing
+            }
+
+            // --------------------------------------------------------
+            // HOLD-TO-DESTROY LOGIC
+            // --------------------------------------------------------
+            HandleDestroyHold();
         }
 
-        // -------------------------------------------------------------------
-        // ROTATION (BuildManager only forwards the rotation)
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
+        // ROTATION
+        // ------------------------------------------------------------
         private void OnRotatePerformed(InputAction.CallbackContext ctx)
         {
             if (!isPlacing || activePlacementLogic == null)
@@ -106,9 +128,9 @@ namespace Building
             activePlacementLogic.ApplyRotation(currentRotation);
         }
 
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
         // START PLACEMENT
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
         public void StartPlacement(BuildingData building)
         {
             selectedBuilding = building;
@@ -130,9 +152,9 @@ namespace Building
             buildMenu.Hide();
         }
 
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
         // INPUT HANDLERS
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
         private void OnPlaceStarted(InputAction.CallbackContext ctx)
         {
             if (!isPlacing || selectedBuilding == null)
@@ -153,7 +175,6 @@ namespace Building
             if (!isPlacing || selectedBuilding == null)
                 return;
 
-            // End placement attempt
             Vector3 pos = SnapToGrid(GetMouseWorldPosition());
             float dist = Vector2.Distance(pos, player.position);
 
@@ -163,7 +184,6 @@ namespace Building
                 return;
             }
 
-            // VALID placement → check cost
             if (!CanAfford(selectedBuilding))
             {
                 Debug.Log("Cannot afford!");
@@ -171,13 +191,12 @@ namespace Building
                 return;
             }
 
-            // place
             activePlacementLogic.OnEndDrag(pos);
             SpendCost(selectedBuilding);
 
             isDragging = false;
 
-            // Immediately recreate preview so player can place again
+            // Recreate ghost preview for continuous placement
             activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
         }
 
@@ -197,6 +216,7 @@ namespace Building
             {
                 if (isPlacing)
                     activePlacementLogic.Cancel();
+
                 ExitBuildMode();
                 buildMenu.Hide();
                 InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
@@ -215,9 +235,55 @@ namespace Building
             activePlacementLogic = null;
         }
 
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
+        // HOLD-TO-DESTROY SYSTEM
+        // ------------------------------------------------------------
+        private void HandleDestroyHold()
+        {
+            // Only works in NORMAL mode
+            if (InputContextManager.Instance.CurrentMode != InputContextManager.InputMode.Build)
+            {
+                destroyTimer = 0f;
+                return;
+            }
+
+            // Detect right-click HOLD
+            bool rightHeld = input.Player.Cancel.ReadValue<float>() > 0.5f;
+
+            if (!rightHeld)
+            {
+                destroyTimer = 0f;
+                return;
+            }
+
+            // Check if pointing at a building
+            GameObject target = GetBuildingUnderCursor();
+            if (target == null)
+            {
+                destroyTimer = 0f;
+                return;
+            }
+
+            destroyTimer += Time.deltaTime;
+
+            if (destroyTimer >= destroyHoldTime)
+            {
+                GridManager.Instance.UnblockNodesUnderObject(target);
+                Destroy(target);
+                destroyTimer = 0f;
+            }
+        }
+
+        private GameObject GetBuildingUnderCursor()
+        {
+            Vector3 world = GetMouseWorldPosition();
+            Collider2D hit = Physics2D.OverlapPoint(world, buildingLayer);
+            return hit ? hit.gameObject : null;
+        }
+
+        // ------------------------------------------------------------
         // UTILS
-        // -------------------------------------------------------------------
+        // ------------------------------------------------------------
         private Vector3 GetMouseWorldPosition()
         {
             Vector2 mouse = input.Player.Point.ReadValue<Vector2>();

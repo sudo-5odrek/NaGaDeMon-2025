@@ -422,6 +422,7 @@ MonoBehaviour:
     transferRate: 1
   maxInputs: 1
   maxOutputs: 0
+  data: {fileID: 11400000, guid: 4b9958b72b24700429cd3182049a2a7e, type: 2}
 --- !u!114 &6444439087543775509
 MonoBehaviour:
   m_ObjectHideFlags: 0

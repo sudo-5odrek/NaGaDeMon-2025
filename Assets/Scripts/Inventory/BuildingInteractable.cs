@@ -62,16 +62,10 @@ namespace Building
                 return;
 
             float amount = Mathf.Min(1f, amountAvailable); // 1 unit per frame
-
-            // Auto-bind the port item type if empty
-            if (port.itemDefinition == null)
-            {
-                port.itemDefinition = item;
-                Debug.Log($"🏗️ Port '{port.portName}' set to item type {item.displayName}");
-            }
+            
 
             // If port only accepts a different type → skip
-            if (port.itemDefinition != item)
+            if (port.itemDefinition != null && port.itemDefinition != item)
                 return;
 
             // Check acceptance & execute transfer

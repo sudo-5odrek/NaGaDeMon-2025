@@ -42,6 +42,17 @@ namespace Connections
         private ConveyorPathController currentController;
 
         // --------------------------------------------------
+        // DESTRUCTION SYSTEM
+        // --------------------------------------------------
+        [Header("Destroy Settings")]
+        public float destroyHoldTime = 1.0f;
+
+        private float destroyTimer = 0f;
+        private bool rightHeld = false;
+        private ConveyorPathController hoveredController;
+
+
+        // --------------------------------------------------
         // INIT
         // --------------------------------------------------
         private void Awake()
@@ -80,6 +91,11 @@ namespace Connections
 
             if (isBuildingChain && startPoint.HasValue)
                 placementLogic.OnDragging(mouse);
+
+            // --------------------------------------------------
+            // HOLD-TO-DESTROY LOGIC
+            // --------------------------------------------------
+            HandleDestroyConveyor();
         }
 
         // --------------------------------------------------
@@ -93,7 +109,6 @@ namespace Connections
             {
                 InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Connect);
 
-                // NEW: The new interface does NOT require a createPreview flag
                 placementLogic.Setup(connectionPrefab, 0f);
 
                 if (placementLogic is ConveyorLinePlacementLogic lineLogic)
@@ -103,7 +118,8 @@ namespace Connections
             }
             else
             {
-                FinalizeAndExit();
+                FinalizeChain();      // finalize current chain
+                ExitConnectionMode(); // and leave mode
             }
         }
 
@@ -130,7 +146,7 @@ namespace Connections
 
             return null;
         }
-
+       
         // --------------------------------------------------
         // LEFT CLICK (start or extend)
         // --------------------------------------------------
@@ -200,30 +216,28 @@ namespace Connections
 
                 if (ValidateEndPoint(endPoint))
                 {
-                    // Create tiles and notify callback
                     lineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
 
                     placementLogic.OnEndDrag(endPoint);
 
-                    // Restart drag from last placed tile
                     startPoint = endPoint;
                     placementLogic.OnStartDrag(startPoint.Value);
 
                     if (endBuilding)
-                        FinalizeAndExit();
+                        FinalizeChain();
                 }
             }
         }
 
         // --------------------------------------------------
-        // RIGHT CLICK (finalize)
+        // RIGHT CLICK (finalize chain)
         // --------------------------------------------------
         private void OnRightClick(InputAction.CallbackContext ctx)
         {
             if (!isActive) return;
 
             Debug.Log("🛑 Conveyor chain finalized by player");
-            FinalizeAndExit();
+            FinalizeChain();
         }
 
         private bool ValidateEndPoint(Vector3 mouseWorld)
@@ -268,8 +282,9 @@ namespace Connections
         // --------------------------------------------------
         // FINALIZE
         // --------------------------------------------------
-        private void FinalizeAndExit()
+        private void FinalizeChain()
         {
+            // finalize ports if applicable
             if (currentController != null && startBuilding != null)
             {
                 if (currentController.pathTiles.Count > 0)
@@ -281,12 +296,24 @@ namespace Connections
                 }
             }
 
-            // If this logic supports explicit finalization:
+            // cleanup preview
             if (placementLogic is ConveyorLinePlacementLogic lineLogic)
-                lineLogic.Cancel(); // now using Cancel() as final cleanup
+                lineLogic.Cancel();
             else
                 placementLogic.ClearPreview();
 
+            // reset chain variables but DO NOT exit connection mode
+            isBuildingChain = false;
+            startPoint = null;
+            startBuilding = null;
+            endBuilding = null;
+            currentController = null;
+
+            Debug.Log("🔁 Chain finalized but staying in connection mode");
+        }
+        
+        private void ExitConnectionMode()
+        {
             InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
 
             isActive = false;
@@ -296,8 +323,78 @@ namespace Connections
             endBuilding = null;
             currentController = null;
 
+            destroyTimer = 0f;
+            hoveredController = null;
+
             Debug.Log("🔴 Conveyor Mode OFF");
         }
+
+
+        // --------------------------------------------------
+        // HOLD-TO-DESTROY CONVEYOR LINES
+        // --------------------------------------------------
+        private void HandleDestroyConveyor()
+        {
+            // never destroy while placing a chain
+            if (isBuildingChain)
+            {
+                destroyTimer = 0f;
+                hoveredController = null;
+                return;
+            }
+
+            // detect right-click hold
+            rightHeld = input.Player.Cancel.ReadValue<float>() > 0.5f;
+            if (!rightHeld)
+            {
+                destroyTimer = 0f;
+                hoveredController = null;
+                return;
+            }
+
+            // detect conveyor under cursor
+            ConveyorPathController controller = GetConveyorUnderCursor();
+            if (controller == null)
+            {
+                destroyTimer = 0f;
+                hoveredController = null;
+                return;
+            }
+
+            hoveredController = controller;
+
+            // count hold
+            destroyTimer += Time.deltaTime;
+
+            if (destroyTimer >= destroyHoldTime)
+            {
+                DestroyConveyorLine(hoveredController);
+                destroyTimer = 0f;
+                hoveredController = null;
+            }
+        }
+
+        private ConveyorPathController GetConveyorUnderCursor()
+        {
+            Vector3 mouseWorld = GetMouseWorldPosition();
+
+            Collider2D hit = Physics2D.OverlapCircle(mouseWorld, 0.15f, connectionMask);
+            if (!hit)
+                return null;
+
+            return hit.GetComponentInParent<ConveyorPathController>();
+        }
+
+        private void DestroyConveyorLine(ConveyorPathController controller)
+        {
+            if (controller == null)
+                return;
+
+            Destroy(controller.gameObject);
+
+            Debug.Log($"🔥 Destroyed conveyor line: {controller.name}");
+        }
+
 
         // --------------------------------------------------
         // UTILS

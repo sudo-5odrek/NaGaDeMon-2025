@@ -10,13 +10,7 @@ namespace Building
         public ItemDefinition item;
         public int amount;
     }
-
-    public enum PlacementMode
-    {
-        Single,  // Click to place (default)
-        Drag     // Click + drag to place multiple
-    }
-
+    
     [CreateAssetMenu(fileName = "NewBuilding", menuName = "TD/Building")]
     public class BuildingData : ScriptableObject
     {
@@ -28,10 +22,16 @@ namespace Building
         [Header("Economy")]
         public List<BuildingCost> cost = new List<BuildingCost>();
 
-        // 🔹 Optional: assign a ScriptableObject that implements IBuildPlacementLogic
+        [Header("Placement Logic")]
         public ScriptableObject placementLogic;
 
-        // Convenience accessor
+        // 🆕 NEW — Item acceptance rules
+        [Header("Item Rules")]
+        public bool acceptAllItems = true;
+
+        [Tooltip("If acceptAllItems is false, the building can only accept these item types.")]
+        public List<ItemDefinition> itemWhitelist = new List<ItemDefinition>();
+
         public IBuildPlacementLogic GetPlacementLogic()
         {
             return placementLogic as IBuildPlacementLogic;

@@ -13,6 +13,8 @@ namespace Inventory
         public enum PortType { Input, Output, Both }
         public float Amount => inventory.UsedCapacity;
         
+        [NonSerialized] public BuildingInventory parentBuilding;
+        
         [Header("Port Settings")]
         public string portName = "Port";
         public PortType portType = PortType.Both;
@@ -62,9 +64,19 @@ namespace Inventory
         // --------------------------------------------------
 
         public bool CanAccept(ItemDefinition item, float amount = 1f)
-            => (portType == PortType.Input || portType == PortType.Both)
-               && Accepts(item)
-               && inventory.HasFreeSpace();
+        {
+            if (item == null || amount <= 0f)
+                return false;
+
+            // 🆕 Building-level whitelist check
+            if (parentBuilding != null && !parentBuilding.AllowsItem(item))
+                return false;
+
+            // Port-level checks
+            return (portType == PortType.Input || portType == PortType.Both)
+                   && Accepts(item)
+                   && inventory.HasFreeSpace();
+        }
 
         public bool CanProvide(ItemDefinition item, float amount = 1f)
             => (portType == PortType.Output || portType == PortType.Both)

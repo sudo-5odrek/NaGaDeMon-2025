@@ -19,3 +19,6 @@ MonoBehaviour:
   - item: {fileID: 0}
     amount: 0
   placementLogic: {fileID: 11400000, guid: 6ab922de1f886444fac32734d3c07806, type: 2}
+  acceptAllItems: 1
+  itemWhitelist:
+  - {fileID: 11400000, guid: f461ab130dd544a45a6b9705ede25c79, type: 2}

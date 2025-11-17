@@ -1,3 +1,4 @@
+using Building.Turrets.Bullets;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,22 +8,24 @@ namespace Player
     {
         public enum AttackMode { Manual, Auto }
 
-        [Header("Attack Settings")]
+        [Header("Mode")]
         public AttackMode mode = AttackMode.Manual;
-        public float bulletSpeed = 5f;
 
-        [Header("Stats")]
+        [Header("Bullet Behavior")]
+        [Tooltip("BulletEffects defines speed, lifetime, prefab, and stackable effects.")]
+        public BulletEffects bulletEffects;
+
+        [Header("Targeting")]
         public float maxRange = 4f;
-        public float attackCooldown = 0.8f;
-        public int damagePerShot = 5;
         public LayerMask enemyMask;
         public LayerMask obstacleMask;
 
         [Header("References")]
-        public Transform firePoint; // where projectiles originate
-        public GameObject projectilePrefab;
-        [Tooltip("If left empty, will auto-assign the topmost parent (player root).")]
+        public Transform firePoint;
         public Transform playerRoot;
+
+        [Header("Shooting")]
+        public float attackCooldown = 0.8f;
 
         private InputSystem_Actions input;
         private Camera cam;
@@ -31,12 +34,15 @@ namespace Player
 
         private Vector3 PlayerPos => playerRoot ? playerRoot.position : transform.position;
 
+        // --------------------------------------------------------------------
+        // INITIALIZATION
+        // --------------------------------------------------------------------
+
         private void Awake()
         {
             cam = Camera.main;
             input = InputContextManager.Instance.input;
 
-            // Automatically assign root if not set manually
             if (!playerRoot)
                 playerRoot = transform.root;
         }
@@ -53,27 +59,34 @@ namespace Player
 
         private void Update()
         {
+            if (bulletEffects == null)
+                return;
+
             if (mode == AttackMode.Auto)
-            {
                 AutoAttack();
-            }
             else
-            {
                 RotateTowardMouse();
-            }
         }
 
-        // ------------------------------------------------------
-        // Manual Attack
-        // ------------------------------------------------------
+        // --------------------------------------------------------------------
+        // MANUAL ATTACK
+        // --------------------------------------------------------------------
 
         private void OnAttackInput(InputAction.CallbackContext ctx)
         {
             if (mode != AttackMode.Manual) return;
             if (Time.time - lastAttackTime < attackCooldown) return;
 
+            if (bulletEffects == null)
+            {
+                Debug.LogWarning("PlayerAttack: No BulletEffects assigned!");
+                return;
+            }
+
             Vector3 mouseWorld = GetMouseWorldPosition();
-            FireProjectile(mouseWorld - firePoint.position);
+            Vector3 direction = (mouseWorld - firePoint.position).normalized;
+
+            FireProjectile(direction);
         }
 
         private void RotateTowardMouse()
@@ -82,19 +95,18 @@ namespace Player
             Vector3 dir = (mouseWorld - PlayerPos).normalized;
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
-            // Rotate the *attack controller* child, not the player root
             transform.rotation = Quaternion.Euler(0, 0, angle - 90f);
         }
 
-        // ------------------------------------------------------
-        // Auto Attack
-        // ------------------------------------------------------
+        // --------------------------------------------------------------------
+        // AUTO ATTACK
+        // --------------------------------------------------------------------
 
         private void AutoAttack()
         {
             if (Time.time - lastAttackTime < attackCooldown) return;
 
-            // Find the closest enemy in range
+            // Find closest enemy
             Collider2D[] hits = Physics2D.OverlapCircleAll(PlayerPos, maxRange, enemyMask);
             if (hits.Length == 0)
             {
@@ -102,27 +114,26 @@ namespace Player
                 return;
             }
 
-            float minDist = Mathf.Infinity;
-            Collider2D closest = null;
+            float bestDist = float.PositiveInfinity;
+            Collider2D best = null;
 
             foreach (var h in hits)
             {
+                // LOS check
                 Vector2 dir = (h.transform.position - PlayerPos);
                 float dist = dir.magnitude;
 
-                // ✅ Line of sight check from player root
-                bool blocked = Physics2D.Raycast(PlayerPos, dir.normalized, dist, obstacleMask);
-                if (blocked)
+                if (Physics2D.Raycast(PlayerPos, dir.normalized, dist, obstacleMask))
                     continue;
 
-                if (dist < minDist)
+                if (dist < bestDist)
                 {
-                    minDist = dist;
-                    closest = h;
+                    bestDist = dist;
+                    best = h;
                 }
             }
 
-            currentTarget = closest;
+            currentTarget = best;
 
             if (currentTarget)
             {
@@ -137,36 +148,55 @@ namespace Player
                     shooterPos,
                     targetPos,
                     targetVel,
-                    bulletSpeed
+                    bulletEffects.speed
                 );
 
-                FireProjectile(predictedPos - (Vector2)firePoint.position);
+                Vector2 direction = (predictedPos - shooterPos).normalized;
+
+                FireProjectile(direction);
             }
         }
 
-        // ------------------------------------------------------
-        // Shared Utilities
-        // ------------------------------------------------------
+        // --------------------------------------------------------------------
+        // SHOOTING
+        // --------------------------------------------------------------------
 
         private void FireProjectile(Vector3 direction)
         {
             lastAttackTime = Time.time;
-            direction.Normalize();
 
-            GameObject bulletObj = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+            if (bulletEffects.bulletPrefab == null)
+            {
+                Debug.LogWarning("BulletEffects has no prefab assigned!");
+                return;
+            }
+
+            GameObject bulletObj = Instantiate(
+                bulletEffects.bulletPrefab,
+                firePoint.position,
+                Quaternion.identity
+            );
 
             if (bulletObj.TryGetComponent<Bullet>(out var bullet))
-                bullet.Init(direction, bulletSpeed, damagePerShot, maxRange);
+                bullet.Initialize(bulletEffects, direction);
         }
+
+        // --------------------------------------------------------------------
+        // UTILS
+        // --------------------------------------------------------------------
 
         private Vector3 GetMouseWorldPosition()
         {
             Vector2 screenPos = input.Player.Point.ReadValue<Vector2>();
+
             if (screenPos == Vector2.zero && Mouse.current != null)
                 screenPos = Mouse.current.position.ReadValue();
 
-            float distance = Mathf.Abs(cam.transform.position.z);
-            Vector3 world = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, distance));
+            float dist = Mathf.Abs(cam.transform.position.z);
+            Vector3 world = cam.ScreenToWorldPoint(
+                new Vector3(screenPos.x, screenPos.y, dist)
+            );
+
             world.z = 0f;
             return world;
         }

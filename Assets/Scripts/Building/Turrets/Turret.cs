@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Building;
+using Building.Turrets.Bullets;
 using Inventory;
 
 namespace Building.Turrets
@@ -13,15 +14,19 @@ namespace Building.Turrets
         public LayerMask enemyMask;
         public float rotationSpeed = 5f;
         public GameObject head;
+        public LayerMask obstacleMask;
 
         [Header("Firing")]
-        public GameObject bulletPrefab;
         public Transform firePoint;
-        public float fireRate = 1f;      // seconds between shots
-        public float bulletSpeed = 10f;
-        public int damagePerShot = 1;
-        public int maxRange;
-        public LayerMask obstacleMask;
+        public float fireRate = 1f;
+
+        [Header("Ammo → Bullet Effects Mapping")]
+        public BulletEffectDatabase bulletEffectDatabase;
+
+        [Header("Ammo Behavior")]
+        [Tooltip("If enabled, turret fires fallback bullets when no ammo is available.")]
+        public bool useFallbackIfNoAmmo = false;
+        public BulletEffects fallbackBulletEffects;
 
         [Header("Health")]
         public int maxHP = 100;
@@ -31,6 +36,8 @@ namespace Building.Turrets
         private Transform currentTarget;
         private BuildingInventory buildingInventory;
         private BuildingInventoryPort ammoPort;
+
+        private BulletEffects currentBulletEffects; // Loaded from ammo or fallback
 
         // --------------------------------------------------
         // INITIALIZATION
@@ -52,6 +59,13 @@ namespace Building.Turrets
 
         void Update()
         {
+            UpdateBulletEffectsFromAmmo();
+
+            // If no bullet behavior → cannot shoot
+            if (currentBulletEffects == null)
+                return;
+
+            // Acquire target
             if (currentTarget == null
                 || !TargetInRange(currentTarget)
                 || !HasLineOfSight(currentTarget))
@@ -59,10 +73,41 @@ namespace Building.Turrets
                 currentTarget = FindClosestEnemy();
             }
 
-            if (currentTarget)
+            if (currentTarget != null)
             {
                 RotateTowardTarget();
                 TryShoot();
+            }
+        }
+
+        // --------------------------------------------------
+        // LOAD BULLET DATA FROM AMMO / FALLBACK
+        // --------------------------------------------------
+
+        private void UpdateBulletEffectsFromAmmo()
+        {
+            if (ammoPort == null)
+            {
+                currentBulletEffects = null;
+                return;
+            }
+
+            // If we have ammo → use that ammo's bullet effects
+            if (!ammoPort.IsEmpty)
+            {
+                var material = ammoPort.GetCurrentItemDefinition();
+                currentBulletEffects = bulletEffectDatabase.GetEffects(material);
+                return;
+            }
+
+            // If we have NO ammo → check fallback mode
+            if (useFallbackIfNoAmmo)
+            {
+                currentBulletEffects = fallbackBulletEffects;
+            }
+            else
+            {
+                currentBulletEffects = null;
             }
         }
 
@@ -76,12 +121,20 @@ namespace Building.Turrets
 
             Vector2 dir = target.position - transform.position;
             float dist = dir.magnitude;
-            return !Physics2D.Raycast(transform.position, dir.normalized, dist, obstacleMask);
+
+            return !Physics2D.Raycast(
+                transform.position,
+                dir.normalized,
+                dist,
+                obstacleMask
+            );
         }
 
         Transform FindClosestEnemy()
         {
-            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, detectionRadius, enemyMask);
+            Collider2D[] hits =
+                Physics2D.OverlapCircleAll(transform.position, detectionRadius, enemyMask);
+
             float bestDist = float.PositiveInfinity;
             Transform bestTarget = null;
 
@@ -91,6 +144,7 @@ namespace Building.Turrets
                     continue;
 
                 float dist = Vector2.Distance(transform.position, h.transform.position);
+
                 if (dist < bestDist)
                 {
                     bestDist = dist;
@@ -112,8 +166,13 @@ namespace Building.Turrets
         {
             Vector2 dir = currentTarget.position - transform.position;
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
             Quaternion targetRot = Quaternion.Euler(0, 0, angle - 90);
-            head.transform.rotation = Quaternion.Lerp(head.transform.rotation, targetRot, Time.deltaTime * rotationSpeed);
+            head.transform.rotation = Quaternion.Lerp(
+                head.transform.rotation,
+                targetRot,
+                Time.deltaTime * rotationSpeed
+            );
         }
 
         void TryShoot()
@@ -121,41 +180,46 @@ namespace Building.Turrets
             fireTimer -= Time.deltaTime;
             if (fireTimer > 0f) return;
 
-            if (!HasAmmo())
+            // If we require ammo but have none → don't shoot
+            if (!useFallbackIfNoAmmo && !HasAmmo())
                 return;
 
-            // Consume ammo and fire
-            ConsumeAmmo();
+            // If we use fallback mode we only consume ammo when available
+            if (HasAmmo())
+                ConsumeAmmo();
+
             fireTimer = fireRate;
             Shoot();
         }
 
         void Shoot()
         {
-            if (!bulletPrefab || !firePoint || !currentTarget) return;
+            if (currentBulletEffects == null || currentBulletEffects.bulletPrefab == null)
+                return;
 
-            if (currentTarget.TryGetComponent<Rigidbody2D>(out var targetRb))
+            // Spawn bullet
+            GameObject bulletObj = Instantiate(
+                currentBulletEffects.bulletPrefab,
+                firePoint.position,
+                Quaternion.identity
+            );
+
+            if (bulletObj.TryGetComponent<Bullet>(out var bullet))
             {
                 Vector2 shooterPos = firePoint.position;
                 Vector2 targetPos = currentTarget.position;
-                Vector2 targetVel = targetRb.linearVelocity;
 
-                Vector2 predictedPos = TargetPrediction.PredictAimPosition(shooterPos, targetPos, targetVel, bulletSpeed);
-                Vector2 aimDir = (predictedPos - shooterPos).normalized;
-
-                GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-                if (bulletObj.TryGetComponent<Bullet>(out var bullet))
-                    bullet.Init(aimDir, bulletSpeed, damagePerShot, maxRange);
+                Vector2 dir = (targetPos - shooterPos).normalized;
+                bullet.Initialize(currentBulletEffects, dir);
             }
         }
 
         // --------------------------------------------------
-        // AMMO HANDLING (Simplified)
+        // AMMO HANDLING
         // --------------------------------------------------
 
         private bool HasAmmo()
         {
-            // Just check if the input port exists and isn't empty
             return ammoPort != null && !ammoPort.IsEmpty;
         }
 
@@ -164,23 +228,9 @@ namespace Building.Turrets
             if (ammoPort == null || ammoPort.IsEmpty)
                 return;
 
-            // Remove one unit of whatever the port currently holds
             var itemDef = ammoPort.GetCurrentItemDefinition();
             if (itemDef != null)
                 ammoPort.Remove(itemDef, 1f);
-        }
-
-        public float GetAmmoFraction()
-        {
-            if (ammoPort == null)
-                return 0f;
-
-            var inv = ammoPort.RuntimeInventory;
-            if (inv == null || !inv.HasCapacityLimit)
-                return 1f;
-
-            float used = inv.UsedCapacity;
-            return used / inv.TotalCapacity;
         }
 
         // --------------------------------------------------
@@ -190,7 +240,6 @@ namespace Building.Turrets
         public void TakeDamage(int amount)
         {
             currentHP -= amount;
-            Debug.Log($"{name} took {amount} damage. HP: {currentHP}");
             if (currentHP <= 0)
                 Destroy(gameObject);
         }
@@ -203,21 +252,6 @@ namespace Building.Turrets
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, detectionRadius);
-
-#if UNITY_EDITOR
-            if (Application.isPlaying && ammoPort != null)
-            {
-                float frac = GetAmmoFraction();
-                Vector3 pos = transform.position + Vector3.up * 1.3f;
-
-                Gizmos.color = Color.black;
-                Gizmos.DrawCube(pos, new Vector3(1f, 0.1f, 0f));
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawCube(pos - Vector3.right * (0.5f - frac / 2f), new Vector3(frac, 0.1f, 0f));
-
-                UnityEditor.Handles.Label(pos + Vector3.up * 0.3f, $"Ammo: {Mathf.RoundToInt(frac * 100)}%");
-            }
-#endif
         }
     }
 }
