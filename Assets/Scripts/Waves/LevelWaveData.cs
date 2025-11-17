@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-[CreateAssetMenu(fileName = "LevelWaveData", menuName = "Levels/Level Wave Data")]
+[CreateAssetMenu(fileName = "LevelWaveData", menuName = "Game/Levels/Level Wave Data")]
 public class LevelWaveData : ScriptableObject
 {
     public List<WaveData> waves = new List<WaveData>();

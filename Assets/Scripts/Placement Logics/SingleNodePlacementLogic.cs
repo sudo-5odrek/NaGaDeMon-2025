@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Placement_Logics
 {
-    [CreateAssetMenu(menuName = "Build/Placement Logic/Single Node Only")]
+    [CreateAssetMenu(menuName = "Game/Buildings/Placement/Single Node Only")]
     public class SingleNodePlacementLogic : ScriptableObject, IBuildPlacementLogic
     {
         private GameObject prefab;

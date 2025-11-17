@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Inventory
 {
-    [CreateAssetMenu(menuName = "Game/Item Definition", fileName = "NewItem")]
+    [CreateAssetMenu(menuName = "Game/Items/Item Definition", fileName = "NewItem")]
     public class ItemDefinition : ScriptableObject
     {
         [Header("Identification")]

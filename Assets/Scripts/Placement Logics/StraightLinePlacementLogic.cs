@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Grid;
 
-[CreateAssetMenu(menuName = "Build/Placement Logic/Straight Line")]
+[CreateAssetMenu(menuName = "Game/Buildings/Placement/Straight Line")]
 public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
 {
     private GameObject prefab;

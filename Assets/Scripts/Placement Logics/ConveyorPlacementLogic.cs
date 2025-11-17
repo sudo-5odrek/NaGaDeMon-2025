@@ -12,7 +12,7 @@ namespace Placement_Logics
     /// - Live dragging preview line
     /// - Clean finalization/reset
     /// </summary>
-    [CreateAssetMenu(menuName = "Build/Placement Logic/Conveyor Line")]
+    [CreateAssetMenu(menuName = "Game/Buildings/Placement/Conveyor Line")]
     public class ConveyorLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     {
         private GameObject tilePrefab;
