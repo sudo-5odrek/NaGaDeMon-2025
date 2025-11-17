@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Building.Turrets.Bullets.Effect_Library
 {
-    [CreateAssetMenu(menuName = "TD/Bullet Effects/Direct Damage")]
+    [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Direct Damage")]
     public class DirectDamageEffect : BulletEffect
     {
         [Header("Damage Settings")]

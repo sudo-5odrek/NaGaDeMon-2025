@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Building.Turrets.Bullets.Effect_Library
 {
-    [CreateAssetMenu(menuName = "TD/Bullet Effects/Splash Damage")]
+    [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Splash Damage")]
     public class SplashDamageEffect : BulletEffect
     {
         [Header("Splash Settings")]

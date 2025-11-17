@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Building.Turrets
 {
-    [CreateAssetMenu(menuName = "TD/Bullet Effect Database")]
+    [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Database")]
     public class BulletEffectDatabase : ScriptableObject
     {
         [System.Serializable]

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Placement_Logics
 {
-    [CreateAssetMenu(menuName = "Build/Placement Logic/Single")]
+    [CreateAssetMenu(menuName = "Game/Buildings/Placement/Single")]
     public class SinglePlacementLogic : ScriptableObject, IBuildPlacementLogic
     {
         private GameObject prefab;
