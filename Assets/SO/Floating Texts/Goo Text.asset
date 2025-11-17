@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 266b5aef26feab045a3467f411f6353b, type: 3}
-  m_Name: Mining Text
+  m_Name: Goo Text
   m_EditorClassIdentifier: 
   font: {fileID: 0}
   fontSize: 14
-  color: {r: 0.8867924, g: 0.7322659, b: 0.40574938, a: 1}
+  color: {r: 0.866634, g: 0.8962264, b: 0.8756984, a: 1}
   useOutline: 0
   outlineColor: {r: 1, g: 1, b: 1, a: 1}
   outlineWidth: 0.497
-  icon: {fileID: 21300000, guid: 687aea69239907842b8b8e0731167fe4, type: 3}
+  icon: {fileID: 21300000, guid: f86c17a2873560c4da4f0cf4576bc4e3, type: 3}
   iconSize: {x: 12, y: 12}
   duration: 0.5
   spawnOffset: {x: 0, y: 0.75, z: 0}
@@ -65,6 +65,59 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  useHorizontalMotion: 0
+  xMotionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.25
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.75
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  xAmplitude: 0.3
   fadeCurve:
     serializedVersion: 2
     m_Curve:

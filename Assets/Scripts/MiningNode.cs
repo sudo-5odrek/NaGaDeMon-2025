@@ -1,3 +1,4 @@
+using Floating_Text_Service;
 using Inventory;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ public class MiningNode : MonoBehaviour
     [Header("Node Settings")]
     [Tooltip("The item produced when this node is mined.")]
     public ItemDefinition resourceItem;
+    
+    public FloatingTextStyle textStyle;
 
     [Tooltip("How many items are produced per tick.")]
     public int resourcePerTick = 1;
@@ -35,10 +38,11 @@ public class MiningNode : MonoBehaviour
     /// <summary>
     /// Attempts to mine from the node. Returns true if successful and provides the mined ItemDefinition and amount.
     /// </summary>
-    public bool TryMine(out ItemDefinition item, out int amount)
+    public bool TryMine(out ItemDefinition item, out int amount, out FloatingTextStyle miningTextStyle)
     {
         item = null;
         amount = 0;
+        miningTextStyle = null;
 
         // Node cannot produce if it has no item or is depleted (unless infinite)
         if (resourceItem == null || (isDepleted && !isInfinite))
@@ -47,6 +51,7 @@ public class MiningNode : MonoBehaviour
         // Provide mined resources
         item = resourceItem;
         amount = resourcePerTick;
+        miningTextStyle = textStyle;
 
         // Only reduce stock if not infinite
         if (!isInfinite)

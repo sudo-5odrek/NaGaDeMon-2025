@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a6fb837b36d94649894d75d706918a2, type: 3}
   m_Name: Goo
   m_EditorClassIdentifier: 
-  itemID: 
-  displayName: 
-  icon: {fileID: 0}
+  itemID: goo
+  displayName: Goo
+  icon: {fileID: 21300000, guid: f86c17a2873560c4da4f0cf4576bc4e3, type: 3}
   weight: 1
   maxStack: 99
-  worldPrefab: {fileID: 0}
-  beltPrefab: {fileID: 0}
+  worldPrefab: {fileID: 7984328265220925694, guid: 3fff1e8e5fb6b30489cabe7206c06811, type: 3}
+  beltPrefab: {fileID: 4646765305421113099, guid: b2f37b4f96a06984eb18bb748fc43340, type: 3}
   uiPrefab: {fileID: 0}
   itemType: 0

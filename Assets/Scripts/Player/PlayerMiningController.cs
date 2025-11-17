@@ -62,7 +62,7 @@ namespace Player
         {
             while (isMining && currentNode != null)
             {
-                if (currentNode.TryMine(out ItemDefinition item, out int amount))
+                if (currentNode.TryMine(out ItemDefinition item, out int amount, out FloatingTextStyle miningTextStyle))
                 {
                     if (inventory != null)
                     {

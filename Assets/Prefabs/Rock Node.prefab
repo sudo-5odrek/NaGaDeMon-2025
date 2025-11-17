@@ -46,7 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91f1bbd2c78c1734f91843b41c6f4df2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resourceItem: {fileID: 11400000, guid: 4f3dff7b4a6d3a348ab1a1c293091c64, type: 2}
+  resourceItem: {fileID: 11400000, guid: f461ab130dd544a45a6b9705ede25c79, type: 2}
+  textStyle: {fileID: 11400000, guid: 80f24e94e838d7242916c1c8b4245f5f, type: 2}
   resourcePerTick: 1
   miningInterval: 2
   activationDelay: 1

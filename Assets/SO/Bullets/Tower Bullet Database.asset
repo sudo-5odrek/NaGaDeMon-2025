@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 856c5804f9a94bf4e8b0953305d123b8, type: 3}
   m_Name: Tower Bullet Database
   m_EditorClassIdentifier: 
-  mappings: []
+  mappings:
+  - material: {fileID: 11400000, guid: f461ab130dd544a45a6b9705ede25c79, type: 2}
+    effects: {fileID: 11400000, guid: a809735f1cd2dda48b1eebd19f4b0fd0, type: 2}
+  - material: {fileID: 11400000, guid: 4f3dff7b4a6d3a348ab1a1c293091c64, type: 2}
+    effects: {fileID: 11400000, guid: 771b39eab4c131142a76836cc2aaaee5, type: 2}

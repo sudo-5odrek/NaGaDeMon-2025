@@ -222,6 +222,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resourceItem: {fileID: 11400000, guid: 4f3dff7b4a6d3a348ab1a1c293091c64, type: 2}
+  textStyle: {fileID: 11400000, guid: 90d628892c33dc64fafddd9620dd516a, type: 2}
   resourcePerTick: 1
   miningInterval: 2
   activationDelay: 1

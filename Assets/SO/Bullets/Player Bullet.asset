@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 15
   lifetime: 5
+  fireInterval: 0.5
   bulletPrefab: {fileID: 8013913237730269421, guid: f7b8a0c16190a6048b96ff5d175d3b8a, type: 3}
   effects:
-  - {fileID: 11400000, guid: 4a5a331adda4ce64dbfdc05f211cacb4, type: 2}
   - {fileID: 11400000, guid: 24c6791ead9c4e24eb25b6ec828bf9b3, type: 2}

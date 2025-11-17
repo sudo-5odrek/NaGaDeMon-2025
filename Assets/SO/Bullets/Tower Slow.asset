@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ac6610e588ac8347ad3cb788409e5b8, type: 3}
   m_Name: Tower Slow
   m_EditorClassIdentifier: 
-  damage: 10
-  slowZonePrefab: {fileID: 0}
+  damage: 2
+  slowZonePrefab: {fileID: 30425147420081084, guid: 9ba435c68c354f348ac6a848bb3fe9a1, type: 3}
   zoneLifetime: 3
-  zoneRadius: 2
+  zoneRadius: 3

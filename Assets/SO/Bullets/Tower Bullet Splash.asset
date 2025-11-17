@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Tower Bullet Splash
   m_EditorClassIdentifier: 
   speed: 10
-  lifetime: 3
-  fireInterval: 0.5
-  bulletPrefab: {fileID: 0}
-  effects: []
+  lifetime: 5
+  fireInterval: 1.5
+  bulletPrefab: {fileID: 8013913237730269421, guid: f7b8a0c16190a6048b96ff5d175d3b8a, type: 3}
+  effects:
+  - {fileID: 11400000, guid: e9b1a5f052669824da1858485c0e67c1, type: 2}

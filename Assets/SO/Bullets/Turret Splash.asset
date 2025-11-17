@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99ed68e2c2de1d84182d9dfa89607409, type: 3}
   m_Name: Turret Splash
   m_EditorClassIdentifier: 
-  radius: 2
-  directHitDamage: 10
-  useBonusDamageForDirectTarget: 1
+  radius: 3
+  directHitDamage: 0
+  useBonusDamageForDirectTarget: 0
   directBonusDamage: 0
-  splashDamage: 5
-  includeDirectTargetInSplash: 0
-  splashVfxPrefab: {fileID: 0}
+  splashDamage: 2
+  includeDirectTargetInSplash: 1
+  splashVfxPrefab: {fileID: 3786671756990806787, guid: b15adb4f38424eb49a0480256b5c3088, type: 3}
   enemyMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
