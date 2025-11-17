@@ -18,7 +18,6 @@ namespace Building.Turrets
 
         [Header("Firing")]
         public Transform firePoint;
-        public float fireRate = 1f;
 
         [Header("Ammo → Bullet Effects Mapping")]
         public BulletEffectDatabase bulletEffectDatabase;
@@ -188,7 +187,7 @@ namespace Building.Turrets
             if (HasAmmo())
                 ConsumeAmmo();
 
-            fireTimer = fireRate;
+            fireTimer = currentBulletEffects.fireInterval;
             Shoot();
         }
 

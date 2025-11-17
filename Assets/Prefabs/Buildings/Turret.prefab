@@ -391,15 +391,13 @@ MonoBehaviour:
     m_Bits: 64
   rotationSpeed: 10
   head: {fileID: 4939644165878682266}
-  bulletPrefab: {fileID: 8013913237730269421, guid: f7b8a0c16190a6048b96ff5d175d3b8a, type: 3}
-  firePoint: {fileID: 3633258418335881750}
-  fireRate: 0.5
-  bulletSpeed: 20
-  damagePerShot: 5
-  maxRange: 10
   obstacleMask:
     serializedVersion: 2
     m_Bits: 8
+  firePoint: {fileID: 3633258418335881750}
+  bulletEffectDatabase: {fileID: 11400000, guid: 57ca9306b7839ee47973eb53786e3d3e, type: 2}
+  useFallbackIfNoAmmo: 1
+  fallbackBulletEffects: {fileID: 11400000, guid: 844317989d478e446a9affa09433d028, type: 2}
   maxHP: 100
   currentHP: 100
 --- !u!114 &-5841354928336557763

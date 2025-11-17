@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ac6610e588ac8347ad3cb788409e5b8, type: 3}
+  m_Name: Player Slow Shot
+  m_EditorClassIdentifier: 
+  damage: 0
+  slowZonePrefab: {fileID: 30425147420081084, guid: 9ba435c68c354f348ac6a848bb3fe9a1, type: 3}
+  zoneLifetime: 3
+  zoneRadius: 3

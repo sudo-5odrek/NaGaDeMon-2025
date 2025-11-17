@@ -9,6 +9,8 @@ namespace Building.Turrets.Bullets
         [Header("Bullet Settings")]
         public float speed = 10f;
         public float lifetime = 3f;
+        public float fireInterval = 0.5f; 
+        
 
         [Header("Prefab")]
         public GameObject bulletPrefab;

@@ -174,7 +174,7 @@ MonoBehaviour:
   turnDistance: 0.5
   turnSmoothness: 4
   drawPath: 1
-  pathColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  pathColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0.07058824}
   resetRequested: 0
   myAttackPattern: {fileID: 1457918011556990477}
   path: []
