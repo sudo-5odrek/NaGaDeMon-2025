@@ -26,6 +26,9 @@ namespace Inventory
         public float transferRate = 1f;
 
         [NonSerialized] private global::Inventory.Inventory inventory;
+        
+        public event Action<ItemDefinition, float> OnItemAdded;
+        public event Action<ItemDefinition, float> OnItemRemoved;
 
         // --------------------------------------------------
         // INITIALIZATION
@@ -33,7 +36,10 @@ namespace Inventory
         public void Init()
         {
             if (inventory == null)
-                inventory = new global::Inventory.Inventory(capacity);
+                inventory = new Inventory(capacity);
+
+            // Assign owner name + instance ID
+            inventory.OwnerID = $"{parentBuilding.name}.{portName}#{parentBuilding.GetInstanceID()}";
         }
 
         public global::Inventory.Inventory RuntimeInventory
@@ -87,14 +93,18 @@ namespace Inventory
         {
             if (item == null || amount <= 0f) return 0f;
 
-            // Auto-assign the item type if this port is new
-            if (itemDefinition == null)
-                itemDefinition = item;
-
             if (!Accepts(item))
                 return 0f;
 
-            return inventory.Add(item.itemID, amount);
+            if (itemDefinition == null)
+                itemDefinition = item;
+
+            float added = inventory.Add(item.itemID, amount);
+
+            if (added > 0f)
+                OnItemAdded?.Invoke(item, added);
+
+            return added;
         }
 
         public float Remove(ItemDefinition item, float amount)
@@ -107,6 +117,8 @@ namespace Inventory
             // Optionally: clear type when empty again
             if (inventory.IsEmpty())
                 itemDefinition = null;
+            
+            OnItemRemoved?.Invoke(item, amount);
 
             return removed;
         }
@@ -144,10 +156,7 @@ namespace Inventory
             if (inventory == null || item == null)
                 return 0f;
 
-            if (!Accepts(item))
-                return 0f;
-
-            return inventory.GetTotalAmount();
+            return inventory.Get(item.itemID);
         }
 
         /// <summary>

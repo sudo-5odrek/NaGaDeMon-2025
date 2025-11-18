@@ -16,7 +16,6 @@ namespace Building.Conveyer
         public BuildingInventory startInventory;
         public BuildingInventory endInventory;
         public string startPortName;
-        public string endPortName;
 
         [Header("Runtime Settings")]
         public bool isBlocked;
@@ -25,21 +24,18 @@ namespace Building.Conveyer
         private float spawnTimer;
 
         private BuildingInventoryPort startPort;
-        private BuildingInventoryPort endPort;
 
         // --------------------------------------------------
         // INITIALIZATION
         // --------------------------------------------------
 
-        public void Initialize(BuildingInventory start, BuildingInventoryPort newStartPort, BuildingInventory end, BuildingInventoryPort newEndPort)
+        public void Initialize(BuildingInventory start, BuildingInventoryPort newStartPort, BuildingInventory end)
         {
             startInventory = start;
             endInventory = end;
 
             startPort = newStartPort;
             startPortName = startPort?.portName;
-            endPort = newEndPort;
-            endPortName = endPort?.portName;
 
             startInventory?.RegisterConnection(isInput: false);
             endInventory?.RegisterConnection(isInput: true);
@@ -149,11 +145,11 @@ namespace Building.Conveyer
         {
             if (item == null) return false;
 
-            if (endPort != null && endPort.CanAccept(item.itemDef, 1f))
+            bool delivered = endInventory.TryInsertItem(item.itemDef, 1f);
+
+            if (delivered)
             {
-                endPort.Add(item.itemDef, 1f);
-                if (item.visual != null)
-                    Destroy(item.visual);
+                Destroy(item.visual);
                 activeItems.RemoveAt(index);
                 isBlocked = false;
                 return true;
@@ -188,9 +184,6 @@ namespace Building.Conveyer
 
             if (!string.IsNullOrEmpty(startPortName))
                 UnityEditor.Handles.Label(pathTiles[0].transform.position + Vector3.up * 0.3f, $"OUT: {startPortName}");
-
-            if (!string.IsNullOrEmpty(endPortName))
-                UnityEditor.Handles.Label(pathTiles[^1].transform.position + Vector3.up * 0.3f, $"IN: {endPortName}");
         }
 #endif
 

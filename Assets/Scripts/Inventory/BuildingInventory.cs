@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Building;
+using Building.Upgrade;
 using UnityEngine;
 
 namespace Inventory
@@ -39,6 +40,80 @@ namespace Inventory
                 port.parentBuilding = this;
                 port.Init();
             }
+        }
+        
+        public bool TryInsertItem(ItemDefinition item, float amount)
+        {
+            if (item == null || amount <= 0f)
+                return false;
+
+            // ------------------------------------------
+            // 1. Build-level whitelist check
+            // ------------------------------------------
+            if (!AllowsItem(item))
+                return false;
+
+            // ------------------------------------------
+            // 2. Determine target port
+            // ------------------------------------------
+            BuildingInventoryPort targetPort = null;
+
+            // Upgrade routing
+            var upgrade = GetComponent<BuildingUpgradeBehaviour>();
+            if (upgrade != null)
+            {
+                var upgradePort = GetPort("Upgrade");
+
+                if (upgradePort != null && upgrade.IsUpgradeMaterial(item))
+                {
+                    targetPort = upgradePort;
+                    
+                }
+            }
+
+            // Normal routing (if targetPort not set)
+            if (targetPort == null)
+            {
+                foreach (var port in ports)
+                {
+                    if (port.portType == BuildingInventoryPort.PortType.Input ||
+                        port.portType == BuildingInventoryPort.PortType.Both)
+                    {
+                        targetPort = port;
+                        break;
+                    }
+                }
+            }
+
+            // If no valid ports found at all
+            if (targetPort == null)
+                return false;
+
+            // ------------------------------------------
+            // 3. PORT-LEVEL CHECKS (mirrors CanAccept)
+            // ------------------------------------------
+
+            // 3.1 Port must accept inputs
+            if (!(targetPort.portType == BuildingInventoryPort.PortType.Input ||
+                  targetPort.portType == BuildingInventoryPort.PortType.Both))
+                return false;
+
+            // 3.2 Port must accept item type
+            bool typeCompatible =
+                targetPort.itemDefinition == null || targetPort.itemDefinition == item;
+
+            if (!typeCompatible)
+                return false;
+
+            // 3.3 Must have free capacity
+            if (targetPort.IsFull)
+                return false;
+
+            // ------------------------------------------
+            // 4. All checks passed → perform actual add
+            // ------------------------------------------
+            float added = targetPort.Add(item, amount);
+            return added > 0f;
         }
 
         // --------------------------------------------------

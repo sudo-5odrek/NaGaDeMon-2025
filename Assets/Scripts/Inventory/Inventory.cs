@@ -13,6 +13,8 @@ namespace Inventory
     {
         // --- EVENTS ---
         public event Action OnInventoryChanged;
+        
+        public string OwnerID = "UnknownOwner";
 
         // --- DATA ---
         [SerializeField] private float totalCapacity = -1f; // -1 = infinite
@@ -43,16 +45,20 @@ namespace Inventory
         public float Add(string resourceId, float amount)
         {
             if (amount <= 0f) return 0f;
-        
+
             float space = HasCapacityLimit ? Mathf.Min(FreeCapacity, amount) : amount;
             if (space <= 0f) return 0f;
-        
 
             if (!items.ContainsKey(resourceId))
                 items[resourceId] = 0f;
 
             items[resourceId] += space;
-        
+
+            // 🔍 DEBUG LOG
+            Debug.Log($"[INVENTORY ADD] ({OwnerID}) Added {space} of '{resourceId}'");
+            foreach (var kvp in items)
+                Debug.Log($"    ({OwnerID}) - {kvp.Key} = {kvp.Value}");
+
             OnInventoryChanged?.Invoke();
             return space;
         }
@@ -81,7 +87,14 @@ namespace Inventory
         /// </summary>
         public float Get(string resourceId)
         {
-            return items.TryGetValue(resourceId, out var value) ? value : 0f;
+            float value = items.TryGetValue(resourceId, out var v) ? v : 0f;
+
+            Debug.Log($"[INVENTORY GET] ({OwnerID}) Request: '{resourceId}' → Returned: {value}");
+
+            foreach (var kvp in items)
+                Debug.Log($"    ({OwnerID}) - Stored {kvp.Key} = {kvp.Value}");
+
+            return value;
         }
 
         /// <summary>

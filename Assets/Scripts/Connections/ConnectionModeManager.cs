@@ -290,9 +290,8 @@ namespace Connections
                 if (currentController.pathTiles.Count > 0)
                 {
                     var startPort = startBuilding?.GetOutput() as BuildingInventoryPort;
-                    var endPort = endBuilding?.GetInput() as BuildingInventoryPort;
 
-                    currentController.Initialize(startBuilding, startPort, endBuilding, endPort);
+                    currentController.Initialize(startBuilding, startPort, endBuilding);
                 }
             }
 

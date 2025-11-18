@@ -204,7 +204,14 @@ namespace Player
                 return;
             }
 
-            // Continuous interaction
+            // 🛑 STOP DUMPING WHEN PLAYER RUNS OUT OF THIS ITEM
+            if (playerInventory.GetAmount(selectedDumpItem) <= 0f)
+            {
+                isDumping = false;
+                return;
+            }
+
+            // Continuous interaction (1 item per frame)
             currentTarget.OnInteractHoldLeft(playerInventory, selectedDumpItem);
         }
 

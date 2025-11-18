@@ -19,22 +19,36 @@ namespace Building
         public void OnHoverExit()  => Debug.Log($"⚫ Stopped hovering {name}");
 
         // ------------------------------------------------------------
-        // LEFT CLICK — DUMP SELECTED ITEM TYPE
+        // LEFT CLICK — DUMP SELECTED ITEM USING SMART TRIAGE
         // ------------------------------------------------------------
         public void OnInteractHoldLeft(PlayerInventory playerInventory, ItemDefinition selectedItem)
         {
             if (playerInventory == null || selectedItem == null)
                 return;
 
-            var inputPort = buildingInventory.GetInput() as BuildingInventoryPort;
-            if (inputPort == null)
+            float amountAvailable = playerInventory.GetAmount(selectedItem);
+            if (amountAvailable <= 0f)
                 return;
 
-            TransferPlayerToBuilding(playerInventory, inputPort, selectedItem);
+            const float amount = 1f;
+
+            // Try to insert into the building using smart routing
+            bool accepted = buildingInventory.TryInsertItem(selectedItem, amount);
+
+            if (!accepted)
+            {
+                Debug.Log($"❌ {name} rejected {selectedItem.displayName}");
+                return;
+            }
+
+            // Remove from player AFTER successful insertion
+            playerInventory.RemoveItem(selectedItem, amount);
+
+            Debug.Log($"🔄 Transferred {amount}x {selectedItem.displayName} → {name}");
         }
 
         // ------------------------------------------------------------
-        // RIGHT CLICK — TAKE ITEMS FROM BUILDING
+        // RIGHT CLICK — TAKE ITEMS FROM BUILDING (same logic as before)
         // ------------------------------------------------------------
         public void OnInteractHoldRight(PlayerInventory playerInventory)
         {
@@ -46,37 +60,6 @@ namespace Building
                 return;
 
             TransferBuildingToPlayer(outputPort, playerInventory);
-        }
-
-        // ------------------------------------------------------------
-        // TRANSFER LOGIC: PLAYER → BUILDING
-        // ------------------------------------------------------------
-        private void TransferPlayerToBuilding(PlayerInventory player, BuildingInventoryPort port, ItemDefinition item)
-        {
-            if (player == null || port == null || item == null)
-                return;
-
-            // Check if player has this item at all.
-            float amountAvailable = player.GetAmount(item);
-            if (amountAvailable <= 0f)
-                return;
-
-            float amount = Mathf.Min(1f, amountAvailable); // 1 unit per frame
-            
-
-            // If port only accepts a different type → skip
-            if (port.itemDefinition != null && port.itemDefinition != item)
-                return;
-
-            // Check acceptance & execute transfer
-            if (!port.CanAccept(item, amount))
-                return;
-
-            player.RemoveItem(item, amount);
-            float removed = amount;
-            float added = port.Add(item, removed);
-
-            Debug.Log($"🔄 Transferred {added}x {item.displayName} → {port.portName}");
         }
 
         // ------------------------------------------------------------
@@ -104,7 +87,6 @@ namespace Building
 
             Debug.Log($"🔄 Transferred {removed}x {item.displayName} → Player");
 
-            // 🆕 Reset item type if port is now empty
             if (port.Amount <= 0f)
             {
                 Debug.Log($"🧹 Port '{port.portName}' is now empty → clearing item type");
