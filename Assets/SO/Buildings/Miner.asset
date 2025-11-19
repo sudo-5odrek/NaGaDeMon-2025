@@ -22,3 +22,4 @@ MonoBehaviour:
   acceptAllItems: 1
   itemWhitelist:
   - {fileID: 11400000, guid: f461ab130dd544a45a6b9705ede25c79, type: 2}
+  - {fileID: 11400000, guid: 4f3dff7b4a6d3a348ab1a1c293091c64, type: 2}

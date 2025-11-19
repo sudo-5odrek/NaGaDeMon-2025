@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 75695438e5e50db4aacbde5eac21f231, type: 3}
-  m_Name: Bars Recipe
+  m_Name: Ucell Recipe
   m_EditorClassIdentifier: 
   recipeName: Bars
   craftTime: 3
@@ -18,5 +18,5 @@ MonoBehaviour:
   - itemDefinition: {fileID: 11400000, guid: 69672051b415a8d42b88f09d9b527808, type: 2}
     amount: 1
   outputs:
-  - itemDefinition: {fileID: 11400000, guid: 6f34383a4287c8647985c17c69a60943, type: 2}
-    amount: 2
+  - itemDefinition: {fileID: 11400000, guid: 175cb09b847aafe468f98875c7fbea0e, type: 2}
+    amount: 1
