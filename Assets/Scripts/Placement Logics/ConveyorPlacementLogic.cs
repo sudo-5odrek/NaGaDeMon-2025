@@ -218,7 +218,7 @@ namespace Placement_Logics
         
         public int GetPreviewCount()
         {
-            return previewLine.Count-1;
+            return Mathf.Max(previewLine.Count -1, 0);
         }
         
         

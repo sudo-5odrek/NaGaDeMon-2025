@@ -84,6 +84,7 @@ namespace Placement_Logics
         {
             TryPlace(worldEnd);
             ClearPreview();
+            CreatePreview();
         }
 
         // ----------------------------------------------------------------------

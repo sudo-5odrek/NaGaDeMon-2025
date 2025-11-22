@@ -74,6 +74,7 @@ namespace Placement_Logics
 
             Place(snap);
             ClearPreview();
+            CreatePreview();
         }
 
         public void Cancel() => ClearPreview();

@@ -245,7 +245,7 @@ namespace Building
             isDragging = false;
 
             // Recreate ghost preview for continuous placement
-            activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
+            //activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
         }
 
         private void OnCancelPerformed(InputAction.CallbackContext ctx)

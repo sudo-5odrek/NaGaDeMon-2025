@@ -380,7 +380,7 @@ namespace Connections
                 }
             }
 
-            placementLogic.OnEndDrag(this.startPoint.Value);
+            placementLogic.OnEndDrag(Vector3.zero);
 
             // reset
             isBuildingChain = false;
