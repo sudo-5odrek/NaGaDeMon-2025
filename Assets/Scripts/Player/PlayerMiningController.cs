@@ -67,7 +67,6 @@ namespace Player
                     if (inventory != null)
                     {
                         inventory.AddItem(item, amount);
-                        Debug.Log($"⛏️ Mined {amount}x {item.displayName}");
 
                         // ✅ SPAWN FLOATING TEXT
                         if (FloatingTextService.Instance != null && miningTextStyle != null)

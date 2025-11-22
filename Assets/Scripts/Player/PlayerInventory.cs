@@ -62,10 +62,11 @@ namespace Player
         public void AddItem(ItemDefinition item, float amount)
         {
             if (item == null || amount <= 0f) return;
-
-            Inventory.Add(item.itemID, amount);
+            
             if (!itemRefs.ContainsKey(item.itemID))
                 itemRefs[item.itemID] = item;
+            
+            Inventory.Add(item.itemID, amount);
         }
 
         /// <summary>

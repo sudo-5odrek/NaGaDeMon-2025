@@ -54,11 +54,6 @@ namespace Inventory
 
             items[resourceId] += space;
 
-            // 🔍 DEBUG LOG
-            Debug.Log($"[INVENTORY ADD] ({OwnerID}) Added {space} of '{resourceId}'");
-            foreach (var kvp in items)
-                Debug.Log($"    ({OwnerID}) - {kvp.Key} = {kvp.Value}");
-
             OnInventoryChanged?.Invoke();
             return space;
         }
