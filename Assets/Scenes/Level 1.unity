@@ -766,11 +766,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4738623584831853265, guid: 350deeeb7c6f8414692273670c9c3fa8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4738623584831853265, guid: 350deeeb7c6f8414692273670c9c3fa8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.64
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5166935325269493413, guid: 350deeeb7c6f8414692273670c9c3fa8, type: 3}
       propertyPath: m_Name
@@ -829,6 +829,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5107231841382566568, guid: 350deeeb7c6f8414692273670c9c3fa8, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5166935325269493413, guid: 350deeeb7c6f8414692273670c9c3fa8, type: 3}
       propertyPath: m_Name
       value: Goo Node (4)
