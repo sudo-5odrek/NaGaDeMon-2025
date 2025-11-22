@@ -1,4 +1,6 @@
+using Building;
 using Grid;
+using Interface;
 using UnityEngine;
 
 namespace Placement_Logics
@@ -80,9 +82,10 @@ namespace Placement_Logics
         {
             if (preview)
                 Object.Destroy(preview);
-
+            
             preview = null;
             previewCollider = null;
+            UIPlacementCostIndicator.Instance.Hide();
         }
 
         // ----------------------------------------------------------------------
@@ -144,5 +147,32 @@ namespace Placement_Logics
             var (gx, gy) = GridManager.Instance.GridFromWorld(world);
             return GridManager.Instance.WorldFromGrid(gx, gy);
         }
+        
+        public int GetPreviewCount()
+        {
+            return 1;
+        }
+        
+        public Vector3 GetPreviewPlacement()
+        {
+            return preview ? preview.transform.position : Vector3.zero;
+        }
+
+        public void UpdateCostPreview(BuildingData data)
+        {
+            UIPlacementCostIndicator.Instance.ShowCost(
+                data,
+                GetPreviewCount(),
+                GetPreviewPlacement()
+            );
+        }
+        
+        public void SetGhostColor(Color color)
+        {
+            // Hover tile (when not dragging)
+            if (preview != null)
+                BuildUtils.SetPreviewTint(preview, color);
+        }
+
     }
 }

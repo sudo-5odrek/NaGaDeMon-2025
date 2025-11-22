@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Inventory;
 using Player;
 using UnityEngine;
 
-namespace UI.Inventory
+namespace Inventory
 {
     public class InventoryUIBootstrapper : MonoBehaviour
     {

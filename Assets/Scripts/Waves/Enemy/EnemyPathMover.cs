@@ -11,7 +11,7 @@ namespace Enemy
     {
         [Header("Target & Movement")]
         public Transform target;
-        public float speed = 2f; // ← we keep this exactly as-is
+        public float speed = 2f;
 
         public float repathInterval = 1.5f;
         [Range(0.1f, 2f)] public float turnDistance = 0.5f;
@@ -35,27 +35,18 @@ namespace Enemy
         private bool movementStopped = false;
 
         // ============================================================
-        // NEW — speed modifier
+        // Speed modifier
         // ============================================================
         private float speedModifier = 1f;
+        public float FinalSpeed => speed * speedModifier;
 
-        public float FinalSpeed => speed * speedModifier; // NEW
-
-        public void ApplySpeedModifier(float mul) // NEW
-        {
-            speedModifier *= mul;
-        }
-
-        public void RemoveSpeedModifier(float mul) // NEW
-        {
-            speedModifier /= mul;
-        }
-
-        public void ClearSpeedModifiers() // optional NEW
-        {
-            speedModifier = 1f;
-        }
+        public void ApplySpeedModifier(float mul) => speedModifier *= mul;
+        public void RemoveSpeedModifier(float mul) => speedModifier /= mul;
+        public void ClearSpeedModifiers() => speedModifier = 1f;
         // ============================================================
+
+        // Cached world positions (HUGE improvement)
+        private List<Vector2> cachedWorldPath = new List<Vector2>();
 
 
         public void StopMovement()
@@ -106,6 +97,7 @@ namespace Enemy
             if (timer >= repathInterval)
             {
                 timer = 0;
+                // NOTE: If you want periodic repaths, call RecalculatePath() here
             }
 
             FollowPath();
@@ -116,10 +108,7 @@ namespace Enemy
             transform.position = startPos;
             rb.linearVelocity = Vector2.zero;
             index = 0;
-
-            // NEW — resets slow/hast modifiers
             ClearSpeedModifiers();
-
             movementStopped = false;
             RecalculatePath();
         }
@@ -136,66 +125,60 @@ namespace Enemy
 
             path = Pathfinder.FindPath(start, goal, true);
             index = 0;
+
+            // Pre-cache all world positions (this is a HUGE optimization)
+            cachedWorldPath.Clear();
+            if (path != null)
+            {
+                for (int i = 0; i < path.Count; i++)
+                {
+                    cachedWorldPath.Add(
+                        GridManager.Instance.WorldFromGrid(path[i].x, path[i].y)
+                    );
+                }
+            }
         }
 
         void FollowPath()
         {
-            if (movementStopped)
+            if (movementStopped || cachedWorldPath.Count == 0)
             {
                 rb.linearVelocity = Vector2.zero;
                 return;
             }
 
-            if (path == null || index >= path.Count)
+            if (index >= cachedWorldPath.Count)
             {
                 rb.linearVelocity = Vector2.zero;
                 return;
             }
 
-            Vector2 currentNode = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
-            Vector2 dirToCurrent = (currentNode - rb.position).normalized;
+            Vector2 enemyPos = rb.position;
+            Vector2 currentNode = cachedWorldPath[index];
+            Vector2 dirToCurrent = (currentNode - enemyPos).normalized;
+
             Vector2 finalDir = dirToCurrent;
 
-            float dist = Vector2.Distance(rb.position, currentNode);
+            float dist = Vector2.Distance(enemyPos, currentNode);
 
-            if (dist < turnDistance && index + 1 < path.Count)
+            // Smooth turning to next node
+            if (dist < turnDistance && index + 1 < cachedWorldPath.Count)
             {
-                Vector2 nextNode = GridManager.Instance.WorldFromGrid(path[index + 1].x, path[index + 1].y);
-                Vector2 dirToNext = (nextNode - rb.position).normalized;
-                finalDir = Vector2.Lerp(dirToCurrent, dirToNext, 1f - (dist / turnDistance));
+                Vector2 nextNode = cachedWorldPath[index + 1];
+                Vector2 dirToNext = (nextNode - enemyPos).normalized;
+
+                float t = 1f - (dist / turnDistance);
+                finalDir = Vector2.Lerp(dirToCurrent, dirToNext, t);
             }
 
+            // Smooth movement
             currentDir = Vector2.Lerp(currentDir, finalDir, Time.fixedDeltaTime * turnSmoothness);
 
-            // ============================================================
-            // NEW — use final modified speed instead of plain speed
-            // ============================================================
+            // Apply velocity
             rb.linearVelocity = currentDir * FinalSpeed;
 
-            if (HasReachedOrPassedNode(currentNode))
-                index++;
-        }
-
-        bool HasReachedOrPassedNode(Vector2 nodePos)
-        {
-            if (Vector2.Distance(rb.position, nodePos) < 1f)
-                return true;
-
-            if (index > 0)
-            {
-                Vector2 prev = GridManager.Instance.WorldFromGrid(path[index - 1].x, path[index - 1].y);
-
-                Vector2 seg = nodePos - prev;
-                Vector2 toEnemy = rb.position - prev;
-
-                float segLenSq = seg.sqrMagnitude;
-                float proj = Vector2.Dot(toEnemy, seg);
-
-                if (proj > segLenSq)
-                    return true;
-            }
-
-            return false;
+            // Check if reached node
+            if (dist < 0.1f) index++;
         }
 
         void OnTriggerEnter2D(Collider2D other)
@@ -209,29 +192,31 @@ namespace Enemy
 
         void OnDrawGizmos()
         {
-            if (!drawPath || path == null || path.Count == 0) return;
+#if UNITY_EDITOR
+            if (!drawPath || cachedWorldPath == null || cachedWorldPath.Count == 0) return;
 
             Gizmos.color = pathColor;
 
-            for (int i = 0; i < path.Count - 1; i++)
+            for (int i = 0; i < cachedWorldPath.Count - 1; i++)
             {
-                Vector3 a = GridManager.Instance.WorldFromGrid(path[i].x, path[i].y);
-                Vector3 b = GridManager.Instance.WorldFromGrid(path[i + 1].x, path[i + 1].y);
+                Vector3 a = cachedWorldPath[i];
+                Vector3 b = cachedWorldPath[i + 1];
                 Gizmos.DrawLine(a, b);
                 Gizmos.DrawSphere(a, 0.08f);
             }
 
-            Vector3 goalPos = GridManager.Instance.WorldFromGrid(path[^1].x, path[^1].y);
+            Vector3 goalPos = cachedWorldPath[cachedWorldPath.Count - 1];
             Gizmos.color = Color.cyan;
             Gizmos.DrawSphere(goalPos, 0.12f);
             Gizmos.DrawWireSphere(goalPos, 0.18f);
 
-            if (index < path.Count)
+            if (index < cachedWorldPath.Count)
             {
-                Vector3 currentPos = GridManager.Instance.WorldFromGrid(path[index].x, path[index].y);
+                Vector3 currentPos = cachedWorldPath[index];
                 Gizmos.color = Color.green;
                 Gizmos.DrawSphere(currentPos, 0.1f);
             }
+#endif
         }
     }
 }

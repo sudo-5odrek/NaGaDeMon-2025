@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a013572cd18e72e45b6e1ca0d19a95d5, type: 3}
+  m_Name: Perf Test
+  m_EditorClassIdentifier: 
+  waves:
+  - waveName: test
+    startTime: 5
+    groups:
+    - spawnZone:
+        center: {x: 0, y: 20}
+        size: {x: 10, y: 1}
+      stagger: 0.5
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
+        count: 400
+        weight: 0
+      pattern: 0

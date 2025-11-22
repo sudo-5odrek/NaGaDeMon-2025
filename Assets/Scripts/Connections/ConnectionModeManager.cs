@@ -2,28 +2,33 @@ using System.Collections.Generic;
 using Building;
 using Building.Conveyer;
 using Grid;
+using Interface;
 using Inventory;
 using Placement_Logics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Player;
 
 namespace Connections
 {
     /// <summary>
-    /// Handles connection (conveyor) placement mode:
-    /// starting from a building, drag conveyor lines, accumulate tiles,
-    /// finalize path when canceled or toggled off.
+    /// Handles conveyor placement mode:
+    /// start from a building, drag conveyor lines, confirm segments on click,
+    /// cost checking included.
     /// </summary>
     public class ConnectionModeManager : MonoBehaviour
     {
         public static ConnectionModeManager Instance;
 
         [Header("Settings")]
-        public GameObject connectionPrefab;           // single conveyor tile prefab
-        public GameObject conveyorPathPrefab;         // root prefab (with ConveyorPathController)
+        public GameObject connectionPrefab;           // conveyor tile prefab
+        public GameObject conveyorPathPrefab;         // path root prefab
         public ScriptableObject placementLogicAsset;  // must implement IBuildPlacementLogic
         public LayerMask buildingMask;
         public LayerMask connectionMask;
+
+        [Header("Cost Settings")]
+        public BuildingData conveyorBuildingData;     // assign conveyor building cost here
 
         [Header("References")]
         public Transform player;
@@ -42,15 +47,13 @@ namespace Connections
         private ConveyorPathController currentController;
 
         // --------------------------------------------------
-        // DESTRUCTION SYSTEM
+        // DESTRUCTION
         // --------------------------------------------------
         [Header("Destroy Settings")]
         public float destroyHoldTime = 1.0f;
 
         private float destroyTimer = 0f;
-        private bool rightHeld = false;
         private ConveyorPathController hoveredController;
-
 
         // --------------------------------------------------
         // INIT
@@ -62,9 +65,13 @@ namespace Connections
             input = InputContextManager.Instance.input;
 
             if (placementLogicAsset is IBuildPlacementLogic logic)
+            {
                 placementLogic = Instantiate(placementLogicAsset) as IBuildPlacementLogic;
+            }
             else
+            {
                 Debug.LogError($"[ConnectionModeManager] {placementLogicAsset.name} does NOT implement IBuildPlacementLogic!");
+            }
         }
 
         private void OnEnable()
@@ -72,6 +79,8 @@ namespace Connections
             input.Player.ConnectMode.performed += OnToggleMode;
             input.Player.Place.started += OnLeftClick;
             input.Player.Cancel.performed += OnRightClick;
+            
+            PlayerInventory.Instance.OnInventoryChanged += OnInventoryChanged;
         }
 
         private void OnDisable()
@@ -79,6 +88,30 @@ namespace Connections
             input.Player.ConnectMode.performed -= OnToggleMode;
             input.Player.Place.started -= OnLeftClick;
             input.Player.Cancel.performed -= OnRightClick;
+            
+            PlayerInventory.Instance.OnInventoryChanged -= OnInventoryChanged;
+        }
+        
+        private void OnInventoryChanged()
+        {
+            if (!isActive || placementLogic == null) return;
+
+            UpdateAffordabilityVisuals();
+        }
+        
+        private void UpdateAffordabilityVisuals()
+        {
+            if (conveyorBuildingData == null) return;
+
+            int count = placementLogic.GetPreviewCount();
+            bool canAfford = CanAfford(conveyorBuildingData, count);
+
+            Color tint = canAfford ? Color.green : Color.red;
+
+            placementLogic.SetGhostColor(tint);
+            UIPlacementCostIndicator.Instance.SetColor(tint);
+
+            placementLogic.UpdateCostPreview(conveyorBuildingData);
         }
 
         private void Update()
@@ -92,10 +125,49 @@ namespace Connections
             if (isBuildingChain && startPoint.HasValue)
                 placementLogic.OnDragging(mouse);
 
-            // --------------------------------------------------
-            // HOLD-TO-DESTROY LOGIC
-            // --------------------------------------------------
+            // Update cost preview every frame
+            if (conveyorBuildingData != null)
+                placementLogic.UpdateCostPreview(conveyorBuildingData);
+            
+            UpdateAffordabilityVisuals();
+
             HandleDestroyConveyor();
+        }
+
+        // --------------------------------------------------
+        // COST SYSTEM
+        // --------------------------------------------------
+        private bool CanAfford(BuildingData building, int count = 1)
+        {
+            if (!building) return false;
+
+            var inv = PlayerInventory.Instance;
+
+            foreach (var c in building.cost)
+            {
+                int required = c.amount * count;
+                if (inv.GetAmount(c.item) < required)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private void SpendCost(BuildingData building, int count = 1)
+        {
+            var inv = PlayerInventory.Instance;
+
+            foreach (var c in building.cost)
+            {
+                int total = c.amount * count;
+                inv.RemoveItem(c.item, total);
+            }
+        }
+
+        // Public helper used by placement logic if needed
+        public bool CanAffordConveyor(int count)
+        {
+            return CanAfford(conveyorBuildingData, count);
         }
 
         // --------------------------------------------------
@@ -112,43 +184,21 @@ namespace Connections
                 placementLogic.Setup(connectionPrefab, 0f);
 
                 if (placementLogic is ConveyorLinePlacementLogic lineLogic)
+                {
                     lineLogic.SetPlacementCallback(OnPlacementConfirmed);
+                }
 
-                Debug.Log("🟢 Connection Mode ON");
+                Debug.Log("🟢 Conveyor Mode ON");
             }
             else
             {
-                FinalizeChain();      // finalize current chain
-                ExitConnectionMode(); // and leave mode
+                FinalizeChain();
+                ExitConnectionMode();
             }
         }
 
         // --------------------------------------------------
-        // DETECTING END OF EXISTING CONVEYOR
-        // --------------------------------------------------
-        private ConveyorPathController GetConveyorEndingAt(Vector3 mouseWorld)
-        {
-            Collider2D[] hits = Physics2D.OverlapCircleAll(mouseWorld, 0.15f, connectionMask);
-
-            foreach (var hit in hits)
-            {
-                ConveyorPathController controller = hit.GetComponentInParent<ConveyorPathController>();
-                if (!controller) continue;
-
-                if (controller.pathTiles == null || controller.pathTiles.Count == 0)
-                    continue;
-
-                GameObject lastTile = controller.pathTiles[^1];
-
-                if (hit.gameObject == lastTile)
-                    return controller;
-            }
-
-            return null;
-        }
-       
-        // --------------------------------------------------
-        // LEFT CLICK (start or extend)
+        // LEFT CLICK — PLACE SEGMENT
         // --------------------------------------------------
         private void OnLeftClick(InputAction.CallbackContext ctx)
         {
@@ -156,12 +206,12 @@ namespace Connections
 
             Vector3 mouse = GetMouseWorldPosition();
 
-            // STEP 1 — Start chain
+            // STEP 1 — begin chain
             if (!isBuildingChain)
             {
                 Vector3 snapped = SnapToGrid(mouse);
 
-                // 1) Start from a building
+                // Start from building output
                 RaycastHit2D hit = Physics2D.Raycast(mouse, Vector2.zero, 0.1f, buildingMask);
                 if (hit.collider && hit.collider.TryGetComponent(out BuildingInventory inventory))
                 {
@@ -179,12 +229,12 @@ namespace Connections
                         placementLogic.OnStartDrag(startPoint.Value);
                         isBuildingChain = true;
 
-                        Debug.Log($"🟩 Started new conveyor from building {startBuilding.name}");
+                        Debug.Log($"🟩 Started conveyor from {startBuilding.name}");
                         return;
                     }
                 }
 
-                // 2) Extend existing conveyor
+                // Extend existing conveyor
                 ConveyorPathController target = GetConveyorEndingAt(mouse);
 
                 if (target != null)
@@ -206,7 +256,7 @@ namespace Connections
                 return;
             }
 
-            // STEP 2 — Extend chain
+            // STEP 2 — place second or subsequent segment
             if (isBuildingChain && startPoint.HasValue)
             {
                 Vector3 endPoint = SnapToGrid(mouse);
@@ -214,29 +264,65 @@ namespace Connections
                 if (placementLogic is not ConveyorLinePlacementLogic lineLogic)
                     return;
 
-                if (ValidateEndPoint(endPoint))
+                // Determine building count BEFORE placing
+                int tileCount = lineLogic.GetPreviewCount();
+
+                // ❗ HARD COST CHECK HERE ❗
+                if (!CanAfford(conveyorBuildingData, tileCount))
                 {
-                    lineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
-
-                    placementLogic.OnEndDrag(endPoint);
-
-                    startPoint = endPoint;
-                    placementLogic.OnStartDrag(startPoint.Value);
-
-                    if (endBuilding)
-                        FinalizeChain();
+                    Debug.Log("❌ Not enough resources to place this conveyor segment!");
+                    return; // DO NOT PLACE ANYTHING
                 }
+
+                // Generate tiles
+                lineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
+
+                // Spend cost
+                SpendCost(conveyorBuildingData, tileCount);
+
+                placementLogic.OnEndDrag(endPoint);
+
+                // Continue chaining
+                startPoint = endPoint;
+                placementLogic.OnStartDrag(startPoint.Value);
+
+                if (endBuilding)
+                    FinalizeChain();
             }
         }
 
         // --------------------------------------------------
-        // RIGHT CLICK (finalize chain)
+        // EXISTING CONVEYOR DETECTION
+        // --------------------------------------------------
+        private ConveyorPathController GetConveyorEndingAt(Vector3 mouseWorld)
+        {
+            Collider2D[] hits = Physics2D.OverlapCircleAll(mouseWorld, 0.15f, connectionMask);
+
+            foreach (var hit in hits)
+            {
+                ConveyorPathController controller = hit.GetComponentInParent<ConveyorPathController>();
+                if (!controller) continue;
+
+                if (controller.pathTiles.Count == 0)
+                    continue;
+
+                GameObject lastTile = controller.pathTiles[^1];
+
+                if (hit.gameObject == lastTile)
+                    return controller;
+            }
+
+            return null;
+        }
+
+        // --------------------------------------------------
+        // RIGHT CLICK — finalize conveyor
         // --------------------------------------------------
         private void OnRightClick(InputAction.CallbackContext ctx)
         {
             if (!isActive) return;
 
-            Debug.Log("🛑 Conveyor chain finalized by player");
+            Debug.Log("🛑 Player finalized conveyor chain");
             FinalizeChain();
         }
 
@@ -276,41 +362,35 @@ namespace Connections
             foreach (var t in tiles)
                 t.transform.rotation = Quaternion.Euler(0, 0, angle);
 
-            Debug.Log($"✅ Added {tiles.Count} conveyor tiles to {currentController.name}");
+            Debug.Log($"📦 Added {tiles.Count} conveyor tiles");
         }
 
         // --------------------------------------------------
-        // FINALIZE
+        // FINALIZE CHAIN
         // --------------------------------------------------
         private void FinalizeChain()
         {
-            // finalize ports if applicable
             if (currentController != null && startBuilding != null)
             {
                 if (currentController.pathTiles.Count > 0)
                 {
                     var startPort = startBuilding?.GetOutput() as BuildingInventoryPort;
-
                     currentController.Initialize(startBuilding, startPort, endBuilding);
                 }
             }
 
-            // cleanup preview
-            if (placementLogic is ConveyorLinePlacementLogic lineLogic)
-                lineLogic.Cancel();
-            else
-                placementLogic.ClearPreview();
+            placementLogic.ClearPreview();
 
-            // reset chain variables but DO NOT exit connection mode
+            // reset
             isBuildingChain = false;
             startPoint = null;
             startBuilding = null;
             endBuilding = null;
             currentController = null;
 
-            Debug.Log("🔁 Chain finalized but staying in connection mode");
+            Debug.Log("🔁 Conveyor chain ended (but staying in connection mode)");
         }
-        
+
         private void ExitConnectionMode()
         {
             InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
@@ -328,13 +408,11 @@ namespace Connections
             Debug.Log("🔴 Conveyor Mode OFF");
         }
 
-
         // --------------------------------------------------
-        // HOLD-TO-DESTROY CONVEYOR LINES
+        // DESTRUCTION
         // --------------------------------------------------
         private void HandleDestroyConveyor()
         {
-            // never destroy while placing a chain
             if (isBuildingChain)
             {
                 destroyTimer = 0f;
@@ -342,8 +420,8 @@ namespace Connections
                 return;
             }
 
-            // detect right-click hold
-            rightHeld = input.Player.Cancel.ReadValue<float>() > 0.5f;
+            bool rightHeld = input.Player.Cancel.ReadValue<float>() > 0.5f;
+
             if (!rightHeld)
             {
                 destroyTimer = 0f;
@@ -351,7 +429,6 @@ namespace Connections
                 return;
             }
 
-            // detect conveyor under cursor
             ConveyorPathController controller = GetConveyorUnderCursor();
             if (controller == null)
             {
@@ -361,8 +438,6 @@ namespace Connections
             }
 
             hoveredController = controller;
-
-            // count hold
             destroyTimer += Time.deltaTime;
 
             if (destroyTimer >= destroyHoldTime)
@@ -376,24 +451,17 @@ namespace Connections
         private ConveyorPathController GetConveyorUnderCursor()
         {
             Vector3 mouseWorld = GetMouseWorldPosition();
-
             Collider2D hit = Physics2D.OverlapCircle(mouseWorld, 0.15f, connectionMask);
-            if (!hit)
-                return null;
-
-            return hit.GetComponentInParent<ConveyorPathController>();
+            return hit ? hit.GetComponentInParent<ConveyorPathController>() : null;
         }
 
         private void DestroyConveyorLine(ConveyorPathController controller)
         {
-            if (controller == null)
-                return;
+            if (controller == null) return;
 
             Destroy(controller.gameObject);
-
             Debug.Log($"🔥 Destroyed conveyor line: {controller.name}");
         }
-
 
         // --------------------------------------------------
         // UTILS
@@ -408,7 +476,7 @@ namespace Connections
 
         private Vector3 SnapToGrid(Vector3 pos)
         {
-            (int gx, int gy) = GridManager.Instance.GridFromWorld(pos);
+            var (gx, gy) = GridManager.Instance.GridFromWorld(pos);
             return GridManager.Instance.WorldFromGrid(gx, gy);
         }
     }

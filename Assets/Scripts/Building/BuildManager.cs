@@ -1,4 +1,5 @@
 using Grid;
+using Interface;
 using Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -53,6 +54,8 @@ namespace Building
             input.Player.Cancel.performed += OnCancelPerformed;
             input.Player.Rotate.performed += OnRotatePerformed;
             input.Player.BuildMenu.performed += OnMenuPerformed;
+            
+            PlayerInventory.Instance.OnInventoryChanged += OnInventoryChanged;
         }
 
         private void OnDisable()
@@ -62,28 +65,60 @@ namespace Building
             input.Player.Cancel.performed -= OnCancelPerformed;
             input.Player.Rotate.performed -= OnRotatePerformed;
             input.Player.BuildMenu.performed -= OnMenuPerformed;
+            
+            PlayerInventory.Instance.OnInventoryChanged -= OnInventoryChanged;
         }
 
         // ------------------------------------------------------------
         // COST SYSTEM
         // ------------------------------------------------------------
-        private bool CanAfford(BuildingData building)
+        private bool CanAfford(BuildingData building, int count = 1)
         {
             if (!building) return false;
 
             var inv = PlayerInventory.Instance;
+
             foreach (var c in building.cost)
-                if (inv.GetAmount(c.item) < c.amount)
+            {
+                int required = c.amount * count;
+                if (inv.GetAmount(c.item) < required)
                     return false;
+            }
 
             return true;
         }
 
-        private void SpendCost(BuildingData building)
+        private void SpendCost(BuildingData building, int count = 1)
         {
             var inv = PlayerInventory.Instance;
+
             foreach (var c in building.cost)
-                inv.RemoveItem(c.item, c.amount);
+            {
+                int total = c.amount * count;
+                inv.RemoveItem(c.item, total);
+            }
+        }
+        
+        private void OnInventoryChanged()
+        {
+            if (!isPlacing || activePlacementLogic == null || selectedBuilding == null)
+                return;
+
+            UpdateAffordabilityVisuals();
+        }
+        
+        private void UpdateAffordabilityVisuals()
+        {
+            int count = activePlacementLogic.GetPreviewCount();
+            bool canAfford = CanAfford(selectedBuilding, count);
+
+            Color tint = canAfford ? Color.green : Color.red;
+
+            activePlacementLogic.SetGhostColor(tint);
+            UIPlacementCostIndicator.Instance.SetColor(tint);
+
+            // Keep the label updated in position and text
+            activePlacementLogic.UpdateCostPreview(selectedBuilding);
         }
 
         // ------------------------------------------------------------
@@ -102,6 +137,11 @@ namespace Building
                     activePlacementLogic.OnDragging(snapped);
                 else
                     activePlacementLogic.UpdatePreview(snapped);
+                
+                // NEW — constantly update the cost preview
+                activePlacementLogic.UpdateCostPreview(selectedBuilding);
+                
+                UpdateAffordabilityVisuals();
 
                 return; // Do NOT allow destruction while placing
             }
@@ -183,16 +223,22 @@ namespace Building
                 isDragging = false;
                 return;
             }
+            
+            int count = activePlacementLogic.GetPreviewCount();
 
-            if (!CanAfford(selectedBuilding))
+            // Can the player afford the whole line?
+            if (!CanAfford(selectedBuilding, count))
             {
-                Debug.Log("Cannot afford!");
+                Debug.Log("Cannot afford full line!");
                 isDragging = false;
                 return;
             }
 
+            // Place objects
             activePlacementLogic.OnEndDrag(pos);
-            SpendCost(selectedBuilding);
+
+            // Spend cost for all tiles
+            SpendCost(selectedBuilding, count);
 
             isDragging = false;
 

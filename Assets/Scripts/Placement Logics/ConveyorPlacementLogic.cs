@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Building;
 using Grid;
+using Interface;
 using UnityEngine;
 
 namespace Placement_Logics
@@ -97,6 +99,7 @@ namespace Placement_Logics
 
             hoverPreview = null;
             isDragging = false;
+            UIPlacementCostIndicator.Instance.Hide();
         }
 
         public void Cancel() => ClearPreview();
@@ -211,6 +214,46 @@ namespace Placement_Logics
         {
             var (gx, gy) = GridManager.Instance.GridFromWorld(world);
             return new Vector2Int(gx, gy);
+        }
+        
+        public int GetPreviewCount()
+        {
+            return previewLine.Count;
+        }
+        
+        
+        public Vector3 GetPreviewPlacement()
+        {
+            // If no preview tiles, fallback to start position
+            if (previewLine.Count == 0)
+                return dragStart;
+
+            // The top-right object = the LAST ghost in the preview line
+            GameObject last = previewLine[previewLine.Count - 1];
+            return last ? last.transform.position : dragStart;
+        }
+
+        public void UpdateCostPreview(BuildingData data)
+        {
+            UIPlacementCostIndicator.Instance.ShowCost(
+                data,
+                GetPreviewCount(),
+                GetPreviewPlacement()
+            );
+        }
+        
+        public void SetGhostColor(Color color)
+        {
+            // Hover tile (when not dragging)
+            if (hoverPreview != null && !isDragging)
+                BuildUtils.SetPreviewTint(hoverPreview, color);
+
+            // All ghosts while dragging
+            foreach (var g in previewLine)
+            {
+                if (g != null)
+                    BuildUtils.SetPreviewTint(g, color);
+            }
         }
     }
 }
