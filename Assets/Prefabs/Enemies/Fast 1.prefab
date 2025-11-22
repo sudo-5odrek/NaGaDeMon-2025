@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 5819370214835820413}
   - component: {fileID: 1457918011556990477}
   m_Layer: 6
-  m_Name: Enemy
+  m_Name: Fast 1
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0.8113208, g: 0.28702387, b: 0.28702387, a: 1}
+  m_Color: {r: 0, g: 0.514199, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -169,7 +169,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
-  speed: 2
+  speed: 4
   repathInterval: 1.5
   turnDistance: 0.5
   turnSmoothness: 4
@@ -209,7 +209,7 @@ MonoBehaviour:
   lootItems:
   - itemPrefab: {fileID: 7824504021662710725, guid: 04bb8131db4c2214ab437e59c1fba207, type: 3}
     dropChance: 1
-    minAmount: 6
+    minAmount: 8
     maxAmount: 8
 --- !u!114 &1457918011556990477
 MonoBehaviour:

@@ -13,42 +13,84 @@ MonoBehaviour:
   m_Name: Level1
   m_EditorClassIdentifier: 
   waves:
-  - waveName: Wave 2
-    startTime: 5
+  - waveName: Tuto 1
+    startTime: 20
     groups:
     - spawnZone:
-        center: {x: 0, y: 30}
-        size: {x: 30, y: 1}
-      stagger: 1
+        center: {x: 0, y: 48.4}
+        size: {x: 61.1, y: 1}
+      stagger: 3
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
-        count: 5
+        count: 10
         weight: 0
       pattern: 0
-  - waveName: Wave 3
-    startTime: 25
+  - waveName: Wave 1
+    startTime: 120
     groups:
     - spawnZone:
-        center: {x: 0, y: 30}
-        size: {x: 30, y: 1}
-      stagger: 0.5
+        center: {x: 0, y: 48.5}
+        size: {x: 61.4, y: 1}
+      stagger: 0.1
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
+        count: 40
+        weight: 0
+      pattern: 0
+  - waveName: Teaser 1
+    startTime: 180
+    groups:
+    - spawnZone:
+        center: {x: 0.04, y: 48.4}
+        size: {x: 61.3, y: 1}
+      stagger: 2
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
         count: 7
         weight: 0
       pattern: 0
-  - waveName: Wave 1
-    startTime: 45
+  - waveName: Wave 2
+    startTime: 240
     groups:
     - spawnZone:
-        center: {x: 0, y: 30}
-        size: {x: 30, y: 1}
-      stagger: 0.2
+        center: {x: 0.04, y: 48.5}
+        size: {x: 61.3, y: 1}
+      stagger: 0.1
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
-        count: 10
+        count: 100
+        weight: 0
+      pattern: 0
+  - waveName: Wave 3
+    startTime: 360
+    groups:
+    - spawnZone:
+        center: {x: 0.04, y: 48.5}
+        size: {x: 61.3, y: 1}
+      stagger: 0.1
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
+        count: 60
+        weight: 0
+      pattern: 0
+  - waveName: Wave 4
+    startTime: 460
+    groups:
+    - spawnZone:
+        center: {x: 0.04, y: 48.5}
+        size: {x: 61.3, y: 1}
+      stagger: 0.1
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
+        count: 100
+        weight: 0
+      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
+        count: 100
         weight: 0
       pattern: 0
