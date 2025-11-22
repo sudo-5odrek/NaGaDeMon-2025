@@ -17,7 +17,7 @@ MonoBehaviour:
   prefab: {fileID: 6074686097958532318, guid: 656313f0048eaef4c852be5458360c04, type: 3}
   cost:
   - item: {fileID: 11400000, guid: 4f3dff7b4a6d3a348ab1a1c293091c64, type: 2}
-    amount: 10
+    amount: 0
   placementLogic: {fileID: 11400000, guid: e16b9b8034052d042b717fc6932de236, type: 2}
   acceptAllItems: 1
   itemWhitelist: []
