@@ -69,5 +69,13 @@ namespace Interface
         /// to tint all preview ghosts (green/red).
         /// </summary>
         void SetGhostColor(Color color);
+        
+        
+        /// <summary>
+        /// Called when a drag ends without placing anything 
+        /// (e.g. too expensive, invalid, cancelled).
+        /// Should clear line ghosts and restore hover preview.
+        /// </summary>
+        void AbortDrag();
     }
 }

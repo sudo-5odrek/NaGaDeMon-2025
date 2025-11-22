@@ -271,6 +271,7 @@ namespace Connections
                 if (!CanAfford(conveyorBuildingData, tileCount))
                 {
                     Debug.Log("❌ Not enough resources to place this conveyor segment!");
+                    placementLogic.AbortDrag();
                     return; // DO NOT PLACE ANYTHING
                 }
 
@@ -379,7 +380,7 @@ namespace Connections
                 }
             }
 
-            placementLogic.ClearPreview();
+            placementLogic.OnEndDrag(this.startPoint.Value);
 
             // reset
             isBuildingChain = false;

@@ -101,6 +101,22 @@ namespace Placement_Logics
 
             // Final placement
             PlaceLine(worldStart, worldEnd);
+
+            // ✅ After a successful placement, go back to a single hover preview
+            CreateHoverPreview();
+        }
+
+        // ✅ NEW: drag ended with NO placement (too expensive / invalid / cancelled)
+        public void AbortDrag()
+        {
+            if (!isDragging) return;
+
+            isDragging = false;
+            ClearPreviewLine();
+
+            // recreate hover ghost so player can aim again
+            if (hoverPreview == null && prefab != null)
+                CreateHoverPreview();
         }
 
         // ----------------------------------------------------------------------
@@ -223,18 +239,17 @@ namespace Placement_Logics
             hoverPreview = null;
             UIPlacementCostIndicator.Instance.Hide();
         }
-    
+
         public int GetPreviewCount()
         {
             return previewLine.Count;
         }
-    
-    
+
         public Vector3 GetPreviewPlacement()
         {
-            // If no preview tiles, fallback to start position
-            if (previewLine.Count == 0)
-                return worldStart;
+            // If no preview tiles, fallback to hover position
+            if (previewLine.Count == 0 && hoverPreview != null)
+                return hoverPreview.transform.position;
 
             // The top-right object = the LAST ghost in the preview line
             GameObject last = previewLine[previewLine.Count - 1];
@@ -249,7 +264,7 @@ namespace Placement_Logics
                 GetPreviewPlacement()
             );
         }
-    
+
         public void SetGhostColor(Color color)
         {
             // Hover tile (when not dragging)

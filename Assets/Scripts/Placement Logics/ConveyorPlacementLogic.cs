@@ -218,7 +218,7 @@ namespace Placement_Logics
         
         public int GetPreviewCount()
         {
-            return previewLine.Count;
+            return previewLine.Count-1;
         }
         
         
@@ -226,10 +226,10 @@ namespace Placement_Logics
         {
             // If no preview tiles, fallback to start position
             if (previewLine.Count == 0)
-                return dragStart;
+                return hoverPreview.transform.position;
 
             // The top-right object = the LAST ghost in the preview line
-            GameObject last = previewLine[previewLine.Count - 1];
+            GameObject last = previewLine[^1];
             return last ? last.transform.position : dragStart;
         }
 
@@ -255,5 +255,19 @@ namespace Placement_Logics
                     BuildUtils.SetPreviewTint(g, color);
             }
         }
+        
+        // ✅ NEW: drag ended with NO placement (too expensive / invalid / cancelled)
+        public void AbortDrag()
+        {
+            if (!isDragging) return;
+
+            isDragging = false;
+            ClearPreviewLine();
+
+            // recreate hover ghost so player can aim again
+            if (hoverPreview == null)
+                CreateHoverPreview();
+        }
+
     }
 }

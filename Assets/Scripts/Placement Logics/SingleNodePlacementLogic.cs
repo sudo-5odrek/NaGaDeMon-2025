@@ -196,6 +196,9 @@ namespace Placement_Logics
                 BuildUtils.SetPreviewTint(previewObject, color);
         }
 
-        
+        public void AbortDrag()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

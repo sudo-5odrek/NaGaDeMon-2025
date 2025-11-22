@@ -1600,7 +1600,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2461467946598406934, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4252939630054739154, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
       propertyPath: nexus
@@ -8605,9 +8605,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4610891956301998002, guid: f170a0eec7b64e64c97348080c595400, type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5307112835039137212, guid: f170a0eec7b64e64c97348080c595400, type: 3}
       propertyPath: m_ChildAlignment
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5468347452770947275, guid: f170a0eec7b64e64c97348080c595400, type: 3}
+      propertyPath: m_Pivot.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5468347452770947275, guid: f170a0eec7b64e64c97348080c595400, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5468347452770947275, guid: f170a0eec7b64e64c97348080c595400, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5468347452770947275, guid: f170a0eec7b64e64c97348080c595400, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -40
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

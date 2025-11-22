@@ -231,6 +231,8 @@ namespace Building
             {
                 Debug.Log("Cannot afford full line!");
                 isDragging = false;
+                
+                activePlacementLogic.AbortDrag();
                 return;
             }
 
