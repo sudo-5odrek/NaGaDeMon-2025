@@ -8,7 +8,7 @@ namespace Building.Turrets
     {
         [Header("Zone Settings")]
         public float zoneLifetime = 3f;   // NEW: zone controls its own lifetime
-        public float slowMultiplier = 0.5f;
+        public float slowMultiplier = 0.25f;
 
         [Header("References")]
         [Tooltip("Visuals root. If null, uses first child.")]

@@ -259,36 +259,73 @@ namespace Connections
             // STEP 2 — place second or subsequent segment
             if (isBuildingChain && startPoint.HasValue)
             {
+                mouse = GetMouseWorldPosition();
                 Vector3 endPoint = SnapToGrid(mouse);
 
-                if (placementLogic is not ConveyorLinePlacementLogic lineLogic)
+                // ----------------------------------------------------------
+                // FIRST: check if the player clicked on a building
+                // ----------------------------------------------------------
+                RaycastHit2D hit = Physics2D.Raycast(mouse, Vector2.zero, 0.1f, buildingMask);
+                if (hit.collider && hit.collider.TryGetComponent(out BuildingInventory targetBuilding))
+                {
+                    // Prevent connecting to the start building
+                    if (targetBuilding != startBuilding)
+                    {
+                        // Can this building accept an input?
+                        if (targetBuilding.CanAcceptNewInput)
+                        {
+                            // This is the end building!
+                            endBuilding = targetBuilding;
+
+                            // Before finalizing, generate cost preview
+                            if (placementLogic is ConveyorLinePlacementLogic lineLogic)
+                            {
+                                int tileCount = lineLogic.GetPreviewCount();
+
+                                if (!CanAfford(conveyorBuildingData, tileCount))
+                                {
+                                    Debug.Log("❌ Not enough resources to reach end building!");
+                                    placementLogic.AbortDrag();
+                                    endBuilding = null;
+                                    return;
+                                }
+
+                                // Place tiles
+                                lineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
+                                SpendCost(conveyorBuildingData, tileCount);
+                            }
+
+                            // Finalize chain immediately
+                            FinalizeChain();
+                            return;
+                        }
+                    }
+                }
+
+                // ----------------------------------------------------------
+                // OTHERWISE: clicked on empty cell → continue building
+                // ----------------------------------------------------------
+                if (placementLogic is not ConveyorLinePlacementLogic normalLineLogic)
                     return;
 
-                // Determine building count BEFORE placing
-                int tileCount = lineLogic.GetPreviewCount();
-
-                // ❗ HARD COST CHECK HERE ❗
-                if (!CanAfford(conveyorBuildingData, tileCount))
+                // cost check
+                int tiles = normalLineLogic.GetPreviewCount();
+                if (!CanAfford(conveyorBuildingData, tiles))
                 {
                     Debug.Log("❌ Not enough resources to place this conveyor segment!");
                     placementLogic.AbortDrag();
-                    return; // DO NOT PLACE ANYTHING
+                    return;
                 }
 
-                // Generate tiles
-                lineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
-
-                // Spend cost
-                SpendCost(conveyorBuildingData, tileCount);
+                // place tiles normally
+                normalLineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
+                SpendCost(conveyorBuildingData, tiles);
 
                 placementLogic.OnEndDrag(endPoint);
 
-                // Continue chaining
+                // Continue chain
                 startPoint = endPoint;
                 placementLogic.OnStartDrag(startPoint.Value);
-
-                if (endBuilding)
-                    FinalizeChain();
             }
         }
 
@@ -325,24 +362,6 @@ namespace Connections
 
             Debug.Log("🛑 Player finalized conveyor chain");
             FinalizeChain();
-        }
-
-        private bool ValidateEndPoint(Vector3 mouseWorld)
-        {
-            bool valid = true;
-
-            Collider2D hit = Physics2D.OverlapCircle(mouseWorld, 0.1f, buildingMask);
-            if (hit)
-            {
-                BuildingInventory inventory = hit.GetComponent<BuildingInventory>();
-
-                if (inventory.CanAcceptNewInput)
-                    endBuilding = inventory;
-                else
-                    valid = false;
-            }
-
-            return valid;
         }
 
         // --------------------------------------------------

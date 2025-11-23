@@ -43,7 +43,7 @@ namespace Enemy
         private float speedModifier = 1f;
         public float FinalSpeed => speed * speedModifier;
 
-        public void ApplySpeedModifier(float mul) => speedModifier = Mathf.Max(speedModifier*mul,0.5f);
+        public void ApplySpeedModifier(float mul) => speedModifier = Mathf.Max(speedModifier*mul,0.6f);
         public void RemoveSpeedModifier(float mul) => speedModifier = 1;
         public void ClearSpeedModifiers() => speedModifier = 1f;
         // ============================================================
