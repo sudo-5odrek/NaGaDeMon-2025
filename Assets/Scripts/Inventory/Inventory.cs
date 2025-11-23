@@ -71,7 +71,9 @@ namespace Inventory
             items[resourceId] -= removed;
 
             if (items[resourceId] <= 0.0001f)
-                items[resourceId] = 0f;
+            {
+                items.Remove(resourceId);     // 🔥 Remove key completely
+            }
 
             OnInventoryChanged?.Invoke();
             return removed;
