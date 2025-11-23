@@ -211,6 +211,10 @@ MonoBehaviour:
     dropChance: 1
     minAmount: 12
     maxAmount: 12
+  - itemPrefab: {fileID: 7824504021662710725, guid: 02320e9fec6cce34ca898f104c8c273b, type: 3}
+    dropChance: 1
+    minAmount: 12
+    maxAmount: 12
 --- !u!114 &1457918011556990477
 MonoBehaviour:
   m_ObjectHideFlags: 0

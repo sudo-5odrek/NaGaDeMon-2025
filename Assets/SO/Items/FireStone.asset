@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a6fb837b36d94649894d75d706918a2, type: 3}
+  m_Name: FireStone
+  m_EditorClassIdentifier: 
+  itemID: FireStone
+  displayName: Fire Stone
+  icon: {fileID: -8220113748369049836, guid: b46463af7092ad7448073de1ed39fd32, type: 3}
+  weight: 1
+  maxStack: 99
+  worldPrefab: {fileID: 7824504021662710725, guid: 02320e9fec6cce34ca898f104c8c273b, type: 3}
+  beltPrefab: {fileID: 766617374011353691, guid: 35d664b62b948044896d55c89ea90061, type: 3}
+  uiPrefab: {fileID: 0}
+  itemType: 0

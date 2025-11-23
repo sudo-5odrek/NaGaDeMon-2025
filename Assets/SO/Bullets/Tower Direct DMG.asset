@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 145f0e46c4b53664680b1850af86c1a8, type: 3}
   m_Name: Tower Direct DMG
   m_EditorClassIdentifier: 
-  damageAmount: 5
+  damageAmount: 4

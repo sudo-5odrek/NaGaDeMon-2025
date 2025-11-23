@@ -18,6 +18,8 @@ MonoBehaviour:
   cost:
   - item: {fileID: 11400000, guid: 69672051b415a8d42b88f09d9b527808, type: 2}
     amount: 10
+  - item: {fileID: 11400000, guid: 51c5032200cab1c438577fe435637cac, type: 2}
+    amount: 10
   placementLogic: {fileID: 11400000, guid: 6ab922de1f886444fac32734d3c07806, type: 2}
   acceptAllItems: 1
   itemWhitelist:

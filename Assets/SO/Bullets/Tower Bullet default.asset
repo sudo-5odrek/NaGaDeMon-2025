@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 267d679e63fb77a43b884c331626c4a8, type: 3}
   m_Name: Tower Bullet default
   m_EditorClassIdentifier: 
-  speed: 15
-  lifetime: 5
+  speed: 10
+  lifetime: 4
+  fireInterval: 1
   bulletPrefab: {fileID: 8013913237730269421, guid: f7b8a0c16190a6048b96ff5d175d3b8a, type: 3}
   effects:
   - {fileID: 11400000, guid: caaea5090fc23c349985e0a94a427664, type: 2}
