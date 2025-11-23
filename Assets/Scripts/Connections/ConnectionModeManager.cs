@@ -64,7 +64,7 @@ namespace Connections
             cam = Camera.main;
             input = InputContextManager.Instance.input;
 
-            if (placementLogicAsset is IBuildPlacementLogic logic)
+            if (placementLogicAsset is IBuildPlacementLogic)
             {
                 placementLogic = Instantiate(placementLogicAsset) as IBuildPlacementLogic;
             }
@@ -79,7 +79,7 @@ namespace Connections
             input.Player.ConnectMode.performed += OnToggleMode;
             input.Player.Place.started += OnLeftClick;
             input.Player.Cancel.performed += OnRightClick;
-            
+
             PlayerInventory.Instance.OnInventoryChanged += OnInventoryChanged;
         }
 
@@ -88,20 +88,20 @@ namespace Connections
             input.Player.ConnectMode.performed -= OnToggleMode;
             input.Player.Place.started -= OnLeftClick;
             input.Player.Cancel.performed -= OnRightClick;
-            
+
             PlayerInventory.Instance.OnInventoryChanged -= OnInventoryChanged;
         }
-        
+
         private void OnInventoryChanged()
         {
             if (!isActive || placementLogic == null) return;
 
             UpdateAffordabilityVisuals();
         }
-        
+
         private void UpdateAffordabilityVisuals()
         {
-            if (conveyorBuildingData == null) return;
+            if (conveyorBuildingData == null || placementLogic == null) return;
 
             int count = placementLogic.GetPreviewCount();
             bool canAfford = CanAfford(conveyorBuildingData, count);
@@ -116,7 +116,7 @@ namespace Connections
 
         private void Update()
         {
-            if (!isActive) return;
+            if (!isActive || placementLogic == null) return;
 
             Vector3 mouse = GetMouseWorldPosition();
 
@@ -128,7 +128,7 @@ namespace Connections
             // Update cost preview every frame
             if (conveyorBuildingData != null)
                 placementLogic.UpdateCostPreview(conveyorBuildingData);
-            
+
             UpdateAffordabilityVisuals();
 
             HandleDestroyConveyor();
@@ -181,12 +181,7 @@ namespace Connections
             {
                 InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Connect);
 
-                placementLogic.Setup(connectionPrefab, 0f);
-
-                if (placementLogic is ConveyorLinePlacementLogic lineLogic)
-                {
-                    lineLogic.SetPlacementCallback(OnPlacementConfirmed);
-                }
+                placementLogic?.Setup(connectionPrefab, 0f);
 
                 Debug.Log("🟢 Conveyor Mode ON");
             }
@@ -202,7 +197,7 @@ namespace Connections
         // --------------------------------------------------
         private void OnLeftClick(InputAction.CallbackContext ctx)
         {
-            if (!isActive) return;
+            if (!isActive || placementLogic == null) return;
 
             Vector3 mouse = GetMouseWorldPosition();
 
@@ -262,71 +257,111 @@ namespace Connections
                 mouse = GetMouseWorldPosition();
                 Vector3 endPoint = SnapToGrid(mouse);
 
-                // ----------------------------------------------------------
-                // FIRST: check if the player clicked on a building
-                // ----------------------------------------------------------
+                // First, check if we clicked on a valid end building
+                BuildingInventory targetBuilding = null;
                 RaycastHit2D hit = Physics2D.Raycast(mouse, Vector2.zero, 0.1f, buildingMask);
-                if (hit.collider && hit.collider.TryGetComponent(out BuildingInventory targetBuilding))
+                if (hit.collider && hit.collider.TryGetComponent(out BuildingInventory candidate))
                 {
-                    // Prevent connecting to the start building
-                    if (targetBuilding != startBuilding)
+                    // Building is a valid END when it's not the start & can accept input
+                    if (candidate != startBuilding && candidate.CanAcceptNewInput)
                     {
-                        // Can this building accept an input?
-                        if (targetBuilding.CanAcceptNewInput)
-                        {
-                            // This is the end building!
-                            endBuilding = targetBuilding;
-
-                            // Before finalizing, generate cost preview
-                            if (placementLogic is ConveyorLinePlacementLogic lineLogic)
-                            {
-                                int tileCount = lineLogic.GetPreviewCount();
-
-                                if (!CanAfford(conveyorBuildingData, tileCount))
-                                {
-                                    Debug.Log("❌ Not enough resources to reach end building!");
-                                    placementLogic.AbortDrag();
-                                    endBuilding = null;
-                                    return;
-                                }
-
-                                // Place tiles
-                                lineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
-                                SpendCost(conveyorBuildingData, tileCount);
-                            }
-
-                            // Finalize chain immediately
-                            FinalizeChain();
-                            return;
-                        }
+                        targetBuilding = candidate;
                     }
                 }
 
-                // ----------------------------------------------------------
-                // OTHERWISE: clicked on empty cell → continue building
-                // ----------------------------------------------------------
-                if (placementLogic is not ConveyorLinePlacementLogic normalLineLogic)
-                    return;
+                // Finalize preview line in placement logic
+                placementLogic.OnEndDrag(endPoint);
 
-                // cost check
-                int tiles = normalLineLogic.GetPreviewCount();
-                if (!CanAfford(conveyorBuildingData, tiles))
+                // Validate the line according to placement logic (grid, walkable, etc.)
+                if (!placementLogic.ValidatePlacement(out object _))
+                {
+                    Debug.Log("❌ Invalid conveyor placement (logic validation failed).");
+                    placementLogic.AbortDrag();
+                    return;
+                }
+
+                // Get all positions for this segment
+                List<Vector3> positions = placementLogic.GetPlacementPositions();
+                if (positions == null || positions.Count == 0)
+                {
+                    Debug.Log("⚠ No positions returned from placement logic.");
+                    placementLogic.AbortDrag();
+                    return;
+                }
+
+                bool continuing = currentController != null && currentController.pathTiles.Count > 0;
+
+                // When extending a path, we skip the first position (already has a tile)
+                int tileCountToPlace = positions.Count - (continuing ? 1 : 0);
+                if (tileCountToPlace <= 0)
+                {
+                    Debug.Log("⚠ No new conveyor tiles to place.");
+                    placementLogic.AbortDrag();
+
+                    if (targetBuilding != null)
+                    {
+                        endBuilding = targetBuilding;
+                        FinalizeChain();
+                    }
+                    return;
+                }
+
+                // HARD COST CHECK
+                if (!CanAfford(conveyorBuildingData, tileCountToPlace))
                 {
                     Debug.Log("❌ Not enough resources to place this conveyor segment!");
                     placementLogic.AbortDrag();
                     return;
                 }
 
-                // place tiles normally
-                normalLineLogic.GenerateTiles(startPoint.Value, endPoint, currentController.transform);
-                SpendCost(conveyorBuildingData, tiles);
+                // Actually place tiles
+                List<GameObject> tiles = PlaceConveyorTiles(positions, continuing);
 
-                placementLogic.OnEndDrag(endPoint);
+                // Spend resources
+                SpendCost(conveyorBuildingData, tileCountToPlace);
 
-                // Continue chain
-                startPoint = endPoint;
-                placementLogic.OnStartDrag(startPoint.Value);
+                // If we ended on a building, this segment finishes the chain
+                if (targetBuilding != null)
+                {
+                    endBuilding = targetBuilding;
+                    FinalizeChain();
+                    return;
+                }
+
+                // OTHERWISE: clicked on empty world → continue chain
+                if (tiles.Count > 0)
+                {
+                    startPoint = tiles[^1].transform.position;
+                    placementLogic.OnStartDrag(startPoint.Value);
+                }
             }
+        }
+
+        // --------------------------------------------------
+        // TILE INSTANTIATION (NEW CENTRALIZED PLACE)
+        // --------------------------------------------------
+        private List<GameObject> PlaceConveyorTiles(List<Vector3> positions, bool skipFirst)
+        {
+            var tiles = new List<GameObject>();
+
+            if (currentController == null)
+            {
+                Debug.LogError("PlaceConveyorTiles called with no currentController!");
+                return tiles;
+            }
+
+            int startIndex = skipFirst ? 1 : 0;
+            for (int i = startIndex; i < positions.Count; i++)
+            {
+                Vector3 pos = positions[i];
+                GameObject tile = Instantiate(connectionPrefab, pos, Quaternion.identity, currentController.transform);
+                tiles.Add(tile);
+            }
+
+            if (tiles.Count > 0)
+                OnPlacementConfirmed(tiles);
+
+            return tiles;
         }
 
         // --------------------------------------------------
@@ -365,11 +400,11 @@ namespace Connections
         }
 
         // --------------------------------------------------
-        // CALLBACK FROM PLACEMENT LOGIC
+        // CALLBACK TO APPLY ROTATION & REGISTER TILES
         // --------------------------------------------------
         private void OnPlacementConfirmed(List<GameObject> tiles)
         {
-            if (tiles == null || tiles.Count == 0) return;
+            if (tiles == null || tiles.Count == 0 || currentController == null) return;
 
             currentController.AddToPath(tiles);
 
@@ -424,7 +459,7 @@ namespace Connections
 
             destroyTimer = 0f;
             hoveredController = null;
-            
+
             placementLogic.Cancel();
 
             Debug.Log("🔴 Conveyor Mode OFF");

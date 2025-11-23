@@ -221,31 +221,61 @@ namespace Building
             if (dist > buildRange || !GridManager.Instance.GetClosestNode(pos).walkable)
             {
                 isDragging = false;
-                return;
-            }
-            
-            int count = activePlacementLogic.GetPreviewCount();
-
-            // Can the player afford the whole line?
-            if (!CanAfford(selectedBuilding, count))
-            {
-                Debug.Log("Cannot afford full line!");
-                isDragging = false;
-                
                 activePlacementLogic.AbortDrag();
                 return;
             }
 
-            // Place objects
+            // Let placement logic update final drag state
             activePlacementLogic.OnEndDrag(pos);
 
-            // Spend cost for all tiles
+            // VALIDATION
+            if (!activePlacementLogic.ValidatePlacement(out object context))
+            {
+                Debug.Log("❌ Invalid placement by logic.");
+                activePlacementLogic.AbortDrag();
+                isDragging = false;
+                return;
+            }
+
+            // GET ALL POSITIONS
+            var positions = activePlacementLogic.GetPlacementPositions();
+            int count = positions.Count;
+
+            // COST CHECK
+            if (!CanAfford(selectedBuilding, count))
+            {
+                Debug.Log("❌ Too expensive to place.");
+                activePlacementLogic.AbortDrag();
+                isDragging = false;
+                return;
+            }
+
+            // PLACE ALL OBJECTS
+            foreach (var placementPos in positions)
+            {
+                GameObject obj = Instantiate(
+                    selectedBuilding.prefab,
+                    placementPos,
+                    Quaternion.Euler(0, 0, currentRotation)
+                );
+
+                // Assign BuildingData
+                var placed = obj.GetComponent<PlacedBuilding>();
+                if (placed)
+                    placed.data = selectedBuilding;
+
+                // Block nodes
+                GridManager.Instance.BlockNodesUnderObject(obj);
+            }
+
+            // SPEND RESOURCES
             SpendCost(selectedBuilding, count);
 
             isDragging = false;
 
-            // Recreate ghost preview for continuous placement
-            //activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
+            // Reset for continuous placement
+            activePlacementLogic.ClearPreview();
+            activePlacementLogic.Setup(selectedBuilding.prefab, currentRotation);
         }
 
         private void OnCancelPerformed(InputAction.CallbackContext ctx)

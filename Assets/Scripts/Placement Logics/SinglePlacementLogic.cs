@@ -2,6 +2,7 @@ using Building;
 using Grid;
 using Interface;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Placement_Logics
 {
@@ -14,15 +15,16 @@ namespace Placement_Logics
         private GameObject preview;
         private BoxCollider2D previewCollider;
 
-        // Must match your "Buildings" physics layer
         private LayerMask buildingMask;
+
+        private Vector3 cachedSnapPosition;  
 
         private static readonly Color VALID   = new Color(0f, 1f, 0f, 0.35f);
         private static readonly Color INVALID = new Color(1f, 0f, 0f, 0.35f);
 
-        // ----------------------------------------------------------------------
+        // =====================================================================
         // SETUP
-        // ----------------------------------------------------------------------
+        // =====================================================================
         public void Setup(GameObject prefab, float rotation)
         {
             this.prefab = prefab;
@@ -36,96 +38,46 @@ namespace Placement_Logics
         public void ApplyRotation(float newRotation)
         {
             rotation = newRotation;
-
             if (preview)
                 preview.transform.rotation = Quaternion.Euler(0, 0, rotation);
         }
 
-        // ----------------------------------------------------------------------
+        // =====================================================================
         // PREVIEW UPDATE
-        // ----------------------------------------------------------------------
+        // =====================================================================
         public void UpdatePreview(Vector3 worldPos)
         {
             if (!preview) return;
 
-            Vector3 snap = Snap(worldPos);
-            preview.transform.position = snap;
+            cachedSnapPosition = Snap(worldPos);
+            preview.transform.position = cachedSnapPosition;
 
-            bool valid = !IsOverlappingBuilding();
-
-            BuildUtils.SetPreviewTint(preview, valid ? VALID : INVALID);
+            BuildUtils.SetPreviewTint(preview, IsPlacementValid() ? VALID : INVALID);
         }
 
-        // ----------------------------------------------------------------------
-        // DRAG EVENTS
-        // ----------------------------------------------------------------------
-        public void OnStartDrag(Vector3 start) { }
-        public void OnDragging(Vector3 current) { }
+        public void OnStartDrag(Vector3 startPos) { }
+        public void OnDragging(Vector3 currentPos) { }
 
-        public void OnEndDrag(Vector3 worldEnd)
+        public void OnEndDrag(Vector3 endPos)
         {
-            Vector3 snap = Snap(worldEnd);
-
-            if (IsOverlappingBuilding())
-            {
-                Debug.Log("❌ Cannot place: overlaps an existing building.");
-                return;
-            }
-
-            Place(snap);
-            ClearPreview();
-            CreatePreview();
+            // No instantiation here — only update cached position
+            cachedSnapPosition = Snap(endPos);
         }
 
-        public void Cancel() => ClearPreview();
-
-        public void ClearPreview()
+        // =====================================================================
+        // VALIDATION (IMPORTANT)
+        // =====================================================================
+        public bool ValidatePlacement(out object context)
         {
-            if (preview)
-                Object.Destroy(preview);
-            
-            preview = null;
-            previewCollider = null;
-            UIPlacementCostIndicator.Instance.Hide();
+            bool valid = IsPlacementValid();
+            context = null; // Single buildings have no special context
+            return valid;
         }
 
-        // ----------------------------------------------------------------------
-        // INTERNAL HELPERS
-        // ----------------------------------------------------------------------
-        private void CreatePreview()
+        private bool IsPlacementValid()
         {
-            ClearPreview();
-
-            // Instantiate the preview version of the building
-            preview = Object.Instantiate(prefab);
-            BuildUtils.MakePreview(preview);
-
-            preview.transform.rotation = Quaternion.Euler(0, 0, rotation);
-
-            // Copy the BoxCollider2D from the prefab
-            BoxCollider2D src = prefab.GetComponentInChildren<BoxCollider2D>();
-            if (src != null)
-            {
-                previewCollider = preview.AddComponent<BoxCollider2D>();
-                previewCollider.size = src.size;
-                previewCollider.offset = src.offset;
-                previewCollider.isTrigger = true;
-
-                // 🔥 Slight collider shrink to avoid false positive overlaps
-                Vector2 shrink = new Vector2(0.05f, 0.05f);
-                previewCollider.size -= shrink;
-            }
-            else
-            {
-                Debug.LogWarning("⚠ No BoxCollider2D found on the prefab! Single placement requires one.");
-            }
-
-            preview.layer = LayerMask.NameToLayer("PlacementPreview");
-        }
-
-        private bool IsOverlappingBuilding()
-        {
-            if (!previewCollider) return true;
+            if (previewCollider == null)
+                return false;
 
             Collider2D hit = Physics2D.OverlapBox(
                 previewCollider.bounds.center,
@@ -134,26 +86,59 @@ namespace Placement_Logics
                 buildingMask
             );
 
-            return hit != null;
+            return hit == null;
         }
 
-        private void Place(Vector3 pos)
+        public List<Vector3> GetPlacementPositions()
         {
-            GameObject obj = Object.Instantiate(prefab, pos, Quaternion.Euler(0, 0, rotation));
-            GridManager.Instance.BlockNodesUnderObject(obj);
+            return new List<Vector3> { cachedSnapPosition };
         }
 
+        // =====================================================================
+        // HELPERS
+        // =====================================================================
         private Vector3 Snap(Vector3 world)
         {
             var (gx, gy) = GridManager.Instance.GridFromWorld(world);
             return GridManager.Instance.WorldFromGrid(gx, gy);
         }
-        
-        public int GetPreviewCount()
+
+        private void CreatePreview()
         {
-            return 1;
+            ClearPreview();
+
+            preview = Object.Instantiate(prefab);
+            BuildUtils.MakePreview(preview);
+
+            preview.transform.rotation = Quaternion.Euler(0, 0, rotation);
+
+            // Copy collider
+            BoxCollider2D src = prefab.GetComponentInChildren<BoxCollider2D>();
+            if (src != null)
+            {
+                previewCollider = preview.AddComponent<BoxCollider2D>();
+                previewCollider.size = src.size - new Vector2(0.05f, 0.05f);
+                previewCollider.offset = src.offset;
+                previewCollider.isTrigger = true;
+            }
+
+            preview.layer = LayerMask.NameToLayer("PlacementPreview");
         }
-        
+
+        public void ClearPreview()
+        {
+            if (preview)
+                Object.Destroy(preview);
+
+            preview = null;
+            previewCollider = null;
+            UIPlacementCostIndicator.Instance.Hide();
+        }
+
+        public void Cancel() => ClearPreview();
+
+        public int GetPreviewCount() => 1;
+
         public Vector3 GetPreviewPlacement()
         {
             return preview ? preview.transform.position : Vector3.zero;
@@ -162,22 +147,19 @@ namespace Placement_Logics
         public void UpdateCostPreview(BuildingData data)
         {
             UIPlacementCostIndicator.Instance.ShowCost(
-                data,
-                GetPreviewCount(),
-                GetPreviewPlacement()
+                data, 1, GetPreviewPlacement()
             );
         }
-        
+
         public void SetGhostColor(Color color)
         {
-            // Hover tile (when not dragging)
             if (preview != null)
                 BuildUtils.SetPreviewTint(preview, color);
         }
 
         public void AbortDrag()
         {
-            throw new System.NotImplementedException();
+            
         }
     }
 }

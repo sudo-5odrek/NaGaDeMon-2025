@@ -77,5 +77,8 @@ namespace Interface
         /// Should clear line ghosts and restore hover preview.
         /// </summary>
         void AbortDrag();
+        
+        bool ValidatePlacement(out object context);
+        List<Vector3> GetPlacementPositions();
     }
 }

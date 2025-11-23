@@ -15,24 +15,22 @@ namespace Placement_Logics
         private Vector3 worldStart;
         private bool isDragging = false;
 
-        // Hover preview (before drag)
-        private GameObject hoverPreview;
+        private GameObject hoverPreview;                 // ghost before dragging
+        private readonly List<GameObject> previewLine = new(); // ghosts during drag
 
-        // Line preview during drag
-        private readonly List<GameObject> previewLine = new();
+        private readonly List<Vector3> cachedLinePositions = new(); // returned to BuildManager
 
-        // Optional callback when line is placed (useful for conveyors)
-        private System.Action<List<GameObject>> onPlaced;
+        // Optional callback (you usually do NOT need it anymore)
+        private System.Action<List<Vector3>> onPlaced;
 
-        public void SetPlacementCallback(System.Action<List<GameObject>> callback)
+        public void SetPlacementCallback(System.Action<List<Vector3>> callback)
         {
             onPlaced = callback;
         }
 
-        // ----------------------------------------------------------------------
+        // =====================================================================
         // SETUP
-        // ----------------------------------------------------------------------
-
+        // =====================================================================
         public void Setup(GameObject prefab, float rotation)
         {
             this.prefab = prefab;
@@ -41,43 +39,34 @@ namespace Placement_Logics
             CreateHoverPreview();
         }
 
-        // ----------------------------------------------------------------------
-        // ROTATION INPUT
-        // ----------------------------------------------------------------------
-
         public void ApplyRotation(float newRotation)
         {
             rotation = newRotation;
 
-            // update preview objects
             if (hoverPreview)
                 hoverPreview.transform.rotation = Quaternion.Euler(0, 0, rotation);
 
             foreach (var g in previewLine)
-                if (g)
-                    g.transform.rotation = Quaternion.Euler(0, 0, rotation);
+                if (g) g.transform.rotation = Quaternion.Euler(0, 0, rotation);
         }
 
-        // ----------------------------------------------------------------------
-        // PREVIEW (before dragging)
-        // ----------------------------------------------------------------------
-
+        // =====================================================================
+        // PREVIEW UPDATE
+        // =====================================================================
         public void UpdatePreview(Vector3 worldCurrent)
         {
             if (!isDragging && hoverPreview)
                 hoverPreview.transform.position = worldCurrent;
         }
 
-        // ----------------------------------------------------------------------
-        // DRAG LOGIC
-        // ----------------------------------------------------------------------
-
-        public void OnStartDrag(Vector3 startWorldPos)
+        // =====================================================================
+        // DRAG EVENTS
+        // =====================================================================
+        public void OnStartDrag(Vector3 start)
         {
             isDragging = true;
-            worldStart = startWorldPos;
+            worldStart = start;
 
-            // remove single hover ghost
             if (hoverPreview)
                 Object.Destroy(hoverPreview);
 
@@ -90,39 +79,133 @@ namespace Placement_Logics
 
             ClearPreviewLine();
             DrawPreviewLine(worldStart, current);
+            
+            cachedLinePositions.Clear();
+            foreach (var g in previewLine)
+            {
+                if (g)
+                    cachedLinePositions.Add(g.transform.position);
+            }
         }
 
-        public void OnEndDrag(Vector3 worldEnd)
+        public void OnEndDrag(Vector3 endPos)
         {
             if (!isDragging) return;
 
             isDragging = false;
+
+            // Cache all placement positions for BuildManager
+            cachedLinePositions.Clear();
+            foreach (var ghost in previewLine)
+            {
+                if (ghost)
+                    cachedLinePositions.Add(ghost.transform.position);
+            }
+
             ClearPreviewLine();
-
-            // Final placement
-            PlaceLine(worldStart, worldEnd);
-
-            // ✅ After a successful placement, go back to a single hover preview
-            CreateHoverPreview();
+            CreateHoverPreview(); // return to idle hover mode
         }
 
-        // ✅ NEW: drag ended with NO placement (too expensive / invalid / cancelled)
         public void AbortDrag()
         {
             if (!isDragging) return;
 
             isDragging = false;
+
+            cachedLinePositions.Clear();
             ClearPreviewLine();
 
-            // recreate hover ghost so player can aim again
-            if (hoverPreview == null && prefab != null)
+            if (!hoverPreview)
                 CreateHoverPreview();
         }
 
-        // ----------------------------------------------------------------------
-        // INTERNAL — Ghosts & Placement
-        // ----------------------------------------------------------------------
+        // =====================================================================
+        // VALIDATION
+        // =====================================================================
+        public bool ValidatePlacement(out object context)
+        {
+            context = null;
 
+            // If we have NO tiles, nothing to place
+            if (cachedLinePositions.Count == 0)
+                return false;
+
+            // Validate every tile
+            foreach (Vector3 pos in cachedLinePositions)
+            {
+                var node = GridManager.Instance.GetClosestNode(pos);
+                if (node == null || !node.walkable)
+                    return false;
+            }
+
+            return true;
+        }
+
+        // =====================================================================
+        // REQUIRED API FOR BuildManager
+        // =====================================================================
+        public List<Vector3> GetPlacementPositions()
+        {
+            return new List<Vector3>(cachedLinePositions);
+        }
+
+        public int GetPreviewCount()
+        {
+            if (isDragging)
+                return cachedLinePositions.Count;
+
+            return hoverPreview ? 1 : 0;
+        }
+
+        public Vector3 GetPreviewPlacement()
+        {
+            if (isDragging && cachedLinePositions.Count > 0)
+                return cachedLinePositions[cachedLinePositions.Count - 1];
+
+            if (!isDragging && hoverPreview)
+                return hoverPreview.transform.position;
+
+            return worldStart;
+        }
+
+        public void UpdateCostPreview(BuildingData data)
+        {
+            int count = GetPreviewCount();
+            Vector3 pos = GetPreviewPlacement();
+
+            UIPlacementCostIndicator.Instance.ShowCost(data, count, pos);
+        }
+
+        public void SetGhostColor(Color color)
+        {
+            if (!isDragging && hoverPreview)
+                BuildUtils.SetPreviewTint(hoverPreview, color);
+
+            foreach (var g in previewLine)
+                if (g != null)
+                    BuildUtils.SetPreviewTint(g, color);
+        }
+
+        public void Cancel()
+        {
+            isDragging = false;
+            ClearPreview();
+        }
+
+        public void ClearPreview()
+        {
+            ClearPreviewLine();
+
+            if (hoverPreview)
+                Object.Destroy(hoverPreview);
+
+            hoverPreview = null;
+            UIPlacementCostIndicator.Instance.Hide();
+        }
+
+        // =====================================================================
+        // INTERNAL HELPERS
+        // =====================================================================
         private void CreateHoverPreview()
         {
             ClearPreviewLine();
@@ -154,20 +237,14 @@ namespace Placement_Logics
                 int step = startY < endY ? 1 : -1;
 
                 for (int y = startY; y != endY + step; y += step)
-                {
-                    Vector3 pos = GridManager.Instance.WorldFromGrid(startX, y);
-                    previewLine.Add(CreateGhost(pos));
-                }
+                    previewLine.Add(CreateGhost(GridManager.Instance.WorldFromGrid(startX, y)));
             }
             else
             {
                 int step = startX < endX ? 1 : -1;
 
                 for (int x = startX; x != endX + step; x += step)
-                {
-                    Vector3 pos = GridManager.Instance.WorldFromGrid(x, startY);
-                    previewLine.Add(CreateGhost(pos));
-                }
+                    previewLine.Add(CreateGhost(GridManager.Instance.WorldFromGrid(x, startY)));
             }
         }
 
@@ -176,107 +253,6 @@ namespace Placement_Logics
             GameObject ghost = Object.Instantiate(prefab, pos, Quaternion.Euler(0, 0, rotation));
             BuildUtils.MakePreview(ghost);
             return ghost;
-        }
-
-        private void PlaceLine(Vector3 start, Vector3 end)
-        {
-            var placedObjects = new List<GameObject>();
-
-            (int startX, int startY) = GridManager.Instance.GridFromWorld(start);
-            (int endX, int endY) = GridManager.Instance.GridFromWorld(end);
-
-            bool vertical = Mathf.Abs(endY - startY) > Mathf.Abs(endX - startX);
-
-            if (vertical)
-            {
-                int step = startY < endY ? 1 : -1;
-
-                for (int y = startY; y != endY + step; y += step)
-                {
-                    Vector3 pos = GridManager.Instance.WorldFromGrid(startX, y);
-                    placedObjects.Add(Place(pos));
-                }
-            }
-            else
-            {
-                int step = startX < endX ? 1 : -1;
-
-                for (int x = startX; x != endX + step; x += step)
-                {
-                    Vector3 pos = GridManager.Instance.WorldFromGrid(x, startY);
-                    placedObjects.Add(Place(pos));
-                }
-            }
-
-            // Give higher systems the placed line
-            onPlaced?.Invoke(placedObjects);
-        }
-
-        private GameObject Place(Vector3 pos)
-        {
-            var obj = Object.Instantiate(prefab, pos, Quaternion.Euler(0, 0, rotation));
-            GridManager.Instance.BlockNodesUnderObject(obj);
-            return obj;
-        }
-
-        // ----------------------------------------------------------------------
-        // CANCEL & CLEAR
-        // ----------------------------------------------------------------------
-
-        public void Cancel()
-        {
-            isDragging = false;
-            ClearPreview();
-        }
-
-        public void ClearPreview()
-        {
-            ClearPreviewLine();
-
-            if (hoverPreview)
-                Object.Destroy(hoverPreview);
-
-            hoverPreview = null;
-            UIPlacementCostIndicator.Instance.Hide();
-        }
-
-        public int GetPreviewCount()
-        {
-            return previewLine.Count;
-        }
-
-        public Vector3 GetPreviewPlacement()
-        {
-            // If no preview tiles, fallback to hover position
-            if (previewLine.Count == 0 && hoverPreview != null)
-                return hoverPreview.transform.position;
-
-            // The top-right object = the LAST ghost in the preview line
-            GameObject last = previewLine[previewLine.Count - 1];
-            return last ? last.transform.position : worldStart;
-        }
-
-        public void UpdateCostPreview(BuildingData data)
-        {
-            UIPlacementCostIndicator.Instance.ShowCost(
-                data,
-                GetPreviewCount(),
-                GetPreviewPlacement()
-            );
-        }
-
-        public void SetGhostColor(Color color)
-        {
-            // Hover tile (when not dragging)
-            if (hoverPreview != null && !isDragging)
-                BuildUtils.SetPreviewTint(hoverPreview, color);
-
-            // All ghosts while dragging
-            foreach (var g in previewLine)
-            {
-                if (g != null)
-                    BuildUtils.SetPreviewTint(g, color);
-            }
         }
     }
 }

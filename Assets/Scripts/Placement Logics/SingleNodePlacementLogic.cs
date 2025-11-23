@@ -3,6 +3,7 @@ using Building.Production;
 using Grid;
 using Interface;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Placement_Logics
 {
@@ -12,24 +13,26 @@ namespace Placement_Logics
         private GameObject prefab;
         private float rotation;
 
-        private GameObject previewObject;
+        private GameObject preview;
+        private MiningNode hoveredNode;
 
-        private System.Action<Vector3, GameObject> onPlacedCallback;
+        private LayerMask nodeMask;
 
-        [Header("Detection")]
-        public LayerMask nodeMask;
+        private Vector3 cachedPlacementPos;
+        private MiningNode cachedPlacementNode;
 
-        private static readonly Color VALID = new Color(0f, 1f, 0f, 0.35f);
+        private static readonly Color VALID   = new Color(0f, 1f, 0f, 0.35f);
         private static readonly Color INVALID = new Color(1f, 0f, 0f, 0.35f);
 
-        // ----------------------------------------------------------------------
+        // =====================================================================
         // SETUP
-        // ----------------------------------------------------------------------
-
+        // =====================================================================
         public void Setup(GameObject prefab, float rotation)
         {
             this.prefab = prefab;
             this.rotation = rotation;
+
+            nodeMask = LayerMask.GetMask("Node");
 
             CreatePreview();
         }
@@ -37,60 +40,116 @@ namespace Placement_Logics
         public void ApplyRotation(float newRotation)
         {
             rotation = newRotation;
-
-            if (previewObject)
-                previewObject.transform.rotation = Quaternion.Euler(0, 0, rotation);
+            if (preview)
+                preview.transform.rotation = Quaternion.Euler(0, 0, rotation);
         }
 
-        public void SetPlacementCallback(System.Action<Vector3, GameObject> callback)
+        // =====================================================================
+        // PREVIEW UPDATE
+        // =====================================================================
+        public void UpdatePreview(Vector3 worldPos)
         {
-            onPlacedCallback = callback;
-        }
-
-        // ----------------------------------------------------------------------
-        // UPDATE PREVIEW (Hover)
-        // ----------------------------------------------------------------------
-
-        public void UpdatePreview(Vector3 worldCurrent)
-        {
-            if (!previewObject) return;
+            if (!preview) return;
 
             var grid = GridManager.Instance;
-            var (gx, gy) = grid.GridFromWorld(worldCurrent);
 
+            var (gx, gy) = grid.GridFromWorld(worldPos);
             Vector3 snapPos = grid.WorldFromGrid(gx, gy);
-            previewObject.transform.position = snapPos;
 
-            bool valid = GetNodeAt(gx, gy) != null;
-            BuildUtils.SetPreviewTint(previewObject, valid ? VALID : INVALID);
+            preview.transform.position = snapPos;
+
+            hoveredNode = GetNodeAt(gx, gy);
+
+            BuildUtils.SetPreviewTint(preview, hoveredNode ? VALID : INVALID);
         }
 
-        // ----------------------------------------------------------------------
-        // DRAG EVENTS
-        // For single node placement: only OnEndDrag matters
-        // ----------------------------------------------------------------------
+        // These two are unused but required
+        public void OnStartDrag(Vector3 startPos) { }
+        public void OnDragging(Vector3 currentPos) { }
 
-        public void OnStartDrag(Vector3 start)
+        public void OnEndDrag(Vector3 endPos)
         {
-            // Nothing needed for single placement
+            // Cache final snapped position
+            cachedPlacementPos = GetPreviewPlacement();
         }
 
-        public void OnDragging(Vector3 current)
+        public void AbortDrag()
         {
-            // Not used for single placement
-        }
+            cachedPlacementPos = Vector3.zero;
+            cachedPlacementNode = null;
 
-        public void OnEndDrag(Vector3 worldEnd)
-        {
-            TryPlace(worldEnd);
             ClearPreview();
             CreatePreview();
         }
 
-        // ----------------------------------------------------------------------
-        // INTERNAL LOGIC
-        // ----------------------------------------------------------------------
+        public void Cancel() => ClearPreview();
 
+        // =====================================================================
+        // VALIDATION (Key logic)
+        // =====================================================================
+        public bool ValidatePlacement(out object context)
+        {
+            if (!preview)
+            {
+                context = null;
+                return false;
+            }
+
+            var grid = GridManager.Instance;
+            Vector3 pos = preview.transform.position;
+
+            var (gx, gy) = grid.GridFromWorld(pos);
+
+            MiningNode node = GetNodeAt(gx, gy);
+            if (node == null)
+            {
+                cachedPlacementNode = null;
+                cachedPlacementPos = Vector3.zero;
+                context = null;
+                return false;
+            }
+
+            cachedPlacementNode = node;
+            cachedPlacementPos = grid.WorldFromGrid(gx, gy);
+
+            // Pass the MiningNode to the MinerBuilding later
+            context = node;
+            return true;
+        }
+
+        // =====================================================================
+        // REQUIRED API FOR BuildManager
+        // =====================================================================
+        public List<Vector3> GetPlacementPositions()
+        {
+            return new List<Vector3> { cachedPlacementPos };
+        }
+
+        public int GetPreviewCount() => 1;
+
+        public Vector3 GetPreviewPlacement()
+        {
+            return preview ? preview.transform.position : Vector3.zero;
+        }
+
+        public void UpdateCostPreview(BuildingData data)
+        {
+            UIPlacementCostIndicator.Instance.ShowCost(
+                data,
+                1,
+                GetPreviewPlacement()
+            );
+        }
+
+        public void SetGhostColor(Color color)
+        {
+            if (preview)
+                BuildUtils.SetPreviewTint(preview, color);
+        }
+
+        // =====================================================================
+        // HELPERS
+        // =====================================================================
         private MiningNode GetNodeAt(int gx, int gy)
         {
             Vector3 worldPos = GridManager.Instance.WorldFromGrid(gx, gy);
@@ -102,104 +161,24 @@ namespace Placement_Logics
             return null;
         }
 
-        private void TryPlace(Vector3 worldPos)
-        {
-            var grid = GridManager.Instance;
-            var (gx, gy) = grid.GridFromWorld(worldPos);
-
-            MiningNode node = GetNodeAt(gx, gy);
-
-            if (node == null)
-            {
-                Debug.Log("❌ Cannot place: no mining node under cursor.");
-                return;
-            }
-
-            Vector3 snapPos = grid.WorldFromGrid(gx, gy);
-
-            // Instantiate the miner building
-            GameObject obj = Object.Instantiate(prefab, snapPos, Quaternion.Euler(0, 0, rotation));
-
-            // Block the node
-            grid.BlockNodesUnderObject(obj);
-
-            // Assign node to the miner
-            if (obj.TryGetComponent(out MinerBuilding miner))
-            {
-                miner.AssignNode(node);
-                Debug.Log($"🔗 Miner assigned to node: {node.name}");
-            }
-
-            // Disable the node collider — cannot collect manually anymore
-            DisableNodeCollider(node);
-
-            // Callback
-            onPlacedCallback?.Invoke(snapPos, obj);
-        }
-
-        private void DisableNodeCollider(MiningNode node)
-        {
-            Collider2D col = node.GetComponent<Collider2D>();
-            if (col)
-            {
-                col.enabled = false;
-                Debug.Log($"🚫 Disabled collider on node: {node.name}");
-            }
-        }
-
         private void CreatePreview()
         {
             ClearPreview();
 
-            previewObject = Object.Instantiate(prefab);
-            BuildUtils.MakePreview(previewObject);
-            BuildUtils.SetPreviewTint(previewObject, INVALID);
-            previewObject.transform.rotation = Quaternion.Euler(0, 0, rotation);
+            preview = Object.Instantiate(prefab);
+            BuildUtils.MakePreview(preview);
+            BuildUtils.SetPreviewTint(preview, INVALID);
+
+            preview.transform.rotation = Quaternion.Euler(0, 0, rotation);
         }
 
         public void ClearPreview()
         {
-            if (previewObject)
-                Object.Destroy(previewObject);
+            if (preview)
+                Object.Destroy(preview);
 
-            previewObject = null;
+            preview = null;
             UIPlacementCostIndicator.Instance.Hide();
-        }
-
-        public void Cancel()
-        {
-            ClearPreview();
-        }
-        
-        public int GetPreviewCount()
-        {
-            return 1;
-        }
-        
-        public Vector3 GetPreviewPlacement()
-        {
-            return previewObject ? previewObject.transform.position : Vector3.zero;
-        }
-
-        public void UpdateCostPreview(BuildingData data)
-        {
-            UIPlacementCostIndicator.Instance.ShowCost(
-                data,
-                GetPreviewCount(),
-                GetPreviewPlacement()
-            );
-        }
-        
-        public void SetGhostColor(Color color)
-        {
-            // Hover tile (when not dragging)
-            if (previewObject != null)
-                BuildUtils.SetPreviewTint(previewObject, color);
-        }
-
-        public void AbortDrag()
-        {
-            throw new System.NotImplementedException();
         }
     }
 }
