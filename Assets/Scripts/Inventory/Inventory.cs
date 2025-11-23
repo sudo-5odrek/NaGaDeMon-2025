@@ -86,11 +86,6 @@ namespace Inventory
         {
             float value = items.TryGetValue(resourceId, out var v) ? v : 0f;
 
-            Debug.Log($"[INVENTORY GET] ({OwnerID}) Request: '{resourceId}' → Returned: {value}");
-
-            foreach (var kvp in items)
-                Debug.Log($"    ({OwnerID}) - Stored {kvp.Key} = {kvp.Value}");
-
             return value;
         }
 
