@@ -1378,7 +1378,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2461467946598406934, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4252939630054739154, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
       propertyPath: nexus
@@ -1422,7 +1422,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e339643551cad84f8810eaff3b0ca07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  waveData: {fileID: 11400000, guid: 068daaa75bd4e0540acfe4aaefbae515, type: 2}
+  waveData: {fileID: 11400000, guid: 6741bd8a5b832514aa8f859ed839d9a8, type: 2}
 --- !u!1001 &2817057434369945214
 PrefabInstance:
   m_ObjectHideFlags: 0
