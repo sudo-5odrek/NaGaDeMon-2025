@@ -171,5 +171,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   flySmooth: 10
   collectDistance: 0.3
-  itemDefinition: {fileID: 11400000, guid: 69672051b415a8d42b88f09d9b527808, type: 2}
+  itemDefinition: {fileID: 11400000, guid: 51c5032200cab1c438577fe435637cac, type: 2}
   amount: 1
