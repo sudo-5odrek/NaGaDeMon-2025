@@ -26,6 +26,9 @@ namespace Enemy
 
         [HideInInspector] public List<Node> path;
         [HideInInspector] public int index;
+        
+        
+        private const float NODE_REACH_DISTANCE = 0.4f;
 
         Rigidbody2D rb;
         float timer;
@@ -178,7 +181,10 @@ namespace Enemy
             rb.linearVelocity = currentDir * FinalSpeed;
 
             // Check if reached node
-            if (dist < 0.1f) index++;
+            if (dist < NODE_REACH_DISTANCE)
+            {
+                index++;
+            }
         }
 
         void OnTriggerEnter2D(Collider2D other)
