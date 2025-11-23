@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9055445378013338097}
+  - component: {fileID: 471123968512169689}
   m_Layer: 0
   m_Name: Build Manager
   m_TagString: Untagged
@@ -31,3 +32,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &471123968512169689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 511967875293989905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9adbeb511bc5d9e4e95a4afdc6cc15cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  availableBuildings:
+  - {fileID: 11400000, guid: 4b9958b72b24700429cd3182049a2a7e, type: 2}
+  - {fileID: 11400000, guid: c87e27273b88d1441b937b63587b1472, type: 2}
+  - {fileID: 11400000, guid: 9e0529315eb0552419a4b5fcb8d8b5dc, type: 2}
+  - {fileID: 11400000, guid: 13a835d162141a64f8ef21fbc29db8e7, type: 2}
+  - {fileID: 11400000, guid: 2ab9d7cc632620042866064eb1b03cd9, type: 2}
+  buildRange: 50
+  player: {fileID: 0}
+  buildMenu: {fileID: 0}
+  destroyHoldTime: 1
+  buildingLayer:
+    serializedVersion: 2
+    m_Bits: 128

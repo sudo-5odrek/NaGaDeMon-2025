@@ -35,11 +35,6 @@ namespace Player
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
 
             Instance = this;
             Inventory = new Inventory.Inventory(-1); // -1 = infinite capacity

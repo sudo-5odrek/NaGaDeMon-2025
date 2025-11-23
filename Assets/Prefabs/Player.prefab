@@ -81,6 +81,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fd10e1ea1c39d34e82b9cf4826fec4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inventory: {fileID: 7697961291761733173}
+  miningTextStyle: {fileID: 0}
 --- !u!1 &1757687915643613006
 GameObject:
   m_ObjectHideFlags: 0
@@ -156,7 +158,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 4
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
   m_Color: {r: 0.9622642, g: 0.95099664, b: 0.7307761, a: 1}
   m_FlipX: 0
@@ -247,18 +249,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mode: 1
-  bulletSpeed: 15
+  bulletEffects: {fileID: 11400000, guid: 9228d298790d9b746838aa7e469fbbbe, type: 2}
   maxRange: 5
-  attackCooldown: 0.5
-  damagePerShot: 5
   enemyMask:
     serializedVersion: 2
     m_Bits: 64
-  firePoint: {fileID: 5947861019581633310}
-  projectilePrefab: {fileID: 8013913237730269421, guid: f7b8a0c16190a6048b96ff5d175d3b8a, type: 3}
   obstacleMask:
     serializedVersion: 2
     m_Bits: 0
+  firePoint: {fileID: 5947861019581633310}
+  playerRoot: {fileID: 1655121782717556693}
+  attackCooldown: 0.5
 --- !u!1 &7309010346709286061
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,6 +272,8 @@ GameObject:
   - component: {fileID: 6922067620858836247}
   - component: {fileID: 4595631923387966408}
   - component: {fileID: 1462221263608674689}
+  - component: {fileID: 7697961291761733173}
+  - component: {fileID: 7895212533592982702}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -373,6 +376,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 6
   rotationSpeed: 720
+--- !u!114 &7697961291761733173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7309010346709286061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81ef6e3e01017cc42825a287b17cb53d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weightSlowdownFactor: 0.005
+  weightBuffer: 10
+  totalWeight: 0
+  debugInventoryView: 
+--- !u!114 &7895212533592982702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7309010346709286061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af8413f67e850340942c99d695f98c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactRange: 5
+  interactableMask:
+    serializedVersion: 2
+    m_Bits: 128
+  wheelPrefab: {fileID: 0}
+  wheelHoverSelectTime: 0.4
+  activeWheelUI: {fileID: 0}
 --- !u!1 &7681329096842611941
 GameObject:
   m_ObjectHideFlags: 0
@@ -441,7 +479,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_Radius: 2
 --- !u!114 &289638521178191352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -530,7 +568,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.5271004, g: 0.9716981, b: 0.6273661, a: 1}
   m_FlipX: 0

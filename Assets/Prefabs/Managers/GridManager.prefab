@@ -44,8 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ec1e140da46ea446adff5784d8d8fb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 20
-  height: 20
+  width: 100
+  height: 100
   cellSize: 1
-  gridColor: {r: 1, g: 1, b: 1, a: 0.2}
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 136
+  gridColor: {r: 1, g: 1, b: 1, a: 0.007843138}
   blockedColor: {r: 1, g: 0, b: 0, a: 0.3}

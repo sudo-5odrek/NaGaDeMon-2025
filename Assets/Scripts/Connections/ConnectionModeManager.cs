@@ -405,6 +405,8 @@ namespace Connections
 
             destroyTimer = 0f;
             hoveredController = null;
+            
+            placementLogic.Cancel();
 
             Debug.Log("🔴 Conveyor Mode OFF");
         }

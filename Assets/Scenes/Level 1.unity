@@ -944,6 +944,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 350deeeb7c6f8414692273670c9c3fa8, type: 3}
+--- !u!114 &1532543526 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1663123527270092415, guid: 9d94b10b922290445b2effc29901194f, type: 3}
+  m_PrefabInstance: {fileID: 2817057434369945214}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1635736193
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1115,6 +1126,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 04bb8131db4c2214ab437e59c1fba207, type: 3}
+--- !u!224 &1693995578 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 934953048773683687, guid: 9d94b10b922290445b2effc29901194f, type: 3}
+  m_PrefabInstance: {fileID: 2817057434369945214}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1735535659 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5533582627395482397, guid: d38dc41727ce9ab47bc0b28cca286bf7, type: 3}
@@ -1454,6 +1470,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 471123968512169689, guid: 980a65c4d8bece94bbd2d1bfed8eed7a, type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 646885667}
+    - target: {fileID: 471123968512169689, guid: 980a65c4d8bece94bbd2d1bfed8eed7a, type: 3}
+      propertyPath: buildMenu
+      value: 
+      objectReference: {fileID: 1927120294}
     - target: {fileID: 511967875293989905, guid: 980a65c4d8bece94bbd2d1bfed8eed7a, type: 3}
       propertyPath: m_Name
       value: Build Manager
@@ -1779,6 +1803,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1335300213693641030, guid: f0a863e0b70346d4fbaf57c48321337b, type: 3}
+      propertyPath: root
+      value: 
+      objectReference: {fileID: 1693995578}
+    - target: {fileID: 1335300213693641030, guid: f0a863e0b70346d4fbaf57c48321337b, type: 3}
+      propertyPath: costText
+      value: 
+      objectReference: {fileID: 1532543526}
     - target: {fileID: 3744195502541454203, guid: f0a863e0b70346d4fbaf57c48321337b, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.66487

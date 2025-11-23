@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1a083ee033e8b544bb9dd19eb3bc226, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  menuPanel: {fileID: 2083739893448653775}
+  menuPanel: {fileID: 6144996949543474822}
   buttonContainer: {fileID: 8883672550166191809}
   buttonPrefab: {fileID: 715242957953054214, guid: 0b0596de02a03f442bf8f910fe761b2d, type: 3}
 --- !u!1 &2083739893448653775

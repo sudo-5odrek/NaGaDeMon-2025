@@ -44,6 +44,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29d0dd77f37926248952bd1ab7d28e11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  conveyorPrefab: {fileID: 0}
-  placementLogic: {fileID: 0}
+  connectionPrefab: {fileID: 2627909984432355121, guid: 9be99fe43cc77a64d9865f5006877f92, type: 3}
+  conveyorPathPrefab: {fileID: 551381116501606478, guid: 2cda4db82e36a354e8216cafb42a67bf, type: 3}
+  placementLogicAsset: {fileID: 11400000, guid: 5049398a2eae57e4fb4f65a14be73087, type: 2}
+  buildingMask:
+    serializedVersion: 2
+    m_Bits: 128
+  connectionMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  conveyorBuildingData: {fileID: 11400000, guid: 25eb96c75b0d8f9429f0cfe1b90d2145, type: 2}
   player: {fileID: 0}
+  destroyHoldTime: 1
