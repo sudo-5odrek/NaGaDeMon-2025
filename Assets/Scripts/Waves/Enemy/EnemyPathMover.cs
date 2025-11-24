@@ -1,6 +1,7 @@
 // (everything else stays identical to your original file)
 using System.Collections.Generic;
 using Grid;
+using UI.Indicators;
 using UnityEngine;
 
 namespace Enemy
@@ -67,12 +68,14 @@ namespace Enemy
         private void OnEnable()
         {
             GridManager.Instance.OnGridUpdated += HandleGridUpdate;
+            OffscreenIndicatorManager.Instance.RegisterEnemy(transform);
         }
 
         private void OnDisable()
         {
             if (GridManager.Instance != null)
                 GridManager.Instance.OnGridUpdated -= HandleGridUpdate;
+            OffscreenIndicatorManager.Instance.UnregisterEnemy(transform);
         }
 
         private void HandleGridUpdate()

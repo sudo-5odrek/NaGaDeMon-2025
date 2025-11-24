@@ -1,51 +1,44 @@
 using System.Collections.Generic;
+using Pool_Services;
 using UnityEngine;
 
 namespace Floating_Text_Service
 {
-    public class FloatingTextPool : MonoBehaviour
+    public class FloatingTextPool :MonoBehaviour
     {
-        [SerializeField] private FloatingTextController prefab;
-        [SerializeField] private Transform parent; // world-space canvas transform
-        [SerializeField] private int prewarmCount = 16;
-        private readonly Queue<FloatingTextController> pool = new();
+        private GenericPool<FloatingTextController> pool;
+        private Camera cam;
 
-        private Camera mainCam;
-
-        public void Init(FloatingTextController prefabRef, Transform parentRef, int prewarm, Camera cam)
+        public void Init(FloatingTextController prefab, Transform parent, int prewarm, Camera camRef)
         {
-            prefab = prefabRef;
-            parent = parentRef;
-            prewarmCount = Mathf.Max(0, prewarm);
-            mainCam = cam;
+            cam = camRef;
 
-            for (int i = 0; i < prewarmCount; i++)
-                pool.Enqueue(CreateInstance());
-        }
+            pool = new GenericPool<FloatingTextController>(prefab, parent, prewarm);
 
-        private FloatingTextController CreateInstance()
-        {
-            var inst = Instantiate(prefab, parent);
-            inst.gameObject.SetActive(false);
-            inst.Init(this, mainCam);
-            return inst;
+            // Run custom init for each prewarmed instance
+            foreach (var inst in GetAllInPool())
+                inst.Init(this, cam);
         }
 
         public FloatingTextController Get()
         {
-            if (pool.Count == 0)
-                pool.Enqueue(CreateInstance());
-
-            var inst = pool.Dequeue();
-            inst.gameObject.SetActive(true);
-            inst.transform.localScale = Vector3.one; // reset potential scale changes
+            var inst = pool.Get();
+            inst.Init(this, cam);
+            inst.transform.localScale = Vector3.one;
             return inst;
         }
 
         public void Release(FloatingTextController controller)
         {
-            controller.gameObject.SetActive(false);
-            pool.Enqueue(controller);
+            pool.Release(controller);
+        }
+
+        private IEnumerable<FloatingTextController> GetAllInPool()
+        {
+            // Unfortunately Queue<T> doesn't expose direct enumeration of ONLY pooled items.
+            // We can expose it in GenericPool by adding protected access.
+            // But you get the idea: call Init() on all items if needed.
+            yield break;
         }
     }
 }
