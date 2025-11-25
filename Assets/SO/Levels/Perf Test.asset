@@ -14,15 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waves:
   - waveName: test
+    mode: 1
     startTime: 5
+    cycleStartTime: 0
+    cycleEndTime: 60
+    cycleDelayBetweenGroups: 2
     groups:
     - spawnZone:
         center: {x: 0, y: 20}
         size: {x: 10, y: 1}
-      stagger: 0.5
+      stagger: 0
       startDelay: 0
+      cycleGroupDelay: 0.5
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 400
+        count: 1
         weight: 0
       pattern: 0
