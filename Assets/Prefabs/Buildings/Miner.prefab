@@ -396,6 +396,7 @@ GameObject:
   - component: {fileID: 7990532898868993823}
   - component: {fileID: 1599050842457382658}
   - component: {fileID: 3226484584621896770}
+  - component: {fileID: -7291433231144056094}
   m_Layer: 7
   m_Name: Miner
   m_TagString: Untagged
@@ -534,6 +535,7 @@ MonoBehaviour:
     transferRate: 1
   maxInputs: 1
   maxOutputs: 1
+  data: {fileID: 0}
 --- !u!114 &1599050842457382658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -562,6 +564,19 @@ MonoBehaviour:
   mineInterval: 1.5
   mineAmount: 1
   buildingInventory: {fileID: 7990532898868993823}
+--- !u!114 &-7291433231144056094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6334411063512989700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66e65f1acd62811478ff303f814fb71d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
 --- !u!1 &7947935097945038823
 GameObject:
   m_ObjectHideFlags: 0
