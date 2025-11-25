@@ -209,12 +209,12 @@ MonoBehaviour:
   lootItems:
   - itemPrefab: {fileID: 7824504021662710725, guid: 04bb8131db4c2214ab437e59c1fba207, type: 3}
     dropChance: 1
-    minAmount: 12
-    maxAmount: 12
+    minAmount: 8
+    maxAmount: 8
   - itemPrefab: {fileID: 7824504021662710725, guid: 02320e9fec6cce34ca898f104c8c273b, type: 3}
     dropChance: 1
-    minAmount: 12
-    maxAmount: 12
+    minAmount: 8
+    maxAmount: 8
 --- !u!114 &1457918011556990477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,6 +228,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackMode: 1
-  attackInterval: 1
-  attackDamage: 5
+  attackInterval: 0.5
+  attackDamage: 2
   damageTextStyle: {fileID: 11400000, guid: 68a0f8e8e239510409effbd4cff8dd2c, type: 2}

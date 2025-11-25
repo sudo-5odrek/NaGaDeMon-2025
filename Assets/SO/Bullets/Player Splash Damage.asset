@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Player Splash Damage
   m_EditorClassIdentifier: 
   radius: 3
-  directHitDamage: 0
+  directHitDamage: 1
   useBonusDamageForDirectTarget: 0
   directBonusDamage: 0
   splashDamage: 2

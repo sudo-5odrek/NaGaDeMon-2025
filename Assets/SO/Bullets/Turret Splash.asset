@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Turret Splash
   m_EditorClassIdentifier: 
   radius: 3
-  directHitDamage: 3
+  directHitDamage: 0
   useBonusDamageForDirectTarget: 0
   directBonusDamage: 0
-  splashDamage: 3
+  splashDamage: 10
   includeDirectTargetInSplash: 1
   splashVfxPrefab: {fileID: 3786671756990806787, guid: b15adb4f38424eb49a0480256b5c3088, type: 3}
   enemyMask:

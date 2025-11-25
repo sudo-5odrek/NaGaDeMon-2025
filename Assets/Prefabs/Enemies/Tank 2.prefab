@@ -169,7 +169,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
-  speed: 0.5
+  speed: 1.1
   repathInterval: 1.5
   turnDistance: 0.5
   turnSmoothness: 4
@@ -228,6 +228,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackMode: 1
-  attackInterval: 1
-  attackDamage: 5
+  attackInterval: 5
+  attackDamage: 20
   damageTextStyle: {fileID: 11400000, guid: 68a0f8e8e239510409effbd4cff8dd2c, type: 2}

@@ -27,16 +27,16 @@ MonoBehaviour:
         weight: 0
       pattern: 0
   - waveName: Ramp up Walker 1
-    startTime: 30
+    startTime: 1
     groups:
     - spawnZone:
         center: {x: 0.04, y: 48.5}
         size: {x: 61.3, y: 1}
-      stagger: 1
+      stagger: 1.5
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
-        count: 100
+        count: 500
         weight: 0
       pattern: 0
   - waveName: Wave 1 - Walker 1x40
@@ -45,7 +45,7 @@ MonoBehaviour:
     - spawnZone:
         center: {x: 0, y: 48.5}
         size: {x: 61.4, y: 1}
-      stagger: 0.1
+      stagger: 0.5
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
@@ -61,8 +61,8 @@ MonoBehaviour:
       stagger: 2
       startDelay: 0
       enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
-        count: 7
+      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
+        count: 15
         weight: 0
       pattern: 0
   - waveName: Wave 2 - Walker 1x100
@@ -79,7 +79,7 @@ MonoBehaviour:
         weight: 0
       pattern: 0
   - waveName: Wave 3 - Walker 2 x60
-    startTime: 300
+    startTime: 400
     groups:
     - spawnZone:
         center: {x: 0.04, y: 48.5}
@@ -97,24 +97,11 @@ MonoBehaviour:
     - spawnZone:
         center: {x: 0.04, y: 48.5}
         size: {x: 61.3, y: 1}
-      stagger: 1
+      stagger: 2
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 100
-        weight: 0
-      pattern: 0
-  - waveName: Teaser 3 - walker 2 behind
-    startTime: 350
-    groups:
-    - spawnZone:
-        center: {x: -37.6, y: -25.9}
-        size: {x: 1.79, y: 50.5}
-      stagger: 1
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 20
+        count: 300
         weight: 0
       pattern: 0
   - waveName: Wave 4 - Walker 1+2 x100
@@ -133,8 +120,21 @@ MonoBehaviour:
         count: 100
         weight: 0
       pattern: 0
+  - waveName: Teaser 3 - walker 2 behind
+    startTime: 500
+    groups:
+    - spawnZone:
+        center: {x: -37.6, y: -25.9}
+        size: {x: 1.79, y: 50.5}
+      stagger: 1
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
+        count: 20
+        weight: 0
+      pattern: 0
   - waveName: 'Wave 5: Tank1 x60'
-    startTime: 400
+    startTime: 600
     groups:
     - spawnZone:
         center: {x: 0.04, y: 48.5}

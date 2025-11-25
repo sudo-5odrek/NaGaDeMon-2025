@@ -16,8 +16,10 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 9f9a917d2c14eb24789c94efd4ee6366, type: 3}
   prefab: {fileID: 6509753260026444512, guid: 0955a6978c4e23d499a4cb7aa09504fb, type: 3}
   cost:
-  - item: {fileID: 11400000, guid: f461ab130dd544a45a6b9705ede25c79, type: 2}
-    amount: 1
+  - item: {fileID: 11400000, guid: 69672051b415a8d42b88f09d9b527808, type: 2}
+    amount: 30
+  - item: {fileID: 11400000, guid: 51c5032200cab1c438577fe435637cac, type: 2}
+    amount: 30
   placementLogic: {fileID: 11400000, guid: e16b9b8034052d042b717fc6932de236, type: 2}
   acceptAllItems: 0
   itemWhitelist:
