@@ -11,76 +11,56 @@ public class LevelWaveData : ScriptableObject
 public class WaveData
 {
     public string waveName = "Wave";
+    public float startTime; // seconds from start of level
 
-    public enum WaveMode
-    {
-        Regular,   // old behavior: spawn once at startTime
-        Cycle      // NEW: repeatedly spawn groups during a time window
-    }
-
-    [Header("Mode")]
-    public WaveMode mode = WaveMode.Regular;
-
-    [Header("Regular Wave Settings")]
-    public float startTime; // seconds from level start
-
-    [Header("Cycle Wave Settings")]
-    public float cycleStartTime = 0f;
-    public float cycleEndTime = 10f;
-    public float cycleDelayBetweenGroups = 1.5f;  // How long between group cycles
-
-    [Header("Spawn Groups")]
     public List<SpawnGroupData> groups = new List<SpawnGroupData>();
 }
 
 // ======================================================================
-//  SPAWN GROUP DATA
+//  SPAWN GROUP DATA (now uses SpawnZone instead of Transform spawnPoint)
 // ======================================================================
 [System.Serializable]
 public class SpawnGroupData
 {
     [Header("Spawn Zone")]
-    public SpawnZone spawnZone;
+    public SpawnZone spawnZone;  // ← REPLACES spawnPoint
 
     [Header("Timing")]
     public float stagger = 0.3f;
     public float startDelay = 0f;
-
-    [Header("Cycle Mode")]
-    public float cycleGroupDelay = 0.5f; // delay before re-cycling group
 
     [Header("Enemies")]
     public List<EnemyEntryData> enemies = new List<EnemyEntryData>();
 
     public enum PatternMode
     {
-        Sequential,
-        Cycle,
-        RandomWeight
+        Sequential,      // AAAA BBB CCC
+        Cycle,           // ABC ABC ABC
+        RandomWeight     // weighted random pick
     }
 
     public PatternMode pattern = PatternMode.Sequential;
 }
 
 // ======================================================================
-//  ENEMY ENTRY
+//  MULTI-ENEMY GROUP ENTRY
 // ======================================================================
 [System.Serializable]
 public class EnemyEntryData
 {
     public GameObject prefab;
-    public int count = 1;
-    public float weight = 1;
+    public int count = 1;      // how many of THIS enemy to spawn
+    public float weight = 1;   // only used in RandomWeight mode
 }
 
 // ======================================================================
-//  SPAWN ZONE
+//  SPAWN ZONE (rectangular area for randomized spawns)
 // ======================================================================
 [System.Serializable]
 public class SpawnZone
 {
     public Vector2 center;
-    public Vector2 size;
+    public Vector2 size; // width, height
 
     public Vector2 GetRandomPoint()
     {

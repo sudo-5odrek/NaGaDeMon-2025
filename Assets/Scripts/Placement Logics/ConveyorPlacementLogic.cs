@@ -74,7 +74,6 @@ namespace Placement_Logics
             // We STOP dragging but KEEP the preview line
             // so ConnectionModeManager can inspect it.
             isDragging = false;
-            ClearPreviewLine();
         }
 
         public void AbortDrag()

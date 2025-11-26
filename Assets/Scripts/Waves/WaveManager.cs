@@ -7,7 +7,9 @@ public class WaveManager : MonoBehaviour
     [Header("Wave Data")]
     public LevelWaveData waveData;
 
+    // Stores last spawn position to enforce spacing
     private Dictionary<SpawnGroupData, Vector2> lastSpawnPositions = new Dictionary<SpawnGroupData, Vector2>();
+
     private float levelStartTime;
 
     void Start()
@@ -23,61 +25,26 @@ public class WaveManager : MonoBehaviour
     }
 
     // ======================================================================
-    //  RUN WAVES
+    //  RUN WAVES SEQUENTIALLY BASED ON START TIMES
     // ======================================================================
     IEnumerator RunWaves()
     {
         foreach (var wave in waveData.waves)
         {
-            // If regular, delay until the wave start time
-            if (wave.mode == WaveData.WaveMode.Regular)
-            {
-                float wait = (levelStartTime + wave.startTime) - Time.time;
-                if (wait > 0) yield return new WaitForSeconds(wait);
+            float waitTime = (levelStartTime + wave.startTime) - Time.time;
 
-                Debug.Log($"▶ Starting REGULAR Wave: {wave.waveName}");
+            if (waitTime > 0)
+                yield return new WaitForSeconds(waitTime);
 
-                foreach (var group in wave.groups)
-                    StartCoroutine(RunSpawnGroup(group));
-            }
-            else if (wave.mode == WaveData.WaveMode.Cycle)
-            {
-                // Start the cycle wave coroutine (DO NOT WAIT HERE)
-                Debug.Log($"▶ Scheduling CYCLE Wave: {wave.waveName}");
-                StartCoroutine(RunCycleWave(wave));
-            }
-        }
-    }
+            Debug.Log($"▶ Starting Wave: {wave.waveName}");
 
-    // ======================================================================
-    //  CYCLE WAVE LOGIC
-    // ======================================================================
-    IEnumerator RunCycleWave(WaveData wave)
-    {
-        // Wait until cycle start time
-        float wait = (levelStartTime + wave.cycleStartTime) - Time.time;
-        if (wait > 0) yield return new WaitForSeconds(wait);
-
-        Debug.Log($"▶ Starting CYCLE Wave: {wave.waveName}");
-
-        // Continue until the end time is reached
-        while (Time.time < levelStartTime + wave.cycleEndTime)
-        {
-            // Spawn all groups once each cycle
             foreach (var group in wave.groups)
-            {
                 StartCoroutine(RunSpawnGroup(group));
-            }
-
-            // Wait for cycle delay
-            yield return new WaitForSeconds(wave.cycleDelayBetweenGroups);
         }
-
-        Debug.Log($"⏹ CYCLE Wave Ended: {wave.waveName}");
     }
 
     // ======================================================================
-    //  SPAWN GROUP
+    //  RUN A SINGLE SPAWN GROUP BASED ON ITS PATTERN
     // ======================================================================
     IEnumerator RunSpawnGroup(SpawnGroupData group)
     {
@@ -100,8 +67,10 @@ public class WaveManager : MonoBehaviour
     }
 
     // ======================================================================
-    //  SEQUENTIAL AAAA BBB CCC
+    //  SPAWN PATTERNS
     // ======================================================================
+
+    // ------------------ Sequential: AAAA BBB CCC ------------------
     IEnumerator SpawnSequential(SpawnGroupData group)
     {
         foreach (var entry in group.enemies)
@@ -114,13 +83,12 @@ public class WaveManager : MonoBehaviour
         }
     }
 
-    // ======================================================================
-    //  CYCLE ABC ABC ABC
-    // ======================================================================
+    // ------------------ Cycle: ABC ABC ABC ------------------
     IEnumerator SpawnCycled(SpawnGroupData group)
     {
         var remaining = new List<int>();
-        foreach (var e in group.enemies) remaining.Add(e.count);
+        foreach (var e in group.enemies)
+            remaining.Add(e.count);
 
         bool done = false;
 
@@ -143,13 +111,12 @@ public class WaveManager : MonoBehaviour
         }
     }
 
-    // ======================================================================
-    //  WEIGHTED RANDOM
-    // ======================================================================
+    // ------------------ Weighted Random ------------------
     IEnumerator SpawnWeighted(SpawnGroupData group)
     {
         var remaining = new List<int>();
-        foreach (var e in group.enemies) remaining.Add(e.count);
+        foreach (var e in group.enemies)
+            remaining.Add(e.count);
 
         int totalToSpawn = 0;
         foreach (var e in group.enemies)
@@ -166,6 +133,7 @@ public class WaveManager : MonoBehaviour
         }
     }
 
+    // Weighted random selection helper
     int PickWeightedIndex(SpawnGroupData group, List<int> remaining)
     {
         float totalWeight = 0f;
@@ -183,15 +151,16 @@ public class WaveManager : MonoBehaviour
             if (remaining[i] > 0)
             {
                 r -= group.enemies[i].weight;
-                if (r <= 0) return i;
+                if (r <= 0)
+                    return i;
             }
         }
 
-        return 0;
+        return 0; // fallback
     }
 
     // ======================================================================
-    //  ENEMY SPAWNING
+    //  ENEMY SPAWNING (INCLUDES RANDOM ZONE PICKING + AUTO TARGET ASSIGN)
     // ======================================================================
     void SpawnEnemy(GameObject prefab, SpawnGroupData group)
     {
@@ -205,6 +174,7 @@ public class WaveManager : MonoBehaviour
 
         GameObject enemyObj = Instantiate(prefab, spawnPos, Quaternion.identity);
 
+        // Assign Nexus target
         var mover = enemyObj.GetComponent<Enemy.EnemyPathMover>();
         if (mover != null)
         {
@@ -215,11 +185,12 @@ public class WaveManager : MonoBehaviour
     }
 
     // ======================================================================
-    //  ANTI-CLUMPING LOGIC
+    //  SPAWNPOINT LOGIC WITH ANTI-CLUMPING
     // ======================================================================
+
     Vector2 PickSpawnPoint(SpawnGroupData group)
     {
-        const float minDistance = 0.8f;
+        const float minDistance = 0.8f;   // distance new spawn must keep from previous
         const int maxAttempts = 8;
 
         Vector2 lastPos = Vector2.positiveInfinity;
@@ -241,6 +212,7 @@ public class WaveManager : MonoBehaviour
             }
         }
 
+        // fallback if unlucky
         lastSpawnPositions[group] = candidate;
         return candidate;
     }
@@ -254,16 +226,19 @@ public class WaveManager : MonoBehaviour
         if (nexus != null)
             return nexus.transform;
 
-        Debug.LogError("No Nexus in scene!");
+        Debug.LogError("No Nexus found in scene!");
         return null;
     }
 
     // ======================================================================
-    //  GIZMOS
+    //  GIZMOS — DRAW SPAWN ZONES
     // ======================================================================
     void OnDrawGizmos()
     {
-        if (waveData == null) return;
+        if (waveData == null)
+            return;
+
+        Gizmos.color = new Color(0, 1, 0, 0.2f);
 
         foreach (var wave in waveData.waves)
         {
@@ -274,9 +249,11 @@ public class WaveManager : MonoBehaviour
                 Vector2 c = group.spawnZone.center;
                 Vector2 s = group.spawnZone.size;
 
+                // solid
                 Gizmos.color = new Color(0, 1, 0, 0.15f);
                 Gizmos.DrawCube(c, s);
 
+                // outline
                 Gizmos.color = Color.green;
                 Gizmos.DrawWireCube(c, s);
             }

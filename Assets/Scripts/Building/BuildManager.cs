@@ -1,6 +1,5 @@
 using Grid;
 using Interface;
-using Inventory;
 using Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -348,11 +347,6 @@ namespace Building
             if (destroyTimer >= destroyHoldTime)
             {
                 GridManager.Instance.UnblockNodesUnderObject(target);
-
-                foreach (BuildingCost cost in target.GetComponent<PlacedBuilding>().data.cost)
-                {
-                    PlayerInventory.Instance.AddItem(cost.item, cost.amount);
-                }
                 Destroy(target);
                 destroyTimer = 0f;
             }

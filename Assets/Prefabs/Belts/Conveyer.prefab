@@ -97,7 +97,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6195749847058734178}
   - component: {fileID: -65829491495050222}
-  - component: {fileID: -5338801533852682620}
   m_Layer: 10
   m_Name: Conveyer
   m_TagString: Untagged
@@ -167,16 +166,3 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &-5338801533852682620
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2627909984432355121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66e65f1acd62811478ff303f814fb71d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data: {fileID: 0}

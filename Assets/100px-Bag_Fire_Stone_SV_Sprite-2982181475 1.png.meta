@@ -1,16 +1,16 @@
 fileFormatVersion: 2
-guid: b46463af7092ad7448073de1ed39fd32
+guid: 4d1eb4d69b7bf234c916dc33bf78ce7d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8220113748369049836
-    second: 100px-Bag_Fire_Stone_SV_Sprite-2982181475_0
+      213: -2564464599954123785
+    second: 100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_0
   - first:
-      213: 1563143526167669029
-    second: 100px-Bag_Fire_Stone_SV_Sprite-2982181475_1
+      213: 6991912582207747011
+    second: 100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_1
   - first:
-      213: 5856410826500122693
-    second: 100px-Bag_Fire_Stone_SV_Sprite-2982181475_2
+      213: -7718575657588208875
+    second: 100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -106,7 +106,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 100px-Bag_Fire_Stone_SV_Sprite-2982181475_0
+      name: 100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_0
       rect:
         serializedVersion: 2
         x: 1
@@ -121,14 +121,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 417782f091a4ced80800000000000000
-      internalID: -8220113748369049836
+      spriteID: 7f39ba09801396cd0800000000000000
+      internalID: -2564464599954123785
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 100px-Bag_Fire_Stone_SV_Sprite-2982181475_1
+      name: 100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_1
       rect:
         serializedVersion: 2
         x: 93
@@ -143,14 +143,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 529ec2251c661b510800000000000000
-      internalID: 1563143526167669029
+      spriteID: 3c3b313e273480160800000000000000
+      internalID: 6991912582207747011
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 100px-Bag_Fire_Stone_SV_Sprite-2982181475_2
+      name: 100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_2
       rect:
         serializedVersion: 2
         x: 46
@@ -165,8 +165,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 548aa4c3e96264150800000000000000
-      internalID: 5856410826500122693
+      spriteID: 51b4a7d855c12e490800000000000000
+      internalID: -7718575657588208875
       vertices: []
       indices: 
       edges: []
@@ -185,9 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      100px-Bag_Fire_Stone_SV_Sprite-2982181475_0: -8220113748369049836
-      100px-Bag_Fire_Stone_SV_Sprite-2982181475_1: 1563143526167669029
-      100px-Bag_Fire_Stone_SV_Sprite-2982181475_2: 5856410826500122693
+      100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_0: -2564464599954123785
+      100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_1: 6991912582207747011
+      100px-Bag_Fire_Stone_SV_Sprite-2982181475 1_2: -7718575657588208875
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
