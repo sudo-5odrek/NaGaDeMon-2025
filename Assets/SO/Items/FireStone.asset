@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemID: FireStone
   displayName: Fire Stone
-  icon: {fileID: -8220113748369049836, guid: b46463af7092ad7448073de1ed39fd32, type: 3}
+  icon: {fileID: 21300000, guid: b46463af7092ad7448073de1ed39fd32, type: 3}
   weight: 1
   maxStack: 99
   worldPrefab: {fileID: 7824504021662710725, guid: 02320e9fec6cce34ca898f104c8c273b, type: 3}

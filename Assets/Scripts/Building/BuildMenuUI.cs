@@ -7,9 +7,13 @@ namespace Building
     public class BuildMenuUI : MonoBehaviour
     {
         [Header("UI References")]
-        public GameObject menuPanel;          
-        public Transform buttonContainer;     
-        public GameObject buttonPrefab;       
+        public GameObject menuPanel;
+        public Transform buttonContainer;
+        public GameObject buttonPrefab;
+
+        [Header("Cost UI")]
+        [Tooltip("Prefab that contains a TMP_Text component to display a single cost line.")]
+        public GameObject costTextPrefab;
 
         public bool IsOpen => menuPanel != null && menuPanel.activeSelf;
 
@@ -19,9 +23,9 @@ namespace Building
                 menuPanel.SetActive(false);
         }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // MENU CONTROL
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         public void Show()
         {
@@ -46,9 +50,9 @@ namespace Building
                 Show();
         }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // MENU POPULATION
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         private void PopulateMenu()
         {
@@ -58,27 +62,24 @@ namespace Building
             foreach (var building in BuildManager.Instance.availableBuildings)
             {
                 GameObject btnObj = Instantiate(buttonPrefab, buttonContainer);
-                Button btn = btnObj.GetComponent<Button>();
 
-                btn.onClick.AddListener(() => SelectBuilding(building));
+                // Here’s the magic:
+                var ui = btnObj.GetComponent<BuildMenuButtonUI>();
 
-                Transform icon = btnObj.transform.Find("Icon");
-                Transform name = btnObj.transform.Find("Name");
-
-                if (icon != null && icon.TryGetComponent(out Image img))
-                    img.sprite = building.icon;
-
-                if (name != null && name.TryGetComponent(out TMP_Text text))
-                    text.text = building.buildingName;
+                ui.Setup(building, () =>
+                {
+                    SelectBuilding(building);
+                });
             }
         }
+
 
         private void SelectBuilding(BuildingData building)
         {
             if (BuildManager.Instance == null) return;
 
             BuildManager.Instance.StartPlacement(building);
-            Hide(); // Close the menu immediately after selecting
+            Hide();
         }
     }
 }
