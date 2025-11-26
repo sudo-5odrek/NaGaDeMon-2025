@@ -169,7 +169,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
-  speed: 1
+  speed: 1.2
   repathInterval: 1.5
   turnDistance: 0.5
   turnSmoothness: 4
@@ -191,7 +191,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37b779eeb0997e248b021851c913bfc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHP: 75
+  maxHP: 150
   currentHP: 0
   damageTextStyle: {fileID: 11400000, guid: 16c600c983e33f54fa4ac7efd5dc53f7, type: 2}
 --- !u!114 &5819370214835820413
@@ -208,13 +208,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lootItems:
   - itemPrefab: {fileID: 7824504021662710725, guid: 04bb8131db4c2214ab437e59c1fba207, type: 3}
-    dropChance: 1
-    minAmount: 5
-    maxAmount: 5
+    dropChance: 0.7
+    minAmount: 2
+    maxAmount: 2
   - itemPrefab: {fileID: 7824504021662710725, guid: 02320e9fec6cce34ca898f104c8c273b, type: 3}
-    dropChance: 1
-    minAmount: 5
-    maxAmount: 5
+    dropChance: 0.7
+    minAmount: 2
+    maxAmount: 2
 --- !u!114 &1457918011556990477
 MonoBehaviour:
   m_ObjectHideFlags: 0
