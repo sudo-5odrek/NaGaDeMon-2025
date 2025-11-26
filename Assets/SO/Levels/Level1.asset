@@ -32,11 +32,11 @@ MonoBehaviour:
     - spawnZone:
         center: {x: 0.04, y: 48.5}
         size: {x: 61.3, y: 1}
-      stagger: 2
+      stagger: 1.5
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
-        count: 150
+        count: 500
         weight: 0
       pattern: 0
   - waveName: Wave 1 - Walker 1x40
@@ -52,7 +52,7 @@ MonoBehaviour:
         count: 40
         weight: 0
       pattern: 0
-  - waveName: Teaser 1 Walker 2 x15
+  - waveName: Teaser 1
     startTime: 150
     groups:
     - spawnZone:
@@ -65,7 +65,7 @@ MonoBehaviour:
         count: 15
         weight: 0
       pattern: 0
-  - waveName: Wave 2 - Walker 1x70
+  - waveName: Wave 2 - Walker 1x100
     startTime: 200
     groups:
     - spawnZone:
@@ -75,11 +75,24 @@ MonoBehaviour:
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
-        count: 70
+        count: 100
+        weight: 0
+      pattern: 0
+  - waveName: Wave 3 - Walker 2 x60
+    startTime: 400
+    groups:
+    - spawnZone:
+        center: {x: 0.04, y: 48.5}
+        size: {x: 61.3, y: 1}
+      stagger: 0.1
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
+        count: 60
         weight: 0
       pattern: 0
   - waveName: Ramp up Walker 2
-    startTime: 250
+    startTime: 300
     groups:
     - spawnZone:
         center: {x: 0.04, y: 48.5}
@@ -88,11 +101,11 @@ MonoBehaviour:
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 150
+        count: 300
         weight: 0
       pattern: 0
-  - waveName: Wave 3 - Walker 2 x40
-    startTime: 250
+  - waveName: Wave 4 - Walker 1+2 x100
+    startTime: 400
     groups:
     - spawnZone:
         center: {x: 0.04, y: 48.5}
@@ -100,130 +113,36 @@ MonoBehaviour:
       stagger: 0.1
       startDelay: 0
       enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
+        count: 100
+        weight: 0
       - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 40
-        weight: 0
-      pattern: 0
-  - waveName: Wave 4 - Walker 2 x80
-    startTime: 350
-    groups:
-    - spawnZone:
-        center: {x: 0.04, y: 48.5}
-        size: {x: 61.3, y: 1}
-      stagger: 0.1
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 80
-        weight: 0
-      pattern: 0
-  - waveName: 'Teaser 4: Tank1 x20'
-    startTime: 450
-    groups:
-    - spawnZone:
-        center: {x: 0.04, y: 48.5}
-        size: {x: 61.3, y: 1}
-      stagger: 1
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 593789f01d93ee0498a80be885a29151, type: 3}
-        count: 20
-        weight: 0
-      pattern: 0
-  - waveName: Ramp up Tank 1
-    startTime: 450
-    groups:
-    - spawnZone:
-        center: {x: 0.04, y: 48.5}
-        size: {x: 61.3, y: 1}
-      stagger: 2.5
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 593789f01d93ee0498a80be885a29151, type: 3}
-        count: 200
-        weight: 0
-      pattern: 0
-  - waveName: 'Wave 5: Tank1 x70'
-    startTime: 550
-    groups:
-    - spawnZone:
-        center: {x: 0.04, y: 48.5}
-        size: {x: 61.3, y: 1}
-      stagger: 1
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 593789f01d93ee0498a80be885a29151, type: 3}
-        count: 70
+        count: 100
         weight: 0
       pattern: 0
   - waveName: Teaser 3 - walker 2 behind
+    startTime: 500
+    groups:
+    - spawnZone:
+        center: {x: -37.6, y: -25.9}
+        size: {x: 1.79, y: 50.5}
+      stagger: 1
+      startDelay: 0
+      enemies:
+      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
+        count: 20
+        weight: 0
+      pattern: 0
+  - waveName: 'Wave 5: Tank1 x60'
     startTime: 600
     groups:
     - spawnZone:
-        center: {x: -35.4, y: -31.5}
-        size: {x: 1.61, y: 9.1}
-      stagger: 1
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 20
-        weight: 0
-      pattern: 0
-  - waveName: 'Wave 5: fast 1 x150'
-    startTime: 650
-    groups:
-    - spawnZone:
-        center: {x: -0.1, y: 48.2}
-        size: {x: 82.63, y: 1.17}
-      stagger: 0.3
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: fa11e1ef4de96454981b4ce1bf7cd360, type: 3}
-        count: 150
-        weight: 0
-      pattern: 0
-  - waveName: Teaser 3 - Tank1 behind
-    startTime: 700
-    groups:
-    - spawnZone:
-        center: {x: 38.6, y: -29.7}
-        size: {x: 1.7, y: 2.61}
+        center: {x: 0.04, y: 48.5}
+        size: {x: 61.3, y: 1}
       stagger: 1
       startDelay: 0
       enemies:
       - prefab: {fileID: 3709453401263859751, guid: 593789f01d93ee0498a80be885a29151, type: 3}
-        count: 20
-        weight: 0
-      pattern: 0
-  - waveName: BOSS WAVE
-    startTime: 800
-    groups:
-    - spawnZone:
-        center: {x: -0.1, y: 48.2}
-        size: {x: 82.63, y: 1.17}
-      stagger: 0.3
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 593789f01d93ee0498a80be885a29151, type: 3}
-        count: 50
-        weight: 0
-      - prefab: {fileID: 3709453401263859751, guid: 47ca9fee2b3ade844aed82b1a0c1005a, type: 3}
-        count: 50
-        weight: 0
-      - prefab: {fileID: 3709453401263859751, guid: fa11e1ef4de96454981b4ce1bf7cd360, type: 3}
-        count: 50
-        weight: 0
-      pattern: 0
-  - waveName: BOSS 1
-    startTime: 820
-    groups:
-    - spawnZone:
-        center: {x: -0.1, y: 48.2}
-        size: {x: 82.63, y: 1.17}
-      stagger: 0.3
-      startDelay: 0
-      enemies:
-      - prefab: {fileID: 3709453401263859751, guid: 05d378d507072204384c9d20941d015b, type: 3}
-        count: 1
+        count: 100
         weight: 0
       pattern: 0
