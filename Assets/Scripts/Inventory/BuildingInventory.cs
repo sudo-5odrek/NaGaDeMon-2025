@@ -24,8 +24,8 @@ namespace Inventory
         [Tooltip("Maximum number of outgoing belts or connections allowed.")]
         public int maxOutputs = 2;
 
-        private int currentInputs;
-        private int currentOutputs;
+        public int currentInputs;
+        public int currentOutputs;
         
         public BuildingData data;
 
@@ -168,6 +168,31 @@ namespace Inventory
             return ports.Find(p =>
                 p.portType == BuildingInventoryPort.PortType.Input ||
                 p.portType == BuildingInventoryPort.PortType.Both);
+        }
+        
+        /// <summary>
+        /// Returns the next free output port, based on currentOutputs.
+        /// Output1 → Output2 → Output3 ...
+        /// Ports must be named "Output1", "Output2", ...
+        /// </summary>
+        public BuildingInventoryPort GetNextOutputPort()
+        {
+            // Collect all ports that can be used as outputs, in their inspector order
+            List<BuildingInventoryPort> outputPorts = ports.FindAll(p =>
+                p.portType == BuildingInventoryPort.PortType.Output ||
+                p.portType == BuildingInventoryPort.PortType.Both);
+
+            if (outputPorts.Count == 0)
+                return null;
+
+            // If we've already used all available output ports, no more connections allowed
+            if (currentOutputs >= outputPorts.Count)
+                return null;
+
+            // Use currentOutputs as the index:
+            // 0th belt uses first output port,
+            // 1st belt uses second output port, etc.
+            return outputPorts[currentOutputs];
         }
 
         /// <summary>

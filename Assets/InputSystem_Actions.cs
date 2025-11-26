@@ -189,6 +189,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""InsertSplitter"",
+                    ""type"": ""Button"",
+                    ""id"": ""a75f5a4d-a6ff-49f6-b094-61076501f6c2"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -530,6 +539,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ConnectMode"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""26828e79-3eb8-423c-9060-0cfb5d5e3571"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""InsertSplitter"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1156,6 +1176,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Dump = m_Player.FindAction("Dump", throwIfNotFound: true);
         m_Player_Take = m_Player.FindAction("Take", throwIfNotFound: true);
         m_Player_ConnectMode = m_Player.FindAction("ConnectMode", throwIfNotFound: true);
+        m_Player_InsertSplitter = m_Player.FindAction("InsertSplitter", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1264,6 +1285,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Dump;
     private readonly InputAction m_Player_Take;
     private readonly InputAction m_Player_ConnectMode;
+    private readonly InputAction m_Player_InsertSplitter;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1319,6 +1341,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/ConnectMode".
         /// </summary>
         public InputAction @ConnectMode => m_Wrapper.m_Player_ConnectMode;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/InsertSplitter".
+        /// </summary>
+        public InputAction @InsertSplitter => m_Wrapper.m_Player_InsertSplitter;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1378,6 +1404,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ConnectMode.started += instance.OnConnectMode;
             @ConnectMode.performed += instance.OnConnectMode;
             @ConnectMode.canceled += instance.OnConnectMode;
+            @InsertSplitter.started += instance.OnInsertSplitter;
+            @InsertSplitter.performed += instance.OnInsertSplitter;
+            @InsertSplitter.canceled += instance.OnInsertSplitter;
         }
 
         /// <summary>
@@ -1422,6 +1451,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ConnectMode.started -= instance.OnConnectMode;
             @ConnectMode.performed -= instance.OnConnectMode;
             @ConnectMode.canceled -= instance.OnConnectMode;
+            @InsertSplitter.started -= instance.OnInsertSplitter;
+            @InsertSplitter.performed -= instance.OnInsertSplitter;
+            @InsertSplitter.canceled -= instance.OnInsertSplitter;
         }
 
         /// <summary>
@@ -1895,6 +1927,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnConnectMode(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "InsertSplitter" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnInsertSplitter(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

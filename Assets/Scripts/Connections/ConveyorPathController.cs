@@ -143,8 +143,26 @@ namespace Building.Conveyer
 
         private bool TryDeliverItem(MovingItem item, int index)
         {
-            if (item == null) return false;
+            if (item == null)
+                return false;
 
+            // ----------------------------------------------------
+            // SAFEGUARD: No end inventory → open-ended belt
+            // ----------------------------------------------------
+            if (endInventory == null)
+            {
+                // Return item to start port so it's not lost
+                startPort.Add(item.itemDef, 1f);
+
+                // Mark as blocked so player knows path is incomplete
+                isBlocked = true;
+
+                return false;
+            }
+
+            // ----------------------------------------------------
+            // Normal delivery logic
+            // ----------------------------------------------------
             bool delivered = endInventory.TryInsertItem(item.itemDef, 1f);
 
             if (delivered)
@@ -155,8 +173,9 @@ namespace Building.Conveyer
                 return true;
             }
 
-            // ❌ Destination full → return to start, mark belt as blocked
+            // ❌ Destination full → return to start, block belt
             startPort.Add(item.itemDef, 1f);
+            isBlocked = true;
             return false;
         }
 

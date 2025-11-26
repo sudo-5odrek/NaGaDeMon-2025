@@ -15,6 +15,7 @@ namespace Connections
     /// Handles conveyor placement mode:
     /// start from a building, drag conveyor lines, confirm segments on click,
     /// cost checking included.
+    /// Now also supports inserting a splitter at the end of the current chain with R.
     /// </summary>
     public class ConnectionModeManager : MonoBehaviour
     {
@@ -29,6 +30,12 @@ namespace Connections
 
         [Header("Cost Settings")]
         public BuildingData conveyorBuildingData;     // assign conveyor building cost here
+
+        [Header("Splitter Settings")]
+        [Tooltip("Prefab for the splitter building (used when pressing R during chain placement).")]
+        public GameObject splitterPrefab;
+        [Tooltip("Color tint for the splitter ghost.")]
+        public Color splitterGhostColor = new Color(1f, 1f, 1f, 0.45f);
 
         [Header("References")]
         public Transform player;
@@ -45,6 +52,13 @@ namespace Connections
         private BuildingInventory endBuilding;
 
         private ConveyorPathController currentController;
+
+        // --------------------------------------------------
+        // SPLITTER GHOST STATE
+        // --------------------------------------------------
+
+        private bool splitterGhostActive = false;
+        private GameObject splitterGhostInstance = null;
 
         // --------------------------------------------------
         // DESTRUCTION
@@ -79,6 +93,8 @@ namespace Connections
             input.Player.ConnectMode.performed += OnToggleMode;
             input.Player.Place.started += OnLeftClick;
             input.Player.Cancel.performed += OnRightClick;
+            // You need an Input Action called InsertSplitter bound to R (or change this to your action)
+            input.Player.InsertSplitter.performed += OnInsertSplitter;
 
             PlayerInventory.Instance.OnInventoryChanged += OnInventoryChanged;
         }
@@ -88,10 +104,14 @@ namespace Connections
             input.Player.ConnectMode.performed -= OnToggleMode;
             input.Player.Place.started -= OnLeftClick;
             input.Player.Cancel.performed -= OnRightClick;
+            input.Player.InsertSplitter.performed -= OnInsertSplitter;
 
             PlayerInventory.Instance.OnInventoryChanged -= OnInventoryChanged;
         }
 
+        // --------------------------------------------------
+        // INVENTORY CHANGE → UPDATE COST VISUALS
+        // --------------------------------------------------
         private void OnInventoryChanged()
         {
             if (!isActive || placementLogic == null) return;
@@ -114,6 +134,9 @@ namespace Connections
             placementLogic.UpdateCostPreview(conveyorBuildingData);
         }
 
+        // --------------------------------------------------
+        // MAIN UPDATE
+        // --------------------------------------------------
         private void Update()
         {
             if (!isActive || placementLogic == null) return;
@@ -130,6 +153,9 @@ namespace Connections
                 placementLogic.UpdateCostPreview(conveyorBuildingData);
 
             UpdateAffordabilityVisuals();
+
+            // Update splitter ghost position if active
+            UpdateSplitterGhost();
 
             HandleDestroyConveyor();
         }
@@ -187,11 +213,18 @@ namespace Connections
         }
 
         // --------------------------------------------------
-        // LEFT CLICK — PLACE SEGMENT
+        // LEFT CLICK — PLACE SEGMENT OR FINALIZE
         // --------------------------------------------------
         private void OnLeftClick(InputAction.CallbackContext ctx)
         {
             if (!isActive || placementLogic == null) return;
+
+            // If splitter ghost is active during a chain, left-click finalizes the chain into the splitter
+            if (splitterGhostActive && isBuildingChain)
+            {
+                FinalizeChain();
+                return;
+            }
 
             Vector3 mouse = GetMouseWorldPosition();
 
@@ -251,15 +284,18 @@ namespace Connections
                 mouse = GetMouseWorldPosition();
                 Vector3 endPoint = SnapToGrid(mouse);
 
-                // First, check if we clicked on a valid end building
+                // First, check if we clicked on a valid end building (only if no splitter ghost)
                 BuildingInventory targetBuilding = null;
-                RaycastHit2D hit = Physics2D.Raycast(mouse, Vector2.zero, 0.1f, buildingMask);
-                if (hit.collider && hit.collider.TryGetComponent(out BuildingInventory candidate))
+                if (!splitterGhostActive)
                 {
-                    // Building is a valid END when it's not the start & can accept input
-                    if (candidate != startBuilding && candidate.CanAcceptNewInput)
+                    RaycastHit2D hit = Physics2D.Raycast(mouse, Vector2.zero, 0.1f, buildingMask);
+                    if (hit.collider && hit.collider.TryGetComponent(out BuildingInventory candidate))
                     {
-                        targetBuilding = candidate;
+                        // Building is a valid END when it's not the start & can accept input
+                        if (candidate != startBuilding && candidate.CanAcceptNewInput)
+                        {
+                            targetBuilding = candidate;
+                        }
                     }
                 }
 
@@ -325,14 +361,11 @@ namespace Connections
                     startPoint = tiles[^1].transform.position;
                     placementLogic.OnStartDrag(startPoint.Value);
                 }
-                
-                // Finalize preview line in placement logic
-                //placementLogic.OnEndDrag(endPoint);
             }
         }
 
         // --------------------------------------------------
-        // TILE INSTANTIATION (NEW CENTRALIZED PLACE)
+        // TILE INSTANTIATION
         // --------------------------------------------------
         private List<GameObject> PlaceConveyorTiles(List<Vector3> positions, bool skipFirst)
         {
@@ -418,18 +451,107 @@ namespace Connections
         }
 
         // --------------------------------------------------
+        // SPLITTER INSERTION (R)
+        // --------------------------------------------------
+        private void OnInsertSplitter(InputAction.CallbackContext ctx)
+        {
+            if (!isActive || !isBuildingChain) return;
+
+            // If ghost active → cancel it and go back to normal chain
+            if (splitterGhostActive)
+            {
+                splitterGhostActive = false;
+                if (splitterGhostInstance != null)
+                    Destroy(splitterGhostInstance);
+                splitterGhostInstance = null;
+                Debug.Log("↩ Splitter ghost cancelled, back to normal conveyor chain.");
+                return;
+            }
+
+            // Activate splitter ghost at the end of the current chain
+            TryShowSplitterGhost();
+        }
+
+        private void TryShowSplitterGhost()
+        {
+            if (splitterPrefab == null)
+            {
+                Debug.LogWarning("Splitter prefab not assigned on ConnectionModeManager.");
+                return;
+            }
+
+            if (currentController == null || currentController.pathTiles.Count == 0)
+            {
+                Debug.LogWarning("No conveyor tiles placed yet; cannot place splitter at end.");
+                return;
+            }
+
+            GameObject lastTile = currentController.pathTiles[^1];
+            Vector3 ghostPos = lastTile.transform.position;
+
+            splitterGhostInstance = Instantiate(splitterPrefab, ghostPos, Quaternion.identity);
+            splitterGhostInstance.name = "SplitterGhost";
+
+            // Tint all sprite renderers to look ghostly
+            foreach (var sr in splitterGhostInstance.GetComponentsInChildren<SpriteRenderer>())
+            {
+                Color c = splitterGhostColor;
+                c.a = splitterGhostColor.a;
+                sr.color = c;
+            }
+
+            splitterGhostActive = true;
+            Debug.Log("👻 Splitter ghost activated at end of chain.");
+        }
+
+        private void UpdateSplitterGhost()
+        {
+            if (!splitterGhostActive || splitterGhostInstance == null)
+                return;
+
+            // Keep ghost snapped to last tile in the chain (if chain grows)
+            if (currentController != null && currentController.pathTiles.Count > 0)
+            {
+                GameObject lastTile = currentController.pathTiles[^1];
+                splitterGhostInstance.transform.position = lastTile.transform.position;
+            }
+        }
+
+        // --------------------------------------------------
         // FINALIZE CHAIN
         // --------------------------------------------------
         private void FinalizeChain()
         {
             if (currentController != null && startBuilding != null)
             {
+                BuildingInventory finalEnd = endBuilding;
+
+                // If a splitter ghost is active, spawn the actual splitter here at ghost position
+                if (splitterGhostActive && splitterGhostInstance != null)
+                {
+                    // Position where splitter will spawn
+                    Vector3 spawnPos = splitterGhostInstance.transform.position;
+
+                    // 🔻 Disable the collider of the tile under the splitter
+                    DisableTileColliderUnderPosition(spawnPos);
+
+                    // 🔻 Spawn the splitter
+                    GameObject splitterObj = Instantiate(splitterPrefab, spawnPos, Quaternion.identity);
+                    finalEnd = splitterObj.GetComponent<BuildingInventory>();
+                }
+
                 if (currentController.pathTiles.Count > 0)
                 {
-                    var startPort = startBuilding?.GetOutput() as BuildingInventoryPort;
-                    currentController.Initialize(startBuilding, startPort, endBuilding);
+                    var startPort = startBuilding.GetNextOutputPort();
+                    currentController.Initialize(startBuilding, startPort, finalEnd);
                 }
             }
+
+            // Cleanup splitter ghost state
+            splitterGhostActive = false;
+            if (splitterGhostInstance != null)
+                Destroy(splitterGhostInstance);
+            splitterGhostInstance = null;
 
             placementLogic.OnEndDrag(Vector3.zero);
 
@@ -442,9 +564,29 @@ namespace Connections
 
             Debug.Log("🔁 Conveyor chain ended (but staying in connection mode)");
         }
+        
+        private void DisableTileColliderUnderPosition(Vector3 position)
+        {
+            // Get the tile at that position — since tiles have a small collider,
+            // circle check is the safest
+            Collider2D col = Physics2D.OverlapCircle(position, 0.1f, connectionMask);
 
+            if (col != null)
+            {
+                col.enabled = false;
+                // Optional: rename for debugging clarity
+                col.gameObject.name += " (Disabled)";
+            }
+        }
+        
         private void ExitConnectionMode()
         {
+            // cleanup splitter ghost
+            splitterGhostActive = false;
+            if (splitterGhostInstance != null)
+                Destroy(splitterGhostInstance);
+            splitterGhostInstance = null;
+
             InputContextManager.Instance.SetInputMode(InputContextManager.InputMode.Normal);
 
             isActive = false;
@@ -497,6 +639,16 @@ namespace Connections
 
             if (destroyTimer >= destroyHoldTime)
             {
+                if (startBuilding)
+                {
+                    startBuilding.UnregisterConnection(false);
+                }
+
+                if (endBuilding)
+                {
+                    endBuilding.UnregisterConnection(true);
+                }
+                
                 DestroyConveyorLine(hoveredController);
                 destroyTimer = 0f;
                 hoveredController = null;
