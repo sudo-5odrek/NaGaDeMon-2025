@@ -10,7 +10,6 @@ namespace Building.Turrets
     public class Turret : MonoBehaviour
     {
         [Header("Targeting")]
-        public float detectionRadius = 6f;
         public LayerMask enemyMask;
         public float rotationSpeed = 5f;
         public GameObject head;
@@ -23,7 +22,6 @@ namespace Building.Turrets
         public BulletEffectDatabase bulletEffectDatabase;
 
         [Header("Ammo Behavior")]
-        [Tooltip("If enabled, turret fires fallback bullets when no ammo is available.")]
         public bool useFallbackIfNoAmmo = false;
         public BulletEffects fallbackBulletEffects;
 
@@ -36,11 +34,12 @@ namespace Building.Turrets
         private BuildingInventory buildingInventory;
         private BuildingInventoryPort ammoPort;
 
-        private BulletEffects currentBulletEffects; // Loaded from ammo or fallback
+        private BulletEffects currentBulletEffects; 
+        private float currentDetectionRange = 0f; // ← computed from bullet reach
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // INITIALIZATION
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         void Awake()
         {
@@ -52,19 +51,19 @@ namespace Building.Turrets
                 Debug.LogWarning($"[{name}] No ammo input port found on turret!");
         }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // UPDATE LOOP
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         void Update()
         {
             UpdateBulletEffectsFromAmmo();
+            UpdateDetectionRange();
 
-            // If no bullet behavior → cannot shoot
             if (currentBulletEffects == null)
                 return;
 
-            // Acquire target
+            // Acquire target or refresh
             if (currentTarget == null
                 || !TargetInRange(currentTarget)
                 || !HasLineOfSight(currentTarget))
@@ -79,9 +78,9 @@ namespace Building.Turrets
             }
         }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // LOAD BULLET DATA FROM AMMO / FALLBACK
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         private void UpdateBulletEffectsFromAmmo()
         {
@@ -91,7 +90,6 @@ namespace Building.Turrets
                 return;
             }
 
-            // If we have ammo → use that ammo's bullet effects
             if (!ammoPort.IsEmpty)
             {
                 var material = ammoPort.GetCurrentItemDefinition();
@@ -99,7 +97,6 @@ namespace Building.Turrets
                 return;
             }
 
-            // If we have NO ammo → check fallback mode
             if (useFallbackIfNoAmmo)
             {
                 currentBulletEffects = fallbackBulletEffects;
@@ -110,9 +107,26 @@ namespace Building.Turrets
             }
         }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
+        // AUTO-DETECTION RANGE
+        // ----------------------------------------------------------------------
+
+        private void UpdateDetectionRange()
+        {
+            if (currentBulletEffects == null)
+            {
+                currentDetectionRange = 0f;
+                return;
+            }
+
+            // Bullet reach = speed × lifetime
+            currentDetectionRange =
+                currentBulletEffects.speed * currentBulletEffects.lifetime;
+        }
+
+        // ----------------------------------------------------------------------
         // TARGETING + LINE OF SIGHT
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         bool HasLineOfSight(Transform target)
         {
@@ -131,8 +145,13 @@ namespace Building.Turrets
 
         Transform FindClosestEnemy()
         {
+            if (currentDetectionRange <= 0f)
+                return null;
+            
+            Vector3 offset = new Vector3(transform.position.x + 0.5f, transform.position.y + 0.5f, transform.position.z);
+
             Collider2D[] hits =
-                Physics2D.OverlapCircleAll(transform.position, detectionRadius, enemyMask);
+                Physics2D.OverlapCircleAll(offset, currentDetectionRange, enemyMask);
 
             float bestDist = float.PositiveInfinity;
             Transform bestTarget = null;
@@ -142,7 +161,7 @@ namespace Building.Turrets
                 if (!HasLineOfSight(h.transform))
                     continue;
 
-                float dist = Vector2.Distance(transform.position, h.transform.position);
+                float dist = Vector2.Distance(offset, h.transform.position);
 
                 if (dist < bestDist)
                 {
@@ -154,12 +173,15 @@ namespace Building.Turrets
             return bestTarget;
         }
 
-        bool TargetInRange(Transform t) =>
-            Vector2.Distance(transform.position, t.position) <= detectionRadius;
+        bool TargetInRange(Transform t)
+        {
+            if (currentDetectionRange <= 0f) return false;
+            return Vector2.Distance(transform.position, t.position) <= currentDetectionRange;
+        }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // ROTATION + SHOOTING
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         void RotateTowardTarget()
         {
@@ -179,11 +201,9 @@ namespace Building.Turrets
             fireTimer -= Time.deltaTime;
             if (fireTimer > 0f) return;
 
-            // If we require ammo but have none → don't shoot
             if (!useFallbackIfNoAmmo && !HasAmmo())
                 return;
 
-            // If we use fallback mode we only consume ammo when available
             if (HasAmmo())
                 ConsumeAmmo();
 
@@ -196,7 +216,6 @@ namespace Building.Turrets
             if (currentBulletEffects == null || currentBulletEffects.bulletPrefab == null)
                 return;
 
-            // Spawn bullet
             GameObject bulletObj = Instantiate(
                 currentBulletEffects.bulletPrefab,
                 firePoint.position,
@@ -213,9 +232,9 @@ namespace Building.Turrets
             }
         }
 
-        // --------------------------------------------------
-        // AMMO HANDLING
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
+        // AMMO
+        // ----------------------------------------------------------------------
 
         private bool HasAmmo()
         {
@@ -232,9 +251,9 @@ namespace Building.Turrets
                 ammoPort.Remove(itemDef, 1f);
         }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // HEALTH
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         public void TakeDamage(int amount)
         {
@@ -243,14 +262,15 @@ namespace Building.Turrets
                 Destroy(gameObject);
         }
 
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
         // DEBUG VISUALIZATION
-        // --------------------------------------------------
+        // ----------------------------------------------------------------------
 
         void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, detectionRadius);
+            Vector3 offset = new Vector3(transform.position.x + 0.5f, transform.position.y + 0.5f, transform.position.z);
+            Gizmos.DrawWireSphere(offset, currentDetectionRange);
         }
     }
 }

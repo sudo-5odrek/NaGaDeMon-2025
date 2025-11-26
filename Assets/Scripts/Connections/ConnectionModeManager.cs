@@ -190,12 +190,6 @@ namespace Connections
             }
         }
 
-        // Public helper used by placement logic if needed
-        public bool CanAffordConveyor(int count)
-        {
-            return CanAfford(conveyorBuildingData, count);
-        }
-
         // --------------------------------------------------
         // MODE TOGGLE
         // --------------------------------------------------
@@ -305,9 +299,6 @@ namespace Connections
                     }
                 }
 
-                // Finalize preview line in placement logic
-                placementLogic.OnEndDrag(endPoint);
-
                 // Validate the line according to placement logic (grid, walkable, etc.)
                 if (!placementLogic.ValidatePlacement(out object _))
                 {
@@ -391,6 +382,9 @@ namespace Connections
             {
                 Vector3 pos = positions[i];
                 GameObject tile = Instantiate(connectionPrefab, pos, Quaternion.identity, currentController.transform);
+                var placed = tile.GetComponent<PlacedBuilding>();
+                if (placed)
+                    placed.data = conveyorBuildingData;
                 tiles.Add(tile);
             }
 
@@ -632,6 +626,7 @@ namespace Connections
             }
 
             ConveyorPathController controller = GetConveyorUnderCursor();
+            
             if (controller == null)
             {
                 destroyTimer = 0f;
@@ -670,6 +665,16 @@ namespace Connections
         private void DestroyConveyorLine(ConveyorPathController controller)
         {
             if (controller == null) return;
+
+            foreach (GameObject belt in controller.pathTiles)
+            { 
+                List<BuildingCost> cost = belt.GetComponent<PlacedBuilding>().data.cost;
+
+                foreach (BuildingCost b in cost)
+                {
+                    PlayerInventory.Instance.AddItem(b.item,b.amount);
+                }
+            }
 
             Destroy(controller.gameObject);
             Debug.Log($"🔥 Destroyed conveyor line: {controller.name}");
