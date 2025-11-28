@@ -1,17 +1,20 @@
 using Loot;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
-public class LootMagnet : MonoBehaviour
+namespace NaGaDeMon.Features.Inventory.Loot
 {
-    [Header("Magnet Settings")]
-    public float attractForce = 8f; // how fast loot flies toward player
-
-    void OnTriggerEnter2D(Collider2D other)
+    [RequireComponent(typeof(Collider2D))]
+    public class LootMagnet : MonoBehaviour
     {
-        if (other.TryGetComponent<LootItemMover>(out var loot))
+        [Header("Magnet Settings")]
+        public float attractForce = 8f; // how fast loot flies toward player
+
+        void OnTriggerEnter2D(Collider2D other)
         {
-            loot.AttractTo(transform, attractForce);
+            if (other.TryGetComponent<LootItemMover>(out var loot))
+            {
+                loot.AttractTo(transform, attractForce);
+            }
         }
     }
 }

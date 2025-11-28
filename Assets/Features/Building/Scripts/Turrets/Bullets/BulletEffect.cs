@@ -1,7 +1,7 @@
-using Enemy;
+using NaGaDeMon.Features.Enemies;
 using UnityEngine;
 
-namespace Building.Turrets.Bullets
+namespace NaGaDeMon.Features.Building.Turrets.Bullets
 {
     public abstract class BulletEffect : ScriptableObject
     {

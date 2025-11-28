@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Building
+namespace NaGaDeMon.Features.Building
 {
     public class BuildMenuUI : MonoBehaviour
     {

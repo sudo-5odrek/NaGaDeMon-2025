@@ -1,8 +1,11 @@
 using UnityEngine;
 
-[System.Serializable]
-public struct ResourceStack
+namespace NaGaDeMon.Features.Inventory
 {
-    public string resourceId;   // "IronOre", "CopperIngot", etc.
-    public int amount;
+    [System.Serializable]
+    public struct ResourceStack
+    {
+        public string resourceId;   // "IronOre", "CopperIngot", etc.
+        public int amount;
+    }
 }

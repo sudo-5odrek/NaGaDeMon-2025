@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Inventory
+namespace NaGaDeMon.Features.Inventory
 {
     public class ItemWheelSegment : MonoBehaviour, IPointerEnterHandler
     {

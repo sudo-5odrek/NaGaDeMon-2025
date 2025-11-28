@@ -1,7 +1,7 @@
-using Enemy;
+using NaGaDeMon.Features.Enemies;
 using UnityEngine;
 
-namespace Building.Turrets.Bullets.Effect_Library
+namespace NaGaDeMon.Features.Building.Turrets.Bullets.EffectLibrary
 {
     [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Direct Damage")]
     public class DirectDamageEffect : BulletEffect

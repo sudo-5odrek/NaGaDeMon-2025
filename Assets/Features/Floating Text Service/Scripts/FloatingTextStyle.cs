@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace Floating_Text_Service
+namespace NaGaDeMon.Features.FloatingTextService
 {
     [CreateAssetMenu(menuName = "Game/UI/Floating Text Style", fileName = "FloatingTextStyle")]
     public class FloatingTextStyle : ScriptableObject

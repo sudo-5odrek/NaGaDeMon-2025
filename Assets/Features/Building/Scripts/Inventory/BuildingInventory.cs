@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Building;
+using NaGaDeMon.Features.Building;
 using Building.Upgrade;
 using UnityEngine;
 
-namespace Inventory
+namespace NaGaDeMon.Features.Building.Inventory
 {
     /// <summary>
     /// Centralized inventory system for a building.

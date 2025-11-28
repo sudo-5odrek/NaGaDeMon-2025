@@ -2,7 +2,7 @@ using Building.Turrets.Bullets;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Player
+namespace NaGaDeMon.Features.Player
 {
     public class PlayerAttack : MonoBehaviour
     {

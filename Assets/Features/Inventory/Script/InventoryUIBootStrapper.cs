@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Player;
+using NaGaDeMon.Features.Player;
 using UnityEngine;
 
-namespace Inventory
+namespace NaGaDeMon.Features.Inventory
 {
     public class InventoryUIBootstrapper : MonoBehaviour
     {

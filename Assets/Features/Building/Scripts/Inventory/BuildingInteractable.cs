@@ -1,9 +1,8 @@
-using Interface;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
-using Player;
+using NaGaDeMon.Features.Player;
 
-namespace Building
+namespace NaGaDeMon.Features.Building.Inventory
 {
     [RequireComponent(typeof(BuildingInventory))]
     public class BuildingInteractable : MonoBehaviour, IInteractable

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Inventory
+namespace NaGaDeMon.Features.Inventory
 {
     [CreateAssetMenu(menuName = "Game/Items/Item Definition", fileName = "NewItem")]
     public class ItemDefinition : ScriptableObject

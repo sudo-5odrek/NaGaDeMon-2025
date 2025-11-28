@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Interface;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace Building
+namespace NaGaDeMon.Features.Building
 {
     [System.Serializable]
     public struct BuildingCost

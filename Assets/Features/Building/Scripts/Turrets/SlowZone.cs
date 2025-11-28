@@ -1,7 +1,7 @@
-using Enemy;
+using NaGaDeMon.Features.Enemies;
 using UnityEngine;
 
-namespace Building.Turrets
+namespace NaGaDeMon.Features.Building.Turrets
 {
     [RequireComponent(typeof(CircleCollider2D))]
     public class SlowZone : MonoBehaviour

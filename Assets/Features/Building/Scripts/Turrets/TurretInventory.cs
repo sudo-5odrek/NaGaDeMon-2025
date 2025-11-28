@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Building.Turrets
+namespace NaGaDeMon.Features.Building.Turrets
 {
     [RequireComponent(typeof(Turret))]
     public class TurretInventory : MonoBehaviour

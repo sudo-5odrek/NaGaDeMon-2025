@@ -1,59 +1,62 @@
 using UnityEditor;
 using UnityEngine;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 
-[CustomEditor(typeof(BuildingInventory))]
-public class BuildingInventoryEditor : Editor
+namespace NaGaDeMon.Editor
 {
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(BuildingInventory))]
+    public class BuildingInventoryEditor : Editor
     {
-        // Draw the default inspector first
-        DrawDefaultInspector();
-
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("Runtime Port Inventories", EditorStyles.boldLabel);
-
-        BuildingInventory inv = (BuildingInventory)target;
-
-        // Only show during play mode (since runtime inventory is created at runtime)
-        if (!Application.isPlaying)
+        public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("Port inventory info is available in Play Mode.", MessageType.Info);
-            return;
-        }
+            // Draw the default inspector first
+            DrawDefaultInspector();
 
-        foreach (var port in inv.ports)
-        {
-            if (port == null)
-                continue;
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("Runtime Port Inventories", EditorStyles.boldLabel);
 
-            EditorGUILayout.Space(5);
-            EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField($"Port: {port.portName}", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField($"Type: {port.portType}");
-            EditorGUILayout.LabelField($"Assigned Item: {port.itemDefinition?.displayName ?? "(unassigned)"}");
+            BuildingInventory inv = (BuildingInventory)target;
 
-            var runtimeInv = port.RuntimeInventory;
-            var dict = runtimeInv.GetAll();
-
-            if (dict.Count == 0)
+            // Only show during play mode (since runtime inventory is created at runtime)
+            if (!Application.isPlaying)
             {
-                EditorGUILayout.LabelField("Contents: (empty)");
+                EditorGUILayout.HelpBox("Port inventory info is available in Play Mode.", MessageType.Info);
+                return;
             }
-            else
-            {
-                EditorGUILayout.LabelField("Contents:");
-                EditorGUI.indentLevel++;
 
-                foreach (var kvp in dict)
+            foreach (var port in inv.ports)
+            {
+                if (port == null)
+                    continue;
+
+                EditorGUILayout.Space(5);
+                EditorGUILayout.BeginVertical("box");
+                EditorGUILayout.LabelField($"Port: {port.portName}", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"Type: {port.portType}");
+                EditorGUILayout.LabelField($"Assigned Item: {port.itemDefinition?.displayName ?? "(unassigned)"}");
+
+                var runtimeInv = port.RuntimeInventory;
+                var dict = runtimeInv.GetAll();
+
+                if (dict.Count == 0)
                 {
-                    EditorGUILayout.LabelField($"• {kvp.Key}: {kvp.Value}");
+                    EditorGUILayout.LabelField("Contents: (empty)");
+                }
+                else
+                {
+                    EditorGUILayout.LabelField("Contents:");
+                    EditorGUI.indentLevel++;
+
+                    foreach (var kvp in dict)
+                    {
+                        EditorGUILayout.LabelField($"• {kvp.Key}: {kvp.Value}");
+                    }
+
+                    EditorGUI.indentLevel--;
                 }
 
-                EditorGUI.indentLevel--;
+                EditorGUILayout.EndVertical();
             }
-
-            EditorGUILayout.EndVertical();
         }
     }
 }
