@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Features.Building.Scripts.Placement_Logics
 {
-    [CreateAssetMenu(menuName = "Game/Buildings/Placement/Straight Line")]
+    [CreateAssetMenu(menuName = "Buildings/Placement Logic/Straight Line")]
     public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     {
         private GameObject prefab;

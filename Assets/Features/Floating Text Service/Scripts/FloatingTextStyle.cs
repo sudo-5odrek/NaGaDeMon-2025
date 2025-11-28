@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Features.Floating_Text_Service.Scripts
 {
-    [CreateAssetMenu(menuName = "Game/UI/Floating Text Style", fileName = "FloatingTextStyle")]
+    [CreateAssetMenu(menuName = "UI/Floating Text Style", fileName = "FloatingTextStyle")]
     public class FloatingTextStyle : ScriptableObject
     {
         [Header("Visuals")]

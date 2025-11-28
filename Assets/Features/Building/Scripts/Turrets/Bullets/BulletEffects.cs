@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Features.Building.Scripts.Turrets.Bullets
 {
-    [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Configuration")]
+    [CreateAssetMenu(menuName = "Combat/Bullets/Bullet Configuration")]
     public class BulletEffects : ScriptableObject
     {
         [Header("Bullet Settings")]

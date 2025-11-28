@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Features.Building.Scripts.Production
 {
-    [CreateAssetMenu(menuName = "Game/Buildings/Production Building")]
+    [CreateAssetMenu(menuName = "Production/Production Building Setup")]
     public class ProductionBuildingData : ScriptableObject
     {
         public string buildingName;

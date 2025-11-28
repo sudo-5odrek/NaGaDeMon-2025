@@ -11,7 +11,7 @@ namespace Features.Building.Scripts
         public int amount;
     }
     
-    [CreateAssetMenu(fileName = "NewBuilding", menuName = "Game/Buildings/Building")]
+    [CreateAssetMenu(fileName = "NewBuilding", menuName = "Buildings/Building Data")]
     public class BuildingData : ScriptableObject
     {
         [Header("Visuals")]

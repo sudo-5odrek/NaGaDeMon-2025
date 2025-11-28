@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Features.Building.Scripts.Turrets.Bullets.Effect_Library
 {
-    [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Slow Shot")]
+    [CreateAssetMenu(menuName = "Combat/Bullets/Bullet Effects/Slow Shot")]
     public class SlowShotEffect : BulletEffect
     {
         [Header("Direct Hit")]

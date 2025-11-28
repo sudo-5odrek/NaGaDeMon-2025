@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Features.Building.Scripts.Upgrade
 {
-    [CreateAssetMenu(menuName = "TD/Building Upgrade Data")]
+    [CreateAssetMenu(menuName = "Buildings/Upgrade/Upgrade Data")]
     public class BuildingUpgradeData : ScriptableObject
     {
         public List<BuildingUpgradeDefinition> levels = new List<BuildingUpgradeDefinition>();

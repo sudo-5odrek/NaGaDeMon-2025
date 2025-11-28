@@ -5,7 +5,7 @@ namespace Features.Inventory.Scripts
 {
     [CreateAssetMenu(
         fileName = "ItemDatabase",
-        menuName = "TD/Inventory/Item Database")]
+        menuName = "Items/Item Database")]
     public class ItemDatabase : ScriptableObject
     {
         [Tooltip("All items that can appear in the game and be tracked by the inventory UI.")]

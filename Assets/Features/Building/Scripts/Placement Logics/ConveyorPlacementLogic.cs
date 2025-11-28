@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Features.Building.Scripts.Placement_Logics
 {
-    [CreateAssetMenu(menuName = "Game/Buildings/Placement/Conveyor Line")]
+    [CreateAssetMenu(menuName = "Buildings/Placement Logic/Conveyor Line")]
     public class ConveyorLinePlacementLogic : ScriptableObject, IBuildPlacementLogic
     {
         private GameObject tilePrefab;

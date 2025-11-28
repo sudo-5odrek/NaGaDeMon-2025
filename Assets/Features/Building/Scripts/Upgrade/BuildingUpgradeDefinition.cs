@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Features.Building.Scripts.Upgrade
 {
-    [CreateAssetMenu(menuName = "TD/Building Upgrade Definition")]
+    [CreateAssetMenu(menuName = "Buildings/Upgrade/Level Definition")]
     public class BuildingUpgradeDefinition : ScriptableObject
     {
         [Header("Cost")]

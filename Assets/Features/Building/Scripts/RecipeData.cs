@@ -8,7 +8,7 @@ namespace Features.Building.Scripts
     /// Defines a crafting recipe: what resources it consumes and what it produces.
     /// Used by ProductionBuilding.
     /// </summary>
-    [CreateAssetMenu(menuName = "Game/Production/Recipe", fileName = "NewRecipe")]
+    [CreateAssetMenu(menuName = "Production/Recipe", fileName = "NewRecipe")]
     public class RecipeData : ScriptableObject
     {
         [Header("General Info")]
