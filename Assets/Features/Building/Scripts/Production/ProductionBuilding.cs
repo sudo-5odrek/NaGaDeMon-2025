@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace Building.Production
+namespace NaGaDeMon.Features.Building.Production
 {
     /// <summary>
     /// Handles crafting logic for a production building using the unified BuildingInventory system.

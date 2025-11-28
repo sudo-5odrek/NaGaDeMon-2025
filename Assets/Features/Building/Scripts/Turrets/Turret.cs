@@ -1,10 +1,10 @@
-using UnityEngine;
 using System.Collections.Generic;
-using Building;
-using Building.Turrets.Bullets;
-using Inventory;
+using NaGaDeMon.Features.Building;
+using NaGaDeMon.Features.Building.Turrets.Bullets;
+using NaGaDeMon.Features.Inventory;
+using UnityEngine;
 
-namespace Building.Turrets
+namespace NaGaDeMon.Features.Building.Turrets
 {
     [RequireComponent(typeof(BuildingInventory))]
     public class Turret : MonoBehaviour

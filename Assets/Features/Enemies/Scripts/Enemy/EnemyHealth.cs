@@ -1,7 +1,7 @@
-using Floating_Text_Service;
+using NaGaDeMon.Features.FloatingTextService;
 using UnityEngine;
 
-namespace Enemy
+namespace NaGaDeMon.Features.Enemies.Enemy
 {
     public class EnemyHealth : MonoBehaviour
     {

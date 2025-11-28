@@ -2,14 +2,17 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CostEntryUI : MonoBehaviour
+namespace NaGaDeMon.Features.Building
 {
-    [SerializeField] private Image icon;
-    [SerializeField] private TMP_Text amountText;
-
-    public void Set(Sprite iconSprite, int amount)
+    public class CostEntryUI : MonoBehaviour
     {
-        icon.sprite = iconSprite;
-        amountText.text = amount.ToString();
+        [SerializeField] private Image icon;
+        [SerializeField] private TMP_Text amountText;
+
+        public void Set(Sprite iconSprite, int amount)
+        {
+            icon.sprite = iconSprite;
+            amountText.text = amount.ToString();
+        }
     }
 }

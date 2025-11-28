@@ -1,10 +1,9 @@
-using Interface;
+using System.Collections.Generic;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
-using Inventory;
 
-namespace Player
+namespace NaGaDeMon.Features.Player
 {
     [RequireComponent(typeof(PlayerInventory))]
     public class PlayerInteraction : MonoBehaviour

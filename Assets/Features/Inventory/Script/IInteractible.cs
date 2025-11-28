@@ -1,7 +1,7 @@
-using Inventory;
-using Player;
+using NaGaDeMon.Features.Inventory;
+using NaGaDeMon.Features.Player;
 
-namespace Interface
+namespace NaGaDeMon.Features.Inventory
 {
     public interface IInteractable
     {

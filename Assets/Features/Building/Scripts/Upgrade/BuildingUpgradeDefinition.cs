@@ -1,7 +1,7 @@
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace Building
+namespace NaGaDeMon.Features.Building.Upgrade
 {
     [CreateAssetMenu(menuName = "TD/Building Upgrade Definition")]
     public class BuildingUpgradeDefinition : ScriptableObject

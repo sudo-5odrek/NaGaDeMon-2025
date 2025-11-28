@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Pool_Services;
+using NaGaDeMon.Features.ObjectPoolService;
 using UnityEngine;
 
-namespace Floating_Text_Service
+namespace NaGaDeMon.Features.FloatingTextService
 {
     public class FloatingTextPool :MonoBehaviour
     {

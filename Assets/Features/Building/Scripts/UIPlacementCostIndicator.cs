@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace Building
+namespace NaGaDeMon.Features.Building
 {
     public class UIPlacementCostIndicator : MonoBehaviour
     {

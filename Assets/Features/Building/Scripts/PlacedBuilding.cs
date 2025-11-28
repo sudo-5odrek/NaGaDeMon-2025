@@ -1,7 +1,10 @@
-using Building;
+using NaGaDeMon.Features.Building;
 using UnityEngine;
 
-public class PlacedBuilding : MonoBehaviour
+namespace NaGaDeMon.Features.Building
 {
-    public BuildingData data;
+    public class PlacedBuilding : MonoBehaviour
+    {
+        public BuildingData data;
+    }
 }

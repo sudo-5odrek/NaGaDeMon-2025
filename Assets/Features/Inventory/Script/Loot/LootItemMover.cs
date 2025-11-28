@@ -1,8 +1,8 @@
-using Inventory;
-using Player;
+using NaGaDeMon.Features.Inventory;
+using NaGaDeMon.Features.Player;
 using UnityEngine;
 
-namespace Loot
+namespace NaGaDeMon.Features.Inventory.Loot
 {
     [RequireComponent(typeof(Collider2D))]
     public class LootItemMover : MonoBehaviour

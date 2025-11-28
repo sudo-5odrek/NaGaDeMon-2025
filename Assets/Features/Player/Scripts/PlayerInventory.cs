@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace Player
+namespace NaGaDeMon.Features.Player
 {
 #if UNITY_EDITOR
     using System.Linq;

@@ -1,8 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 
-namespace Building.Production
+namespace NaGaDeMon.Features.Building
 {
     /// <summary>
     /// Defines a crafting recipe: what resources it consumes and what it produces.

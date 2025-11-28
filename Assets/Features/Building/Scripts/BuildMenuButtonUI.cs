@@ -1,65 +1,68 @@
-using Building;
+using NaGaDeMon.Features.Building;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BuildMenuButtonUI : MonoBehaviour
+namespace NaGaDeMon.Features.Building
 {
-    [Header("UI Elements")]
-    [SerializeField] private Image icon;
-    [SerializeField] private TMP_Text nameText;
-    [SerializeField] private Transform costRoot;
-
-    [Header("Cost UI")]
-    [Tooltip("Prefab that includes an icon (Image) and a TMP_Text for the amount.")]
-    [SerializeField] private GameObject costEntryPrefab;
-
-    private Button button;
-
-    private void Awake()
+    public class BuildMenuButtonUI : MonoBehaviour
     {
-        button = GetComponent<Button>();
-    }
+        [Header("UI Elements")]
+        [SerializeField] private Image icon;
+        [SerializeField] private TMP_Text nameText;
+        [SerializeField] private Transform costRoot;
 
-    public void Setup(BuildingData building, System.Action onClick)
-    {
-        if (button == null)
-            button = GetComponent<Button>();
-        // ---------------------------
-        // Set main icon + name
-        // ---------------------------
-        icon.sprite = building.icon;
-        nameText.text = building.buildingName;
+        [Header("Cost UI")]
+        [Tooltip("Prefab that includes an icon (Image) and a TMP_Text for the amount.")]
+        [SerializeField] private GameObject costEntryPrefab;
 
-        // ---------------------------
-        // Clear old cost entries
-        // ---------------------------
-        foreach (Transform child in costRoot)
-            Destroy(child.gameObject);
+        private Button button;
 
-        // ---------------------------
-        // Generate cost entries
-        // ---------------------------
-        foreach (var cost in building.cost)
+        private void Awake()
         {
-            var entry = Instantiate(costEntryPrefab, costRoot);
-
-            // Prefab must have: CostEntryUI script
-            var ui = entry.GetComponent<CostEntryUI>();
-
-            if (ui == null)
-            {
-                Debug.LogError("CostEntryPrefab is missing CostEntryUI component.");
-                continue;
-            }
-
-            ui.Set(cost.item.icon, cost.amount);
+            button = GetComponent<Button>();
         }
 
-        // ---------------------------
-        // Set the button callback
-        // ---------------------------
-        button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() => onClick?.Invoke());
+        public void Setup(BuildingData building, System.Action onClick)
+        {
+            if (button == null)
+                button = GetComponent<Button>();
+            // ---------------------------
+            // Set main icon + name
+            // ---------------------------
+            icon.sprite = building.icon;
+            nameText.text = building.buildingName;
+
+            // ---------------------------
+            // Clear old cost entries
+            // ---------------------------
+            foreach (Transform child in costRoot)
+                Destroy(child.gameObject);
+
+            // ---------------------------
+            // Generate cost entries
+            // ---------------------------
+            foreach (var cost in building.cost)
+            {
+                var entry = Instantiate(costEntryPrefab, costRoot);
+
+                // Prefab must have: CostEntryUI script
+                var ui = entry.GetComponent<CostEntryUI>();
+
+                if (ui == null)
+                {
+                    Debug.LogError("CostEntryPrefab is missing CostEntryUI component.");
+                    continue;
+                }
+
+                ui.Set(cost.item.icon, cost.amount);
+            }
+
+            // ---------------------------
+            // Set the button callback
+            // ---------------------------
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => onClick?.Invoke());
+        }
     }
 }

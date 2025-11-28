@@ -23,7 +23,7 @@ using UnityEngine.InputSystem.Utilities;
 /// </remarks>
 /// <example>
 /// <code>
-/// using namespace UnityEngine;
+/// using namespace NaGaDeMon.Features.Player
 /// using UnityEngine.InputSystem;
 ///
 /// // Example of using an InputActionMap named "Player" from a UnityEngine.MonoBehaviour implementing callback interface.
@@ -72,6 +72,8 @@ using UnityEngine.InputSystem.Utilities;
 /// }
 /// </code>
 /// </example>
+namespace NaGaDeMon.Features.Player
+{
 public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
 {
     /// <summary>
@@ -2028,4 +2030,5 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnNewaction(InputAction.CallbackContext context);
     }
+}
 }

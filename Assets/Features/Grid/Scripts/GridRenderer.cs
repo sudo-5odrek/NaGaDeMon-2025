@@ -1,23 +1,26 @@
 using UnityEngine;
 
-[ExecuteAlways]
-public class GridRenderer : MonoBehaviour
+namespace NaGaDeMon.Features.Grid
 {
-    [SerializeField] float gridSize = 1f;
-    [SerializeField] int halfExtent = 20;
-    [SerializeField] Color lineColor = new Color(1f, 1f, 1f, 0.1f);
-
-    void OnDrawGizmos()
+    [ExecuteAlways]
+    public class GridRenderer : MonoBehaviour
     {
-        Gizmos.color = lineColor;
+        [SerializeField] float gridSize = 1f;
+        [SerializeField] int halfExtent = 20;
+        [SerializeField] Color lineColor = new Color(1f, 1f, 1f, 0.1f);
 
-        for (float x = -halfExtent; x <= halfExtent; x += gridSize)
+        void OnDrawGizmos()
         {
-            Gizmos.DrawLine(new Vector3(x, -halfExtent, 0), new Vector3(x, halfExtent, 0));
-        }
-        for (float y = -halfExtent; y <= halfExtent; y += gridSize)
-        {
-            Gizmos.DrawLine(new Vector3(-halfExtent, y, 0), new Vector3(halfExtent, y, 0));
+            Gizmos.color = lineColor;
+
+            for (float x = -halfExtent; x <= halfExtent; x += gridSize)
+            {
+                Gizmos.DrawLine(new Vector3(x, -halfExtent, 0), new Vector3(x, halfExtent, 0));
+            }
+            for (float y = -halfExtent; y <= halfExtent; y += gridSize)
+            {
+                Gizmos.DrawLine(new Vector3(-halfExtent, y, 0), new Vector3(halfExtent, y, 0));
+            }
         }
     }
 }
