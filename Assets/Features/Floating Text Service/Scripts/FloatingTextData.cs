@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NaGaDeMon.Features.FloatingTextService
+namespace Features.Floating_Text_Service.Scripts
 {
     public struct FloatingTextData
     {

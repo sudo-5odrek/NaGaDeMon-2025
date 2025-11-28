@@ -2,7 +2,7 @@ using NaGaDeMon.Features.Player;
 using TMPro;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Inventory.Loot
+namespace Features.Inventory.Scripts.Loot
 {
     public class ContextUI : MonoBehaviour
     {

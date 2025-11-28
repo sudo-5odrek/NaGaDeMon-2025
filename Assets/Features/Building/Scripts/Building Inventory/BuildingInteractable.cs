@@ -1,10 +1,8 @@
-using Features.Building.Scripts.Building_Inventory;
+using Features.Inventory.Scripts;
 using Features.Player.Scripts;
-using NaGaDeMon.Features.Inventory;
 using UnityEngine;
-using NaGaDeMon.Features.Player;
 
-namespace NaGaDeMon.Features.Building.Inventory
+namespace Features.Building.Scripts.Building_Inventory
 {
     [RequireComponent(typeof(BuildingInventory))]
     public class BuildingInteractable : MonoBehaviour, IInteractable

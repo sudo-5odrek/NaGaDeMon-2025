@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace NaGaDeMon.Features.Inventory
+namespace Features.Inventory.Scripts
 {
     public class ItemWheelUI : MonoBehaviour
     {

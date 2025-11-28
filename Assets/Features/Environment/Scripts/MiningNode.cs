@@ -1,8 +1,8 @@
-using NaGaDeMon.Features.FloatingTextService;
-using NaGaDeMon.Features.Inventory;
+using Features.Floating_Text_Service.Scripts;
+using Features.Inventory.Scripts;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Environment
+namespace Features.Environment.Scripts
 {
     [DisallowMultipleComponent]
     public class MiningNode : MonoBehaviour

@@ -1,5 +1,5 @@
-using NaGaDeMon.Features.FloatingTextService;
-using NaGaDeMon.Features.Inventory.Loot;
+using Features.Floating_Text_Service.Scripts;
+using Features.Inventory.Scripts.Loot;
 using UnityEngine;
 
 namespace Features.Enemies.Scripts.Enemy

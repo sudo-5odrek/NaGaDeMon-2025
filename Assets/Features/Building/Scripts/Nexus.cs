@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building
+namespace Features.Building.Scripts
 {
     public class Nexus : MonoBehaviour
     {

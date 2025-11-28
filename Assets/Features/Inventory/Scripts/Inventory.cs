@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Inventory
+namespace Features.Inventory.Scripts
 {
     /// <summary>
     /// Core runtime inventory class — no MonoBehaviour.

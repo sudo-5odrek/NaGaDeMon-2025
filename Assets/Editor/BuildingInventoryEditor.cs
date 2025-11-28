@@ -1,4 +1,4 @@
-using NaGaDeMon.Features.Building.Inventory;
+using Features.Building.Scripts.Building_Inventory;
 using UnityEditor;
 using UnityEngine;
 

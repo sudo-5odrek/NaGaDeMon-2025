@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Features.Inventory.Scripts;
-using NaGaDeMon.Features.Building.Inventory;
-using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
 namespace Features.Building.Scripts.Building_Inventory
@@ -29,7 +27,7 @@ namespace Features.Building.Scripts.Building_Inventory
         public float capacity = 20f;
         public float transferRate = 1f;
 
-        [NonSerialized] private NaGaDeMon.Features.Inventory.Inventory inventory;
+        [NonSerialized] private Inventory.Scripts.Inventory inventory;
         
         public event Action<ItemDefinition, float> OnItemAdded;
         public event Action<ItemDefinition, float> OnItemRemoved;
@@ -40,7 +38,7 @@ namespace Features.Building.Scripts.Building_Inventory
         public void Init()
         {
             if (inventory == null)
-                inventory = new NaGaDeMon.Features.Inventory.Inventory(capacity);
+                inventory = new Inventory.Scripts.Inventory(capacity);
 
             // Assign owner name + instance ID
             inventory.OwnerID = $"{parentBuilding.name}.{portName}#{parentBuilding.GetInstanceID()}";

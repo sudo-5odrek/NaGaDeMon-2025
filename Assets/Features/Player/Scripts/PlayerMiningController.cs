@@ -1,8 +1,7 @@
 using System.Collections;
-using NaGaDeMon.Features.Environment;
-using NaGaDeMon.Features.FloatingTextService;
-using NaGaDeMon.Features.Inventory;
-using NaGaDeMon.Features.Player;
+using Features.Environment.Scripts;
+using Features.Floating_Text_Service.Scripts;
+using Features.Inventory.Scripts;
 using UnityEngine;
 
 namespace Features.Player.Scripts

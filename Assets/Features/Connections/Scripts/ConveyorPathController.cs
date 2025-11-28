@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using Features.Building.Scripts.Building_Inventory;
-using NaGaDeMon.Features.Building.Inventory;
-using NaGaDeMon.Features.Inventory;
+using Features.Inventory.Scripts;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Connections
+namespace Features.Connections.Scripts
 {
     [DisallowMultipleComponent]
     public class ConveyorPathController : MonoBehaviour

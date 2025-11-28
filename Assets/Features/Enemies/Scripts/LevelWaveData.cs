@@ -1,7 +1,7 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace NaGaDeMon.Features.Enemies
+namespace Features.Enemies.Scripts
 {
     [CreateAssetMenu(fileName = "LevelWaveData", menuName = "Game/Levels/Level Wave Data")]
     public class LevelWaveData : ScriptableObject

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Grid
+namespace Features.Grid.Scripts
 {
     [ExecuteAlways]
     public class GridManager : MonoBehaviour

@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using NaGaDeMon.Features.Building;
-using NaGaDeMon.Features.Grid;
+using Features.Grid.Scripts;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.PlacementLogics
+namespace Features.Building.Scripts.Placement_Logics
 {
     [CreateAssetMenu(menuName = "Game/Buildings/Placement/Straight Line")]
     public class StraightLinePlacementLogic : ScriptableObject, IBuildPlacementLogic

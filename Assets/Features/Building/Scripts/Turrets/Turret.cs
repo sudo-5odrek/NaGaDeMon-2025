@@ -1,6 +1,5 @@
 using Features.Building.Scripts.Building_Inventory;
-using NaGaDeMon.Features.Building.Inventory;
-using NaGaDeMon.Features.Building.Turrets.Bullets;
+using Features.Building.Scripts.Turrets.Bullets;
 using UnityEngine;
 
 namespace Features.Building.Scripts.Turrets

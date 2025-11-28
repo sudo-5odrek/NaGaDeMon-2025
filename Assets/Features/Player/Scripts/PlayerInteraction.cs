@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Features.Inventory.Scripts;
 using Features.Player.Scripts;
-using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 using UnityEngine.InputSystem;
 

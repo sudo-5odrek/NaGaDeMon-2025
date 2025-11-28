@@ -1,5 +1,4 @@
 using Features.Enemies.Scripts.Enemy;
-using NaGaDeMon.Features.Enemies.Enemy;
 using UnityEngine;
 
 namespace Features.Building.Scripts.Turrets

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
 namespace Features.Inventory.Scripts

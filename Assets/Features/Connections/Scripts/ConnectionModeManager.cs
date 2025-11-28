@@ -1,9 +1,8 @@
 using System.Collections.Generic;
+using Features.Building.Scripts;
+using Features.Building.Scripts.Building_Inventory;
+using Features.Grid.Scripts;
 using Features.Player.Scripts;
-using NaGaDeMon.Features.Building;
-using NaGaDeMon.Features.Building.Inventory;
-using NaGaDeMon.Features.Connections;
-using NaGaDeMon.Features.Grid;
 using NaGaDeMon.Features.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;

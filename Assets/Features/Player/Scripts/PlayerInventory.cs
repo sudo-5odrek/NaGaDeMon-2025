@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NaGaDeMon.Features.Inventory;
+using Features.Inventory.Scripts;
 using NaGaDeMon.Features.Player;
 using UnityEngine;
 
@@ -26,7 +26,7 @@ namespace Features.Player.Scripts
         [SerializeField] private float totalWeight;
 
         // --- Core Data ---
-        public NaGaDeMon.Features.Inventory.Inventory Inventory { get; private set; }
+        public Inventory.Scripts.Inventory Inventory { get; private set; }
 
         // Reference table for item definitions currently in inventory
         private readonly Dictionary<string, ItemDefinition> itemRefs = new();
@@ -38,7 +38,7 @@ namespace Features.Player.Scripts
         {
 
             Instance = this;
-            Inventory = new NaGaDeMon.Features.Inventory.Inventory(-1); // -1 = infinite capacity
+            Inventory = new Inventory.Scripts.Inventory(-1); // -1 = infinite capacity
             Inventory.OnInventoryChanged += HandleInventoryChanged;
         }
 

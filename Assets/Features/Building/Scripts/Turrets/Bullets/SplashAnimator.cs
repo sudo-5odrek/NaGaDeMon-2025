@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Turrets.Bullets
+namespace Features.Building.Scripts.Turrets.Bullets
 {
     public class SplashAnimator : MonoBehaviour
     {

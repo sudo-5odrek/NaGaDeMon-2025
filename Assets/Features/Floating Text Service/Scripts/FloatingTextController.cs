@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace NaGaDeMon.Features.FloatingTextService
+namespace Features.Floating_Text_Service.Scripts
 {
     public class FloatingTextController : MonoBehaviour
     {

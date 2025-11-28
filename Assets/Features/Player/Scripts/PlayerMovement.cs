@@ -1,7 +1,8 @@
+using NaGaDeMon.Features.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace NaGaDeMon.Features.Player
+namespace Features.Player.Scripts
 {
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerMovement : MonoBehaviour

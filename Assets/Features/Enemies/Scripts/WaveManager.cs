@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using Features.Building.Scripts;
 using Features.Enemies.Scripts.Enemy;
-using NaGaDeMon.Features.Building;
-using NaGaDeMon.Features.Enemies;
 using UnityEngine;
 
 namespace Features.Enemies.Scripts

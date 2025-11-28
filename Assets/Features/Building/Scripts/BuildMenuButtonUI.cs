@@ -1,9 +1,9 @@
-using NaGaDeMon.Features.Building;
+
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace NaGaDeMon.Features.Building
+namespace Features.Building.Scripts
 {
     public class BuildMenuButtonUI : MonoBehaviour
     {

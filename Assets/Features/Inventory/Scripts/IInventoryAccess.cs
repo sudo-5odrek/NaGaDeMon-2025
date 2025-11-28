@@ -1,6 +1,6 @@
-using UnityEngine;
 
-namespace NaGaDeMon.Features.Inventory
+
+namespace Features.Inventory.Scripts
 {
     public interface IInventoryAccess
     {

@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using NaGaDeMon.Features.Building;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building
+namespace Features.Building.Scripts
 {
     public interface IBuildPlacementLogic
     {

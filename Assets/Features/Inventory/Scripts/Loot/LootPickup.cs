@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Inventory.Loot
+namespace Features.Inventory.Scripts.Loot
 {
     public enum LootType { Gold, Ammo, Energy, Material }
 

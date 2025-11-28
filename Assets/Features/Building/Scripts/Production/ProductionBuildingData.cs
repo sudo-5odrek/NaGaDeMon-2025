@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Production
+namespace Features.Building.Scripts.Production
 {
     [CreateAssetMenu(menuName = "Game/Buildings/Production Building")]
     public class ProductionBuildingData : ScriptableObject

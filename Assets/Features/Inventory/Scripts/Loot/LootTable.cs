@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Inventory.Loot
+namespace Features.Inventory.Scripts.Loot
 {
     [System.Serializable]
     public class LootItem

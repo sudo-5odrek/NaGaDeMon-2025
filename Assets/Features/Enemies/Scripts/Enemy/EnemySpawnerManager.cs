@@ -1,8 +1,6 @@
-using Features.Enemies.Scripts.Enemy;
-using NaGaDeMon.Features.Enemies;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Enemies.Enemy
+namespace Features.Enemies.Scripts.Enemy
 {
     public class EnemySpawner : MonoBehaviour
     {

@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using Features.Building.Scripts.Building_Inventory;
-using NaGaDeMon.Features.Building.Inventory;
-using NaGaDeMon.Features.Building.Upgrade;
-using NaGaDeMon.Features.Inventory;
+using Features.Inventory.Scripts;
 using UnityEngine;
 
 namespace Features.Building.Scripts.Upgrade

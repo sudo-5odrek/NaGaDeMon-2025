@@ -1,8 +1,6 @@
 using Features.Player.Scripts;
-using NaGaDeMon.Features.Inventory;
-using NaGaDeMon.Features.Player;
 
-namespace NaGaDeMon.Features.Inventory
+namespace Features.Inventory.Scripts
 {
     public interface IInteractable
     {

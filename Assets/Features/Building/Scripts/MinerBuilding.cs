@@ -1,12 +1,11 @@
-using UnityEngine;
-using NaGaDeMon.Features.Inventory;
 using System.Collections.Generic;
 using Features.Building.Scripts.Building_Inventory;
-using NaGaDeMon.Features.Building.Inventory;
-using NaGaDeMon.Features.Building.Production;
-using NaGaDeMon.Features.Environment;
+using Features.Building.Scripts.Production;
+using Features.Environment.Scripts;
+using Features.Inventory.Scripts;
+using UnityEngine;
 
-namespace NaGaDeMon.Features.Building
+namespace Features.Building.Scripts
 {
     public class MinerBuilding : MonoBehaviour, IHasProgress
     {

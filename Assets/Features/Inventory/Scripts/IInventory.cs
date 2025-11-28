@@ -1,4 +1,4 @@
-namespace NaGaDeMon.Features.Inventory
+namespace Features.Inventory.Scripts
 {
     public interface IInventory
     {

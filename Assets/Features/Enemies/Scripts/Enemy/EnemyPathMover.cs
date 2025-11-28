@@ -1,9 +1,8 @@
 // (everything else stays identical to your original file)
 
 using System.Collections.Generic;
-using NaGaDeMon.Features.Building;
-using NaGaDeMon.Features.Enemies;
-using NaGaDeMon.Features.Grid;
+using Features.Building.Scripts;
+using Features.Grid.Scripts;
 using UnityEngine;
 
 namespace Features.Enemies.Scripts.Enemy

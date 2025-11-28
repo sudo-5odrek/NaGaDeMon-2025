@@ -1,7 +1,7 @@
 using Features.Building.Scripts.Turrets.Bullets.Effect_Library;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Turrets.Bullets
+namespace Features.Building.Scripts.Turrets.Bullets
 {
     public class Bullet : MonoBehaviour
     {

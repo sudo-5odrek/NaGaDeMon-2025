@@ -1,7 +1,6 @@
-using NaGaDeMon.Features.Building;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building
+namespace Features.Building.Scripts
 {
     public class PlacedBuilding : MonoBehaviour
     {

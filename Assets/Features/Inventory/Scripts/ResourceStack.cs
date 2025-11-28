@@ -1,6 +1,4 @@
-using UnityEngine;
-
-namespace NaGaDeMon.Features.Inventory
+namespace Features.Inventory.Scripts
 {
     [System.Serializable]
     public struct ResourceStack

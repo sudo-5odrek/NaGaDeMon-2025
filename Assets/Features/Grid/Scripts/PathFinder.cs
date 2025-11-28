@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Grid
+namespace Features.Grid.Scripts
 {
     public static class Pathfinder
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Player
+namespace Features.Player.Scripts
 {
     public class CameraFollow2D : MonoBehaviour
     {

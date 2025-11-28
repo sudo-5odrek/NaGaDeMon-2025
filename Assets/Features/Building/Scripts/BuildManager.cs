@@ -1,11 +1,10 @@
+using Features.Grid.Scripts;
 using Features.Player.Scripts;
-using NaGaDeMon.Features.Grid;
-using NaGaDeMon.Features.Inventory;
 using NaGaDeMon.Features.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace NaGaDeMon.Features.Building
+namespace Features.Building.Scripts
 {
     public class BuildManager : MonoBehaviour
     {

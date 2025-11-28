@@ -1,5 +1,5 @@
-using NaGaDeMon.Features.Building;
-using NaGaDeMon.Features.Building.Turrets.Bullets;
+using Features.Building.Scripts;
+using Features.Building.Scripts.Turrets.Bullets;
 using NaGaDeMon.Features.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;

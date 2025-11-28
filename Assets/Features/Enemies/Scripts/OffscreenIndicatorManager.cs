@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using Features.Object_Pool_Service;
 using UnityEngine;
-using NaGaDeMon.Features.ObjectPoolService;
 
-namespace NaGaDeMon.Features.Enemies
+namespace Features.Enemies.Scripts
 {
     public class OffscreenIndicatorManager : MonoBehaviour
     {

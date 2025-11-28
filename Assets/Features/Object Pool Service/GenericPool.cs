@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.ObjectPoolService
+namespace Features.Object_Pool_Service
 {
     public class GenericPool<T> where T : Component
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Upgrade
+namespace Features.Building.Scripts.Upgrade
 {
     [CreateAssetMenu(menuName = "TD/Building Upgrade Data")]
     public class BuildingUpgradeData : ScriptableObject
