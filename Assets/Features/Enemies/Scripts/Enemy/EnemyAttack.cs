@@ -1,5 +1,5 @@
+using NaGaDeMon.Features.FloatingTextService;
 using UnityEngine;
-using Floating_Text_Service;
 
 namespace NaGaDeMon.Features.Enemies.Enemy
 {

@@ -1,4 +1,3 @@
-using Loot;
 using UnityEngine;
 
 namespace NaGaDeMon.Features.Inventory.Loot

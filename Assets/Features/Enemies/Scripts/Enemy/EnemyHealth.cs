@@ -1,4 +1,4 @@
-using Floating_Text_Service;
+using NaGaDeMon.Features.FloatingTextService;
 using UnityEngine;
 
 namespace NaGaDeMon.Features.Enemies.Enemy

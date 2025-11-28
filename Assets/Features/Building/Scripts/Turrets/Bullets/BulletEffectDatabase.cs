@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Building.Turrets.Bullets;
+using NaGaDeMon.Features.Building.Turrets.Bullets;
 using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 

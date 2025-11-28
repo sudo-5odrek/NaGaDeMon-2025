@@ -1,8 +1,8 @@
-using UnityEngine;
 using System.Collections.Generic;
 using NaGaDeMon.Features.Building;
-using Building.Turrets.Bullets;
+using NaGaDeMon.Features.Building.Turrets.Bullets;
 using NaGaDeMon.Features.Inventory;
+using UnityEngine;
 
 namespace NaGaDeMon.Features.Building.Turrets
 {
