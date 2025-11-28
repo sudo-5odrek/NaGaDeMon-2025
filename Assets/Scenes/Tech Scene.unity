@@ -237,53 +237,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy Wave Manager
       objectReference: {fileID: 0}
-    - target: {fileID: 2461467946598406934, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4252939630054739154, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
-      propertyPath: nexus
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 4252939630054739154, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
-      propertyPath: enemyPrefab
-      value: 
-      objectReference: {fileID: 3709453401263859751, guid: 6f3008d64f751b247962547a4f83f6ac, type: 3}
-    - target: {fileID: 4252939630054739154, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
-      propertyPath: spawnDistance
-      value: 30
-      objectReference: {fileID: 0}
-    - target: {fileID: 4252939630054739154, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
-      propertyPath: currentAttackMode
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 4252939630054739154, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2461467946598406934, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 177557128}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
---- !u!1 &177557127 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2461467946598406934, guid: 7c6a5e9132af13446848da8053d60dc4, type: 3}
-  m_PrefabInstance: {fileID: 177557126}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &177557128
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 177557127}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e339643551cad84f8810eaff3b0ca07, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waveData: {fileID: 11400000, guid: 6741bd8a5b832514aa8f859ed839d9a8, type: 2}
 --- !u!1001 &293870043
 PrefabInstance:
   m_ObjectHideFlags: 0
