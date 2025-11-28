@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Inventory
+namespace NaGaDeMon.Features.Building.Inventory
 {
     /// <summary>
     /// A flexible building inventory port that handles one specific item type.

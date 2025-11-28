@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Floating_Text_Service
+namespace NaGaDeMon.Features.FloatingTextService
 {
     public class FloatingTextService : MonoBehaviour
     {

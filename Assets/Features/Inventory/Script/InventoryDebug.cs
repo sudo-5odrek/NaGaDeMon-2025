@@ -1,7 +1,7 @@
-using Player;
+using NaGaDeMon.Features.Player;
 using UnityEngine;
 
-namespace Inventory
+namespace NaGaDeMon.Features.Inventory
 {
     public class InventoryDebug : MonoBehaviour
     {

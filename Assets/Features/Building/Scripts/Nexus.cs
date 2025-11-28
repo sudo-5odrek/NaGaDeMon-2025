@@ -1,29 +1,32 @@
 using UnityEngine;
 
-public class Nexus : MonoBehaviour
+namespace NaGaDeMon.Features.Building
 {
-    [Header("Stats")]
-    public int maxHP = 100;
-    public int currentHP;
-
-    void Awake()
+    public class Nexus : MonoBehaviour
     {
-        currentHP = maxHP;
-    }
+        [Header("Stats")]
+        public int maxHP = 100;
+        public int currentHP;
 
-    public void TakeDamage(int amount)
-    {
-        currentHP -= amount;
-        currentHP = Mathf.Max(currentHP, 0);
-        //Debug.Log($"Nexus HP: {currentHP}/{maxHP}");
+        void Awake()
+        {
+            currentHP = maxHP;
+        }
 
-        if (currentHP <= 0)
-            GameOver();
-    }
+        public void TakeDamage(int amount)
+        {
+            currentHP -= amount;
+            currentHP = Mathf.Max(currentHP, 0);
+            //Debug.Log($"Nexus HP: {currentHP}/{maxHP}");
 
-    void GameOver()
-    {
-        //Debug.Log("💀 GAME OVER — Nexus destroyed!");
-        // later: trigger UI, stop spawns, pause game, etc.
+            if (currentHP <= 0)
+                GameOver();
+        }
+
+        void GameOver()
+        {
+            //Debug.Log("💀 GAME OVER — Nexus destroyed!");
+            // later: trigger UI, stop spawns, pause game, etc.
+        }
     }
 }

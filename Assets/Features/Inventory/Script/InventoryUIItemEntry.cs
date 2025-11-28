@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Inventory
+namespace NaGaDeMon.Features.Inventory
 {
     public class InventoryUIItemEntry : MonoBehaviour
     {

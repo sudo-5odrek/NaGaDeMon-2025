@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UI.Indicators
+namespace NaGaDeMon.Features.Enemies
 {
     public class OffscreenIndicator : MonoBehaviour
     {

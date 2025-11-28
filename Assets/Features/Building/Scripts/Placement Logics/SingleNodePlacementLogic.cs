@@ -1,11 +1,10 @@
-using Building;
+using NaGaDeMon.Features.Building;
 using Building.Production;
-using Grid;
-using Interface;
+using NaGaDeMon.Features.Grid;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace Placement_Logics
+namespace NaGaDeMon.Features.Building.PlacementLogics
 {
     [CreateAssetMenu(menuName = "Game/Buildings/Placement/Single Node Only")]
     public class SingleNodePlacementLogic : ScriptableObject, IBuildPlacementLogic

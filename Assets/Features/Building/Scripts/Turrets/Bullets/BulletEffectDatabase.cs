@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Building.Turrets.Bullets;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace Building.Turrets
+namespace NaGaDeMon.Features.Building.Turrets.Bullets
 {
     [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Database")]
     public class BulletEffectDatabase : ScriptableObject

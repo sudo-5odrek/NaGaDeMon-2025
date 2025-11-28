@@ -1,8 +1,8 @@
 using UnityEngine;
-using Inventory;
+using NaGaDeMon.Features.Inventory;
 using System.Collections.Generic;
 
-namespace Building.Production
+namespace NaGaDeMon.Features.Building
 {
     public class MinerBuilding : MonoBehaviour, IHasProgress
     {

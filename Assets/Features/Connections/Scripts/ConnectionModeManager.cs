@@ -1,15 +1,13 @@
 using System.Collections.Generic;
-using Building;
-using Building.Conveyer;
-using Grid;
-using Interface;
-using Inventory;
-using Placement_Logics;
+using NaGaDeMon.Features.Building;
+using NaGaDeMon.Features.Grid;
+using NaGaDeMon.Features.Inventory;
+using NaGaDeMon.Features.Building.PlacementLogics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Player;
+using NaGaDeMon.Features.Player;
 
-namespace Connections
+namespace NaGaDeMon.Features.Connections
 {
     /// <summary>
     /// Handles conveyor placement mode:

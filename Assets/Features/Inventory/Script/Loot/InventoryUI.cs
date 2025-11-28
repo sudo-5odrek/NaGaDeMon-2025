@@ -1,8 +1,8 @@
-using Player;
+using NaGaDeMon.Features.Player;
 using TMPro;
 using UnityEngine;
 
-namespace Loot
+namespace NaGaDeMon.Features.Inventory.Loot
 {
     public class ContextUI : MonoBehaviour
     {
