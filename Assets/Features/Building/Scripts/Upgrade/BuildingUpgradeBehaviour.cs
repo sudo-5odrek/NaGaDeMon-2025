@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using Features.Building.Scripts.Building_Inventory;
+using NaGaDeMon.Features.Building.Inventory;
+using NaGaDeMon.Features.Building.Upgrade;
 using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Upgrade
+namespace Features.Building.Scripts.Upgrade
 {
     public class BuildingUpgradeBehaviour : MonoBehaviour
     {

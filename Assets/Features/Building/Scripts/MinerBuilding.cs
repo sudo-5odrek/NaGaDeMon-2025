@@ -1,6 +1,10 @@
 using UnityEngine;
 using NaGaDeMon.Features.Inventory;
 using System.Collections.Generic;
+using Features.Building.Scripts.Building_Inventory;
+using NaGaDeMon.Features.Building.Inventory;
+using NaGaDeMon.Features.Building.Production;
+using NaGaDeMon.Features.Environment;
 
 namespace NaGaDeMon.Features.Building
 {

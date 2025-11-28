@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Features.Building.Scripts.Building_Inventory;
+using Features.Building.Scripts.Upgrade;
 using NaGaDeMon.Features.Building;
 using NaGaDeMon.Features.Building.Upgrade;
 using NaGaDeMon.Features.Inventory;
@@ -164,7 +166,7 @@ namespace NaGaDeMon.Features.Building.Inventory
         /// <summary>
         /// Returns the first available input-compatible port.
         /// </summary>
-        public IInventoryAccess GetInput()
+        public BuildingInventoryPort GetInput()
         {
             return ports.Find(p =>
                 p.portType == BuildingInventoryPort.PortType.Input ||
@@ -199,7 +201,7 @@ namespace NaGaDeMon.Features.Building.Inventory
         /// <summary>
         /// Returns the first available output-compatible port.
         /// </summary>
-        public IInventoryAccess GetOutput()
+        public BuildingInventoryPort GetOutput()
         {
             return ports.Find(p =>
                 p.portType == BuildingInventoryPort.PortType.Output ||
@@ -291,7 +293,7 @@ namespace NaGaDeMon.Features.Building.Inventory
 
             foreach (var port in ports)
             {
-                var inv = port.RuntimeInventory;
+                var inv = port;
                 if (inv == null) continue;
 
                 string itemName = port.itemDefinition ? port.itemDefinition.displayName : "(unassigned)";

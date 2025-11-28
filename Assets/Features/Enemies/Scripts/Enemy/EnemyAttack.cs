@@ -1,7 +1,9 @@
+using NaGaDeMon.Features.Building;
+using NaGaDeMon.Features.Enemies.Enemy;
 using NaGaDeMon.Features.FloatingTextService;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Enemies.Enemy
+namespace Features.Enemies.Scripts.Enemy
 {
     [RequireComponent(typeof(EnemyPathMover))]
     public class EnemyAttack : MonoBehaviour

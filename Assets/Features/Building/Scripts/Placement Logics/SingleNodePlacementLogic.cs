@@ -3,6 +3,7 @@ using NaGaDeMon.Features.Building.Production;
 using NaGaDeMon.Features.Grid;
 using UnityEngine;
 using System.Collections.Generic;
+using NaGaDeMon.Features.Environment;
 
 namespace NaGaDeMon.Features.Building.PlacementLogics
 {

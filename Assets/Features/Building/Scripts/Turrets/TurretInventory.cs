@@ -1,6 +1,7 @@
 using UnityEngine;
+using NaGaDeMon.Features.Inventory;
 
-namespace NaGaDeMon.Features.Building.Turrets
+namespace Features.Building.Scripts.Turrets
 {
     [RequireComponent(typeof(Turret))]
     public class TurretInventory : MonoBehaviour
@@ -13,12 +14,12 @@ namespace NaGaDeMon.Features.Building.Turrets
         [Header("Debug")]
         [SerializeField] private float currentAmmo;
 
-        public Inventory.Inventory Inventory { get; private set; }
+        public NaGaDeMon.Features.Inventory.Inventory Inventory { get; private set; }
         private Turret turretController;
 
         private void Awake()
         {
-            Inventory = new Inventory.Inventory(maxAmmoCapacity);
+            Inventory = new NaGaDeMon.Features.Inventory.Inventory (maxAmmoCapacity);
             turretController = GetComponent<Turret>();
             Inventory.OnInventoryChanged += UpdateAmmo;
         }

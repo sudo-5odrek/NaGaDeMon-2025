@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using Features.Inventory.Scripts;
+using NaGaDeMon.Features.Building.Inventory;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Inventory
+namespace Features.Building.Scripts.Building_Inventory
 {
     /// <summary>
     /// A flexible building inventory port that handles one specific item type.
@@ -25,7 +29,7 @@ namespace NaGaDeMon.Features.Building.Inventory
         public float capacity = 20f;
         public float transferRate = 1f;
 
-        [NonSerialized] private global::Inventory.Inventory inventory;
+        [NonSerialized] private NaGaDeMon.Features.Inventory.Inventory inventory;
         
         public event Action<ItemDefinition, float> OnItemAdded;
         public event Action<ItemDefinition, float> OnItemRemoved;
@@ -36,19 +40,10 @@ namespace NaGaDeMon.Features.Building.Inventory
         public void Init()
         {
             if (inventory == null)
-                inventory = new Inventory(capacity);
+                inventory = new NaGaDeMon.Features.Inventory.Inventory(capacity);
 
             // Assign owner name + instance ID
             inventory.OwnerID = $"{parentBuilding.name}.{portName}#{parentBuilding.GetInstanceID()}";
-        }
-
-        public global::Inventory.Inventory RuntimeInventory
-        {
-            get
-            {
-                if (inventory == null) Init();
-                return inventory;
-            }
         }
 
         // --------------------------------------------------
@@ -63,6 +58,14 @@ namespace NaGaDeMon.Features.Building.Inventory
 
             // ✅ Otherwise, only accept the same item type
             return itemDefinition == item;
+        }
+        
+        /// <summary>
+        /// Returns all items stored in this port (itemDefinition → amount).
+        /// </summary>
+        public Dictionary<string, float> GetAll()
+        {
+            return inventory.GetAllRaw();
         }
 
         // --------------------------------------------------
@@ -125,6 +128,7 @@ namespace NaGaDeMon.Features.Building.Inventory
 
         public bool IsFull => !inventory.HasFreeSpace();
         public bool IsEmpty => inventory.IsEmpty();
+        public object RuntimeInventory { get; set; }
 
         // --------------------------------------------------
         // ITEM ACCESSOR

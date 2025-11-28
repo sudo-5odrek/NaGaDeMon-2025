@@ -1,3 +1,4 @@
+using Features.Enemies.Scripts.Enemy;
 using NaGaDeMon.Features.Enemies;
 using UnityEngine;
 

@@ -1,8 +1,10 @@
+using NaGaDeMon.Features.Building;
 using NaGaDeMon.Features.Building.Turrets.Bullets;
+using NaGaDeMon.Features.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace NaGaDeMon.Features.Player
+namespace Features.Player.Scripts
 {
     public class PlayerAttack : MonoBehaviour
     {

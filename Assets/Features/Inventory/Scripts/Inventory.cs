@@ -34,6 +34,14 @@ namespace NaGaDeMon.Features.Inventory
         {
             this.totalCapacity = totalCapacity;
         }
+        
+        /// <summary>
+        /// Exposes the underlying item dictionary (itemID → amount)
+        /// </summary>
+        public Dictionary<string, float> GetAllRaw()
+        {
+            return items;   // your internal dictionary
+        }
 
         // ------------------------------------------------------------
         //  CORE METHODS

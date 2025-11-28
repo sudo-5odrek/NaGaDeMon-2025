@@ -1,9 +1,11 @@
 using System.Collections;
+using NaGaDeMon.Features.Environment;
 using NaGaDeMon.Features.FloatingTextService;
 using NaGaDeMon.Features.Inventory;
+using NaGaDeMon.Features.Player;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Player
+namespace Features.Player.Scripts
 {
     [RequireComponent(typeof(Collider2D))]
     public class PlayerMiningController : MonoBehaviour

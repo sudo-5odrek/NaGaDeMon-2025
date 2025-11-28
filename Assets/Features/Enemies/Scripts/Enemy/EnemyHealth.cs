@@ -1,7 +1,8 @@
 using NaGaDeMon.Features.FloatingTextService;
+using NaGaDeMon.Features.Inventory.Loot;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Enemies.Enemy
+namespace Features.Enemies.Scripts.Enemy
 {
     public class EnemyHealth : MonoBehaviour
     {

@@ -1,10 +1,12 @@
 // (everything else stays identical to your original file)
+
 using System.Collections.Generic;
-using NaGaDeMon.Features.Grid;
+using NaGaDeMon.Features.Building;
 using NaGaDeMon.Features.Enemies;
+using NaGaDeMon.Features.Grid;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Enemies.Enemy
+namespace Features.Enemies.Scripts.Enemy
 {
     [ExecuteAlways]
     [RequireComponent(typeof(Rigidbody2D))]

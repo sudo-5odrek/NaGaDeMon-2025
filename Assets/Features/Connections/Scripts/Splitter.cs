@@ -1,8 +1,10 @@
-using UnityEngine;
-using NaGaDeMon.Features.Inventory;
 using System.Collections.Generic;
+using Features.Building.Scripts.Building_Inventory;
+using NaGaDeMon.Features.Building.Inventory;
+using NaGaDeMon.Features.Inventory;
+using UnityEngine;
 
-namespace NaGaDeMon.Features.Connections
+namespace Features.Connections.Scripts
 {
     public class Splitter : MonoBehaviour
     {

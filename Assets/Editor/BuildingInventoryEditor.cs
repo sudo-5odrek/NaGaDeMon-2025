@@ -1,11 +1,11 @@
+using NaGaDeMon.Features.Building.Inventory;
 using UnityEditor;
 using UnityEngine;
-using NaGaDeMon.Features.Inventory;
 
-namespace NaGaDeMon.Editor
+namespace Editor
 {
     [CustomEditor(typeof(BuildingInventory))]
-    public class BuildingInventoryEditor : Editor
+    public class BuildingInventoryEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
@@ -35,10 +35,9 @@ namespace NaGaDeMon.Editor
                 EditorGUILayout.LabelField($"Type: {port.portType}");
                 EditorGUILayout.LabelField($"Assigned Item: {port.itemDefinition?.displayName ?? "(unassigned)"}");
 
-                var runtimeInv = port.RuntimeInventory;
-                var dict = runtimeInv.GetAll();
+                var runtimeInv = port.GetAll();
 
-                if (dict.Count == 0)
+                if (runtimeInv.Count == 0)
                 {
                     EditorGUILayout.LabelField("Contents: (empty)");
                 }
@@ -47,7 +46,7 @@ namespace NaGaDeMon.Editor
                     EditorGUILayout.LabelField("Contents:");
                     EditorGUI.indentLevel++;
 
-                    foreach (var kvp in dict)
+                    foreach (var kvp in runtimeInv)
                     {
                         EditorGUILayout.LabelField($"• {kvp.Key}: {kvp.Value}");
                     }

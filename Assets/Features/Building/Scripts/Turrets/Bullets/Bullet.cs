@@ -1,4 +1,4 @@
-using NaGaDeMon.Features.Building.Turrets.Bullets.EffectLibrary;
+using Features.Building.Scripts.Turrets.Bullets.Effect_Library;
 using UnityEngine;
 
 namespace NaGaDeMon.Features.Building.Turrets.Bullets

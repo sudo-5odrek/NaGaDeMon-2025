@@ -1,8 +1,11 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Features.Enemies.Scripts.Enemy;
+using NaGaDeMon.Features.Building;
+using NaGaDeMon.Features.Enemies;
+using UnityEngine;
 
-namespace NaGaDeMon.Features.Enemies
+namespace Features.Enemies.Scripts
 {
     public class WaveManager : MonoBehaviour
     {
@@ -207,7 +210,7 @@ namespace NaGaDeMon.Features.Enemies
 
             GameObject enemyObj = Instantiate(prefab, spawnPos, Quaternion.identity);
 
-            var mover = enemyObj.GetComponent<Enemy.EnemyPathMover>();
+            var mover = enemyObj.GetComponent<EnemyPathMover>();
             if (mover != null)
             {
                 Transform nexus = FindNexus();

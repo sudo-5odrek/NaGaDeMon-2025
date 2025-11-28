@@ -1,8 +1,11 @@
 using System.Collections.Generic;
-using NaGaDeMon.Features.Inventory;
+using Features.Building.Scripts.Building_Inventory;
+using NaGaDeMon.Features.Building;
+using NaGaDeMon.Features.Building.Inventory;
+using NaGaDeMon.Features.Building.Production;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Production
+namespace Features.Building.Scripts.Production
 {
     /// <summary>
     /// Handles crafting logic for a production building using the unified BuildingInventory system.
@@ -205,14 +208,14 @@ namespace NaGaDeMon.Features.Building.Production
 
             foreach (var port in inputPorts)
             {
-                var inv = port.RuntimeInventory;
+                var inv = port;
                 foreach (var kvp in inv.GetAll())
                     inputDebugView.Add($"[{port.portName}] {kvp.Key}:{kvp.Value}");
             }
 
             foreach (var port in outputPorts)
             {
-                var inv = port.RuntimeInventory;
+                var inv = port;
                 foreach (var kvp in inv.GetAll())
                     outputDebugView.Add($"[{port.portName}] {kvp.Key}:{kvp.Value}");
             }
@@ -229,7 +232,7 @@ namespace NaGaDeMon.Features.Building.Production
             foreach (var port in inputPorts)
             {
                 label += $"IN {port.portName}: ";
-                foreach (var kvp in port.RuntimeInventory.GetAll())
+                foreach (var kvp in port.GetAll())
                     label += $"{kvp.Key}:{kvp.Value} ";
                 label += "\n";
             }
@@ -237,7 +240,7 @@ namespace NaGaDeMon.Features.Building.Production
             foreach (var port in outputPorts)
             {
                 label += $"OUT {port.portName}: ";
-                foreach (var kvp in port.RuntimeInventory.GetAll())
+                foreach (var kvp in port.GetAll())
                     label += $"{kvp.Key}:{kvp.Value} ";
                 label += "\n";
             }

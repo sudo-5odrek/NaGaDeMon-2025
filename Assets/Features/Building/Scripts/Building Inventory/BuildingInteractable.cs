@@ -1,3 +1,5 @@
+using Features.Building.Scripts.Building_Inventory;
+using Features.Player.Scripts;
 using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 using NaGaDeMon.Features.Player;

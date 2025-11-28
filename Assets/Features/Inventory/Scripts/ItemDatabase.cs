@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using NaGaDeMon.Features.Inventory;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Inventory
+namespace Features.Inventory.Scripts
 {
     [CreateAssetMenu(
         fileName = "ItemDatabase",

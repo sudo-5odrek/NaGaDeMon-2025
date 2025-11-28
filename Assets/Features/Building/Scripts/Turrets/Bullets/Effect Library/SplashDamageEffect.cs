@@ -1,7 +1,9 @@
-using NaGaDeMon.Features.Enemies;
+using Features.Enemies.Scripts.Enemy;
+using NaGaDeMon.Features.Building.Turrets.Bullets;
+using NaGaDeMon.Features.Enemies.Enemy;
 using UnityEngine;
 
-namespace NaGaDeMon.Features.Building.Turrets.Bullets.EffectLibrary
+namespace Features.Building.Scripts.Turrets.Bullets.Effect_Library
 {
     [CreateAssetMenu(menuName = "Game/Combat/Bullet Effects/Splash Damage")]
     public class SplashDamageEffect : BulletEffect

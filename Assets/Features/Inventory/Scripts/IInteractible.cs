@@ -1,3 +1,4 @@
+using Features.Player.Scripts;
 using NaGaDeMon.Features.Inventory;
 using NaGaDeMon.Features.Player;
 
